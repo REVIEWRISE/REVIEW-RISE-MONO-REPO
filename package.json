@@ -1,6 +1,11 @@
 {
   "name": "platform-root",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "packages/**/*"
+  ],
   "scripts": {
     "dev:all": "pnpm --parallel --filter \"./apps/*\" run dev",
     "build:all": "pnpm -r run build",
