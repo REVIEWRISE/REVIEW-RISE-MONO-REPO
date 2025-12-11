@@ -10,9 +10,11 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^7.1.0"
+    "@prisma/client": "^7.1.0",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
+    "@types/node": "^25.0.0",
     "prisma": "^7.1.0",
     "typescript": "^5.3.3"
   }
