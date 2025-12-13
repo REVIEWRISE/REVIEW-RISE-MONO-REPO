@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import { prisma } from '@platform/db';
+import authRoutes from '../routes/v1/auth.routes';
 
 dotenv.config();
 
@@ -14,6 +15,8 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
+
+app.use('/api/v1/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Express Auth Service is running' });
