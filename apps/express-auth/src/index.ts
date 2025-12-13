@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import { prisma } from '@platform/db';
-import { generateToken, canManageBilling, assignRoleToUser, ROLES } from '@platform/auth';
+import { generateToken } from '@platform/auth';
 
 dotenv.config();
 
@@ -39,7 +39,6 @@ app.get('/rbac-test', async (req, res) => {
     try {
         // Mock data
         const userId = 'test-user-' + Date.now();
-        const businessId = 'test-biz-' + Date.now();
         const email = 'test@example.com';
 
         // NOTE: In a real flow, we'd ensure User and Business exist first. 
@@ -60,5 +59,6 @@ app.get('/rbac-test', async (req, res) => {
 });
 
 app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`Auth service running on port ${PORT}`);
 });
