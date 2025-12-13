@@ -1,7 +1,7 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import type { Request, Response } from 'express';
 
-const loginKeyGenerator = (req: Request, res: Response): string => {
+const loginKeyGenerator = (req: Request, _res: Response): string => {
     const ip = req.ip ? ipKeyGenerator(req.ip) : '';
     const email = (req.body && typeof req.body.email === 'string') ? req.body.email : '';
     return ip + email;
@@ -27,7 +27,7 @@ export const createUserLimiter = rateLimit({
 });
 
 // POST /password-reset/*: IP + token, Max 5 / hour per token
-const passwordResetKeyGenerator = (req: Request, res: Response): string => {
+const passwordResetKeyGenerator = (req: Request, _res: Response): string => {
     const ip = req.ip ? ipKeyGenerator(req.ip) : ''
     const token =
         typeof req.body?.token === 'string' ? req.body.token : ''
@@ -63,7 +63,7 @@ export const refreshTokenLimiter = rateLimit({
 });
 
 // POST /verify-email: IP + token, Max 5 requests / hour per token
-const verifyEmailKeyGenerator = (req: Request, res: Response): string => {
+const verifyEmailKeyGenerator = (req: Request, _res: Response): string => {
     const ip = req.ip ? ipKeyGenerator(req.ip) : ''
     const token =
         typeof req.body?.token === 'string' ? req.body.token : ''

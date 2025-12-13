@@ -216,6 +216,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
 
         // Mock sending email
+        // eslint-disable-next-line no-console
         console.log(`[MOCK EMAIL] Password reset token for ${email}: ${token}`);
         // In a real app: await sendEmail(user.email, "Password Reset", `Use this token: ${token}`);
 
