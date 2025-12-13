@@ -1,10 +1,24 @@
 {
   "name": "platform-root",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "packages/**/*"
+  ],
   "scripts": {
     "dev:all": "pnpm --parallel --filter \"./apps/*\" run dev",
+    "build:all": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "esbuild",
+      "prisma",
+      "sharp"
+    ]
   },
   "devDependencies": {
     "typescript": "^5.3.3",
