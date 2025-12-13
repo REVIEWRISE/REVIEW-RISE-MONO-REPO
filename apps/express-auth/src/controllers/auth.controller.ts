@@ -152,3 +152,100 @@ export const refreshToken = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (!user) {
+            // Return success even if user not found to prevent enumeration
+            return res.json({ message: 'A password reset email has been sent.' });
+        }
+
+        // Generate reset token
+        const token = crypto.randomUUID();
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
+
+        // Save token to database
+        // Note: We might need to handle cleanup of old tokens or make sure email is unique in the reset token table if we want only one active token
+        // For now, simple create is fine, or we could delete existing ones for this email first
+        await prisma.passwordResetToken.create({
+            data: {
+                email,
+                token,
+                expires: expiresAt
+            }
+        });
+
+        // Mock sending email
+        console.log(`[MOCK EMAIL] Password reset token for ${email}: ${token}`);
+        // In a real app: await sendEmail(user.email, "Password Reset", `Use this token: ${token}`);
+
+        res.json({ message: 'A password reset email has been sent.' });
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+        return res.status(400).json({ message: 'Token and new password are required' });
+    }
+
+    try {
+        const resetToken = await prisma.passwordResetToken.findUnique({
+            where: { token },
+        });
+
+        if (!resetToken) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        if (resetToken.expires < new Date()) {
+            await prisma.passwordResetToken.delete({ where: { id: resetToken.id } });
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email: resetToken.email }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'User no longer exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword }
+        });
+
+        // Delete the used token
+        await prisma.passwordResetToken.delete({
+            where: { id: resetToken.id }
+        });
+
+        // Optional: Delete all other tokens for this email?
+        // await prisma.passwordResetToken.deleteMany({ where: { email: resetToken.email } });
+
+        res.json({ message: 'Password reset successful' });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

@@ -137,3 +137,14 @@ model Subscription {
 
   @@index([businessId])
 }
+
+model PasswordResetToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
