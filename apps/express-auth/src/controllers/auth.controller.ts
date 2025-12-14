@@ -1,6 +1,12 @@
 import { Request, Response } from 'express';
-import { prisma } from '@platform/db';
+import { createSuccessResponse, createErrorResponse, ErrorCode } from '@platform/contracts';
+import { userRepository } from '@platform/db';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import { z } from 'zod';
+import { registerSchema } from '../validations/auth.validation';
+
+dotenv.config({ path: '../../.env' });
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
@@ -13,50 +19,46 @@ if (!JWT_SECRET) {
 }
 
 export const register = async (req: Request, res: Response) => {
-    const { email, password, firstName, lastName } = req.body;
-
-    const missingFields = [];
-    if (!email) missingFields.push("email");
-    if (!password) missingFields.push("password");
-    if (!firstName) missingFields.push("firstName");
-    if (!lastName) missingFields.push("lastName");
-    if (missingFields.length > 0) {
-        return res.status(400).json({
-            message: `Missing required fields: ${missingFields.join(", ")}`,
-            missingFields
-        });
-    }
-
     try {
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
+        // Validate and normalize input using Zod
+        // This will throw if validation fails
+        const { email, password, firstName, lastName } = registerSchema.parse(req.body);
+
+        const existingUser = await userRepository.findByEmail(email);
 
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            return res.status(400).json(
+                createErrorResponse('User already exists', ErrorCode.BAD_REQUEST, 400)
+            );
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                name: `${firstName} ${lastName}`,
-                userRoles: {
-                    create: {
-                        role: {
-                            connect: { id: "a7477029-bf31-4100-9b5b-78915742e451" },
-                        },
-                    },
-                }
-            },
+        const user = await userRepository.createCustomer({
+            email,
+            password: hashedPassword,
+            name: `${firstName} ${lastName}`,
         });
 
-        res.status(201).json({ message: 'User created successfully', userId: user.id });
+        res.status(201).json(
+            createSuccessResponse({ userId: user.id }, 'User created successfully', 201)
+        );
     } catch (error) {
+        if (error instanceof z.ZodError) {
+            const validationErrors = error.issues.map(e => ({
+                field: e.path.join('.'),
+                message: e.message
+            }));
+
+            return res.status(400).json(
+                createErrorResponse('Validation failed', ErrorCode.BAD_REQUEST, 400, validationErrors)
+            );
+        }
+
         console.error('Registration error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json(
+            createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+        );
     }
 };
 
