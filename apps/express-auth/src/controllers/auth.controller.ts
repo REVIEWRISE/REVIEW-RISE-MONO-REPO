@@ -7,14 +7,43 @@ import { registerSchema } from '../validations/auth.validation';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { sendVerificationEmail } from '../services/email.service';
 dotenv.config({ path: '../../../../.env' });
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const NOTIFICATIONS_SERVICE_URL = process.env.NOTIFICATIONS_SERVICE_URL;
 
 if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
 }
+
+if (!NOTIFICATIONS_SERVICE_URL) {
+    throw new Error("NOTIFICATIONS_SERVICE_URL is not defined in environment variables");
+}
+
+const sendVerificationEmail = async (email: string, token: string): Promise<void> => {
+    try {
+        const response = await fetch(`${NOTIFICATIONS_SERVICE_URL}/api/email/verification`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, token }),
+        });
+
+        const data = await response.json();
+
+        // Check contract response format: { success, data, message }
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || `Notifications service responded with status: ${response.status}`);
+        }
+
+        console.log('✅ Verification email sent successfully via notifications service');
+    } catch (error) {
+        console.error('❌ Failed to send verification email:', error);
+        // Don't throw - we don't want email failures to block user registration
+        // In production, you might want to queue this for retry
+    }
+};
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -273,9 +302,6 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * Verify email with token
- */
 export const verifyEmail = async (req: Request, res: Response) => {
     const { token } = req.body;
 
@@ -336,9 +362,6 @@ export const verifyEmail = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * Resend verification email
- */
 export const resendVerificationEmail = async (req: Request, res: Response) => {
     const { email } = req.body;
 
