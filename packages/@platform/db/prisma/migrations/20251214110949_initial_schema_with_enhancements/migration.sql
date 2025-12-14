@@ -1,13 +1,12 @@
--- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 -- CreateTable
 CREATE TABLE "User" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT,
+    "phone" TEXT,
     "emailVerified" TIMESTAMP(3),
     "image" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'active',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -17,19 +16,26 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Session" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "sessionToken" TEXT NOT NULL,
-    "userId" UUID NOT NULL,
+    "userId" TEXT NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Business" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "description" TEXT,
+    "phone" TEXT,
+    "email" TEXT,
+    "website" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'active',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -39,10 +45,16 @@ CREATE TABLE "Business" (
 
 -- CreateTable
 CREATE TABLE "Location" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "address" TEXT,
-    "businessId" UUID NOT NULL,
+    "city" TEXT,
+    "state" TEXT,
+    "zipCode" TEXT,
+    "country" TEXT DEFAULT 'US',
+    "phone" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "businessId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -52,7 +64,7 @@ CREATE TABLE "Location" (
 
 -- CreateTable
 CREATE TABLE "Role" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -63,7 +75,7 @@ CREATE TABLE "Role" (
 
 -- CreateTable
 CREATE TABLE "Permission" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" TEXT NOT NULL,
     "action" TEXT NOT NULL,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -74,19 +86,18 @@ CREATE TABLE "Permission" (
 
 -- CreateTable
 CREATE TABLE "RolePermission" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "roleId" UUID NOT NULL,
-    "permissionId" UUID NOT NULL,
+    "roleId" TEXT NOT NULL,
+    "permissionId" TEXT NOT NULL,
 
-    CONSTRAINT "RolePermission_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "RolePermission_pkey" PRIMARY KEY ("roleId","permissionId")
 );
 
 -- CreateTable
 CREATE TABLE "UserBusinessRole" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "userId" UUID NOT NULL,
-    "businessId" UUID NOT NULL,
-    "roleId" UUID NOT NULL,
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "businessId" TEXT NOT NULL,
+    "roleId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -96,11 +107,15 @@ CREATE TABLE "UserBusinessRole" (
 
 -- CreateTable
 CREATE TABLE "Subscription" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "businessId" UUID NOT NULL,
+    "id" TEXT NOT NULL,
+    "businessId" TEXT NOT NULL,
     "plan" TEXT NOT NULL,
     "status" TEXT NOT NULL,
     "currentPeriodEnd" TIMESTAMP(3) NOT NULL,
+    "stripeSubscriptionId" TEXT,
+    "stripeCustomerId" TEXT,
+    "trialEndsAt" TIMESTAMP(3),
+    "canceledAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -115,6 +130,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE INDEX "User_email_idx" ON "User"("email");
 
 -- CreateIndex
+CREATE INDEX "User_status_idx" ON "User"("status");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
 
 -- CreateIndex
@@ -127,22 +145,19 @@ CREATE UNIQUE INDEX "Business_slug_key" ON "Business"("slug");
 CREATE INDEX "Business_name_idx" ON "Business"("name");
 
 -- CreateIndex
+CREATE INDEX "Business_status_idx" ON "Business"("status");
+
+-- CreateIndex
 CREATE INDEX "Location_businessId_idx" ON "Location"("businessId");
+
+-- CreateIndex
+CREATE INDEX "Location_businessId_status_idx" ON "Location"("businessId", "status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Permission_action_key" ON "Permission"("action");
-
--- CreateIndex
-CREATE INDEX "RolePermission_roleId_idx" ON "RolePermission"("roleId");
-
--- CreateIndex
-CREATE INDEX "RolePermission_permissionId_idx" ON "RolePermission"("permissionId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "RolePermission_roleId_permissionId_key" ON "RolePermission"("roleId", "permissionId");
 
 -- CreateIndex
 CREATE INDEX "UserBusinessRole_userId_idx" ON "UserBusinessRole"("userId");
@@ -154,7 +169,16 @@ CREATE INDEX "UserBusinessRole_businessId_idx" ON "UserBusinessRole"("businessId
 CREATE UNIQUE INDEX "UserBusinessRole_userId_businessId_roleId_key" ON "UserBusinessRole"("userId", "businessId", "roleId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Subscription_stripeSubscriptionId_key" ON "Subscription"("stripeSubscriptionId");
+
+-- CreateIndex
 CREATE INDEX "Subscription_businessId_idx" ON "Subscription"("businessId");
+
+-- CreateIndex
+CREATE INDEX "Subscription_status_idx" ON "Subscription"("status");
+
+-- CreateIndex
+CREATE INDEX "Subscription_stripeSubscriptionId_idx" ON "Subscription"("stripeSubscriptionId");
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
