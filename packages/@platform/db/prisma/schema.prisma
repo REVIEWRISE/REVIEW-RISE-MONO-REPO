@@ -1,13 +1,9 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
-  engineType = "library"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [pgcrypto]
 }
 
 model Account {
@@ -49,6 +45,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   userRoles     UserRole[]
+  userBusinessRoles UserBusinessRole[]
 }
 
 model UserRole {
@@ -68,20 +65,28 @@ model Business {
   id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
   slug          String             @unique
+  description   String?
+  phone         String?
+  email         String?
+  website       String?
+  status        String             @default("active")
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   deletedAt     DateTime?
   locations     Location[]
   subscriptions Subscription[]
+  userBusinessRoles UserBusinessRole[]
 
 
   @@index([name])
+  @@index([status])
 }
 
 model Location {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name       String
   address    String?
+  status     String    @default("active")
   businessId String    @db.Uuid
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -89,6 +94,7 @@ model Location {
   business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
+  @@index([businessId, status])
 }
 
 model Role {
@@ -99,6 +105,7 @@ model Role {
   updatedAt   DateTime           @updatedAt
   permissions RolePermission[]
   userRoles   UserRole[]
+  userBusinessRoles UserBusinessRole[]
 }
 
 
@@ -136,6 +143,23 @@ model Subscription {
   deletedAt        DateTime?
   business         Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
+  @@index([businessId])
+}
+
+model UserBusinessRole {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @db.Uuid
+  businessId String    @db.Uuid
+  roleId     String    @db.Uuid
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, businessId, roleId])
+  @@index([userId])
   @@index([businessId])
 }
 
