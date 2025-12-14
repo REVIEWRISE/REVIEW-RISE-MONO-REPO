@@ -176,6 +176,9 @@ importers:
       '@platform/auth':
         specifier: workspace:*
         version: link:../../packages/@platform/auth
+      '@platform/contracts':
+        specifier: workspace:*
+        version: link:../../packages/@platform/contracts
       '@platform/db':
         specifier: workspace:*
         version: link:../../packages/@platform/db
@@ -707,6 +710,10 @@ importers:
         version: 16.4.7
       prisma:
         specifier: ^7.1.0
+        version: 7.1.0(@types/react@19.2.6)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
         version: 7.1.0(@types/react@19.2.6)(react-dom@19.2.0)(react@19.2.0)(typescript@5.9.3)
       typescript:
         specifier: ^5.3.3
