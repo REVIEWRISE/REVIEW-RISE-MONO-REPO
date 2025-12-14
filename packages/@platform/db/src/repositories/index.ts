@@ -19,6 +19,9 @@ export { LocationRepository, locationRepository } from './location.repository';
 export { RoleRepository, roleRepository } from './role.repository';
 export { PermissionRepository, permissionRepository } from './permission.repository';
 export { SubscriptionRepository, subscriptionRepository } from './subscription.repository';
+export { SessionRepository, sessionRepository } from './session.repository';
+export { PasswordResetTokenRepository, passwordResetTokenRepository } from './password-reset-token.repository';
+export { EmailVerificationTokenRepository, emailVerificationTokenRepository } from './email-verification-token.repository';
 
 // Import repositories for the convenience object
 import { userRepository } from './user.repository';
@@ -27,6 +30,9 @@ import { locationRepository } from './location.repository';
 import { roleRepository } from './role.repository';
 import { permissionRepository } from './permission.repository';
 import { subscriptionRepository } from './subscription.repository';
+import { sessionRepository } from './session.repository';
+import { passwordResetTokenRepository } from './password-reset-token.repository';
+import { emailVerificationTokenRepository } from './email-verification-token.repository';
 
 // Re-export all repositories as a single object for convenience
 export const repositories = {
@@ -36,5 +42,8 @@ export const repositories = {
     role: roleRepository,
     permission: permissionRepository,
     subscription: subscriptionRepository,
+    session: sessionRepository,
+    passwordResetToken: passwordResetTokenRepository,
+    emailVerificationToken: emailVerificationTokenRepository,
 } as const;
 

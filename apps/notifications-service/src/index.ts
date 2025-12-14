@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import emailRoutes from './routes/email.routes';
 
 dotenv.config();
 
@@ -20,6 +21,9 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'notifications-service' });
 });
 
+// Email routes
+app.use('/api/email', emailRoutes);
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Notifications Service is running on port ${PORT}`);
 });
