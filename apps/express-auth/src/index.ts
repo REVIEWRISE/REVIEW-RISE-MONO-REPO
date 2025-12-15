@@ -53,6 +53,7 @@ app.get('/db-test', async (req, res) => {
         );
         res.status(response.statusCode).json(response);
     } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Database connection error:', error);
         const response = createErrorResponse(
             'Database connection failed',

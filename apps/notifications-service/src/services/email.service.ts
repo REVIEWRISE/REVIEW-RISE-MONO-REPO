@@ -16,12 +16,14 @@ interface EmailOptions {
  * Replace this function with real email sending logic when ready
  */
 const sendEmail = async (options: EmailOptions): Promise<void> => {
+    /* eslint-disable no-console */
     console.log('\n📧 ===== EMAIL SENT =====');
     console.log('To:', options.to);
     console.log('Subject:', options.subject);
     console.log('Body:');
     console.log(options.html);
     console.log('========================\n');
+    /* eslint-enable no-console */
 
     // Simulate async email sending
     return Promise.resolve();
