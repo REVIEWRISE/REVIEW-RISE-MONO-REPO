@@ -86,6 +86,7 @@ model Location {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name       String
   address    String?
+  status     String    @default("active")
   businessId String    @db.Uuid
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -163,4 +164,14 @@ model Subscription {
   @@index([businessId])
   @@index([status])
   @@index([stripeSubscriptionId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
 }

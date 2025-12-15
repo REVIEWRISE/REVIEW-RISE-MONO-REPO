@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { createSuccessResponse, createErrorResponse, ErrorCode } from '@platform/contracts';
-import { userRepository, sessionRepository } from '@platform/db';
+import { userRepository, sessionRepository, passwordResetTokenRepository } from '@platform/db';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { registerSchema } from '../validations/auth.validation';
@@ -155,6 +155,104 @@ export const refreshToken = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Refresh token error:', error);
+        res.status(500).json(
+            createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+        );
+    }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json(
+            createErrorResponse('Email is required', ErrorCode.BAD_REQUEST, 400)
+        );
+    }
+
+    try {
+        const user = await userRepository.findByEmail(email);
+
+        if (!user) {
+            // Return success even if user not found to prevent enumeration
+            return res.status(200).json(
+                createSuccessResponse(null, 'A password reset email has been sent.')
+            );
+        }
+
+        // Generate reset token
+        const token = crypto.randomUUID();
+        const expires = new Date();
+        expires.setHours(expires.getHours() + 1); // 1 hour expiry
+
+        // Save token to database
+        await passwordResetTokenRepository.createToken({
+            email,
+            token,
+            expires
+        });
+
+        // Mock sending email
+        console.log(`[MOCK EMAIL] Password reset token for ${email}: ${token}`);
+        // In a real app: await sendEmail(user.email, "Password Reset", `Use this token: ${token}`);
+
+        res.status(200).json(
+            createSuccessResponse(null, 'A password reset email has been sent.')
+        );
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json(
+            createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+        );
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+        return res.status(400).json(
+            createErrorResponse('Token and new password are required', ErrorCode.BAD_REQUEST, 400)
+        );
+    }
+
+    try {
+        const resetToken = await passwordResetTokenRepository.findByToken(token);
+
+        if (!resetToken) {
+            return res.status(400).json(
+                createErrorResponse('Invalid or expired token', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        if (resetToken.expires < new Date()) {
+            await passwordResetTokenRepository.deleteToken(resetToken.id);
+            return res.status(400).json(
+                createErrorResponse('Invalid or expired token', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        const user = await userRepository.findByEmail(resetToken.email);
+
+        if (!user) {
+            return res.status(400).json(
+                createErrorResponse('User no longer exists', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await userRepository.updatePassword(user.id, hashedPassword);
+
+        // Delete the used token
+        await passwordResetTokenRepository.deleteToken(resetToken.id);
+
+        res.status(200).json(
+            createSuccessResponse(null, 'Password reset successful')
+        );
+
+    } catch (error) {
+        console.error('Reset password error:', error);
         res.status(500).json(
             createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500)
         );
