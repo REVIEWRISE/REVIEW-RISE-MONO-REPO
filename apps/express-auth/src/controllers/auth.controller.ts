@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { createSuccessResponse, createErrorResponse, ErrorCode } from '@platform/contracts';
-import { userRepository, sessionRepository, passwordResetTokenRepository } from '@platform/db';
+import { userRepository, sessionRepository, passwordResetTokenRepository, emailVerificationTokenRepository } from '@platform/db';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { registerSchema } from '../validations/auth.validation';
@@ -10,10 +10,40 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '../../../../.env' });
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const NOTIFICATIONS_SERVICE_URL = process.env.NOTIFICATIONS_SERVICE_URL;
 
 if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
 }
+
+if (!NOTIFICATIONS_SERVICE_URL) {
+    throw new Error("NOTIFICATIONS_SERVICE_URL is not defined in environment variables");
+}
+
+const sendVerificationEmail = async (email: string, token: string): Promise<void> => {
+    try {
+        const response = await fetch(`${NOTIFICATIONS_SERVICE_URL}/api/email/verification`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, token }),
+        });
+
+        const data = await response.json();
+
+        // Check contract response format: { success, data, message }
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || `Notifications service responded with status: ${response.status}`);
+        }
+
+        console.log('✅ Verification email sent successfully via notifications service');
+    } catch (error) {
+        console.error('❌ Failed to send verification email:', error);
+        // Don't throw - we don't want email failures to block user registration
+        // In production, you might want to queue this for retry
+    }
+};
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -82,6 +112,14 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json(
                 createErrorResponse('Invalid credentials', ErrorCode.UNAUTHORIZED, 401)
             );
+        }
+
+        // Check if email is verified
+        if (!user.emailVerified) {
+            return res.status(403).json({
+                message: 'Please verify your email before logging in. Check your inbox for the verification link.',
+                requiresVerification: true
+            });
         }
 
         // Generate Access Token (JWT)
@@ -253,6 +291,121 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Reset password error:', error);
+        res.status(500).json(
+            createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+        );
+    }
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(400).json(
+            createErrorResponse('Verification token is required', ErrorCode.BAD_REQUEST, 400)
+        );
+    }
+
+    try {
+        const verificationToken = await emailVerificationTokenRepository.findByToken(token);
+
+        if (!verificationToken) {
+            return res.status(400).json(
+                createErrorResponse('Invalid or expired verification token', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        if (verificationToken.expires < new Date()) {
+            await emailVerificationTokenRepository.deleteToken(verificationToken.id);
+            return res.status(400).json(
+                createErrorResponse('Verification token has expired. Please request a new one.', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        const user = await userRepository.findByEmail(verificationToken.email);
+
+        if (!user) {
+            return res.status(400).json(
+                createErrorResponse('User not found', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        if (user.emailVerified) {
+            return res.status(400).json(
+                createErrorResponse('Email is already verified', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        // Update user's emailVerified field
+        await userRepository.verifyEmail(user.id);
+
+        // Delete the used token
+        await emailVerificationTokenRepository.deleteToken(verificationToken.id);
+
+        // Delete all other verification tokens for this email
+        await emailVerificationTokenRepository.deleteByEmail(verificationToken.email);
+
+        res.status(200).json(
+            createSuccessResponse({}, 'Email verified successfully! You can now log in.')
+        );
+
+    } catch (error) {
+        console.error('Email verification error:', error);
+        res.status(500).json(
+            createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+        );
+    }
+};
+
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json(
+            createErrorResponse('Email is required', ErrorCode.BAD_REQUEST, 400)
+        );
+    }
+
+    try {
+        const user = await userRepository.findByEmail(email);
+
+        if (!user) {
+            // Return success even if user not found to prevent enumeration
+            return res.status(200).json(
+                createSuccessResponse({}, 'If an account exists with this email, a verification email has been sent.')
+            );
+        }
+
+        if (user.emailVerified) {
+            return res.status(400).json(
+                createErrorResponse('Email is already verified', ErrorCode.BAD_REQUEST, 400)
+            );
+        }
+
+        // Delete any existing verification tokens for this email
+        await emailVerificationTokenRepository.deleteByEmail(email);
+
+        // Generate new verification token
+        const verificationToken = crypto.randomUUID();
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours expiry
+
+        // Save verification token to database
+        await emailVerificationTokenRepository.createToken({
+            email,
+            token: verificationToken,
+            expires: expiresAt
+        });
+
+        // Send verification email
+        await sendVerificationEmail(email, verificationToken);
+
+        res.status(200).json(
+            createSuccessResponse({}, 'Verification email has been sent. Please check your inbox.')
+        );
+
+    } catch (error) {
+        console.error('Resend verification error:', error);
         res.status(500).json(
             createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500)
         );
