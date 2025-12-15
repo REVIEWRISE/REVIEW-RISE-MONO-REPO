@@ -186,8 +186,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
         expires.setHours(expires.getHours() + 1); // 1 hour expiry
 
         // Save token to database
-        // Note: We might need to handle cleanup of old tokens or make sure email is unique in the reset token table if we want only one active token
-        // For now, simple create is fine, or we could delete existing ones for this email first
         await passwordResetTokenRepository.createToken({
             email,
             token,
@@ -248,9 +246,6 @@ export const resetPassword = async (req: Request, res: Response) => {
 
         // Delete the used token
         await passwordResetTokenRepository.deleteToken(resetToken.id);
-
-        // Optional: Delete all other tokens for this email?
-        // await prisma.passwordResetToken.deleteMany({ where: { email: resetToken.email } });
 
         res.status(200).json(
             createSuccessResponse(null, 'Password reset successful')
