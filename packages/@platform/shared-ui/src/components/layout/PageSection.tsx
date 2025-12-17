@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react';
-import Box, { BoxProps } from '@mui/material/Box';
+
+import type { BoxProps } from '@mui/material/Box';
+import Box from '@mui/material/Box';
 
 interface PageSectionProps extends Omit<BoxProps, 'maxWidth'> {
     children: ReactNode;
     maxWidth?: boolean | number;
 }
 
-const PageSection = ({ children, maxWidth = false, sx, ...props }: PageSectionProps) => {
+const PageSection = ({ children, maxWidth: _maxWidth, sx, ...props }: PageSectionProps) => {
     return (
         <Box
             component="section"

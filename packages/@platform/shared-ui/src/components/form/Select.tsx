@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { FormHelperText, MenuItem } from '@mui/material';
 import { useField, useFormikContext } from 'formik';
-import { TextFieldProps } from '@mui/material/TextField';
+import type { TextFieldProps } from '@mui/material/TextField';
+
 import BaseTextField from './BaseTextField';
 
 interface SelectProps extends Omit<TextFieldProps, 'name'> {

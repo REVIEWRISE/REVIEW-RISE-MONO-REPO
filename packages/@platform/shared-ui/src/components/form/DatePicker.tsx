@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { FormHelperText, InputAdornment } from '@mui/material';
 import { useField, useFormikContext } from 'formik';
-import { TextFieldProps } from '@mui/material/TextField';
+import type { TextFieldProps } from '@mui/material/TextField';
+
 import BaseTextField from './BaseTextField';
 
 interface DatePickerProps extends Omit<TextFieldProps, 'name'> {

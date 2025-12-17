@@ -1,7 +1,9 @@
 import React from 'react';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import { DataGrid, GridColDef, GridPaginationModel, DataGridProps } from '@mui/x-data-grid';
+import type { GridColDef, GridPaginationModel, DataGridProps } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 
 export interface PaginationModel {
     page: number;

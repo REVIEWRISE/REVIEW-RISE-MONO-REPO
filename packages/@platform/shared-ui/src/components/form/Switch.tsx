@@ -1,9 +1,11 @@
 import React from 'react';
+
 import { useField, useFormikContext } from 'formik';
+import type { SwitchProps as MuiSwitchProps } from '@mui/material/Switch';
 import SwitchMUI from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
-import { SwitchProps as MuiSwitchProps } from '@mui/material/Switch';
+
 
 interface SwitchProps extends Omit<MuiSwitchProps, 'name'> {
     name: string;

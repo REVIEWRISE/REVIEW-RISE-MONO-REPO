@@ -1,7 +1,9 @@
 import { forwardRef } from 'react'
+
 import { styled } from '@mui/material/styles'
-import TextField, { TextFieldProps } from '@mui/material/TextField'
-import { InputLabelProps } from '@mui/material/InputLabel'
+import type { TextFieldProps } from '@mui/material/TextField';
+import TextField from '@mui/material/TextField'
+import type { InputLabelProps } from '@mui/material/InputLabel'
 
 const TextFieldStyled = styled(TextField)<TextFieldProps>(({ theme }) => ({
     '& .MuiInputLabel-root': {
@@ -58,6 +60,7 @@ const TextFieldStyled = styled(TextField)<TextFieldProps>(({ theme }) => ({
             backgroundColor: 'var(--mui-palette-action-hover) !important'
         }
     },
+
     // Adornments
     '& .MuiInputAdornment-root': {
         marginBlockStart: '0px !important',
@@ -77,6 +80,7 @@ const TextFieldStyled = styled(TextField)<TextFieldProps>(({ theme }) => ({
             padding: '10.8px 16px'
         }
     },
+
     // For Select
     '& .MuiSelect-select': {
         minHeight: 'unset !important',
