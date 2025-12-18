@@ -5,6 +5,16 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
   basePath: process.env.BASEPATH,
+  redirects: async () => {
+    return [
+      {
+        source: '/',
+        destination: '/dashboard',
+        permanent: true,
+        locale: false
+      }
+    ]
+  },
   transpilePackages: ['@platform/utils', '@platform/contracts', '@platform/i18n']
 }
 

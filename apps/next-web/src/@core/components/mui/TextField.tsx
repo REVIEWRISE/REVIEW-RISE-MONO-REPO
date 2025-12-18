@@ -26,7 +26,7 @@ const TextFieldStyled = styled(TextField)<TextFieldProps>(({ theme }) => ({
       color: 'var(--mui-palette-text-disabled)'
     },
     '&.Mui-error': {
-      color: 'var(--mui-palette-error-main)'
+      color: 'var(--mui-palette-text-primary)'
     }
   },
   '& .MuiInputBase-root': {
@@ -42,7 +42,8 @@ const TextFieldStyled = styled(TextField)<TextFieldProps>(({ theme }) => ({
       borderRadius: 'var(--mui-shape-borderRadius)'
     },
     '&.Mui-error': {
-      borderColor: 'var(--mui-palette-error-main)'
+      borderColor: 'var(--mui-palette-error-main)',
+      backgroundColor: 'var(--mui-palette-error-lightOpacity) !important'
     },
     '&.Mui-focused': {
       borderWidth: 2,

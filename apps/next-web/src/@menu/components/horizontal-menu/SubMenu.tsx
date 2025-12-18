@@ -328,7 +328,7 @@ const SubMenu: ForwardRefRenderFunction<HTMLLIElement, SubMenuProps> = (props, r
     <FloatingNode id={nodeId}>
       {/* Sub Menu */}
       <StyledSubMenu
-        {...(!disabled && { ref: referenceRef, ...getReferenceProps() })}
+        {...(!disabled && { ref: referenceRef as any, ...getReferenceProps() })}
         className={classnames(
           { [menuClasses.subMenuRoot]: level === 0 },
           { [menuClasses.active]: active },
@@ -416,7 +416,7 @@ const SubMenu: ForwardRefRenderFunction<HTMLLIElement, SubMenuProps> = (props, r
           </StyledHorizontalNavExpandIconWrapper>
         </MenuButton>
 
-        <HorizontalSubMenuContext.Provider value={{ getItemProps }}>
+        <HorizontalSubMenuContext.Provider value={{ getItemProps: getItemProps as any }}>
           <FloatingPortal>
             {isMounted && (
               <StyledSubMenuContentWrapper

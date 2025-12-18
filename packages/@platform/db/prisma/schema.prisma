@@ -151,7 +151,7 @@ model UserBusinessRole {
 }
 
 model Subscription {
-  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                   String    @id @default(uuid())
   businessId           String    @db.Uuid
   plan                 String
   status               String

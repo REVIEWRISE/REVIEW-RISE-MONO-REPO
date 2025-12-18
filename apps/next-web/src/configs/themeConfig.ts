@@ -51,7 +51,7 @@ export type Config = {
 
 const themeConfig: Config = {
   templateName: 'ReviewRise',
-  homePageUrl: '/home',
+  homePageUrl: '/dashboard',
   settingsCookieName: 'reviewrise-mui-next-demo-1',
   mode: 'system', // 'system', 'light', 'dark'
   skin: 'default', // 'default', 'bordered'

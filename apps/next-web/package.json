@@ -35,6 +35,7 @@
     "axios": "^1.13.2",
     "classnames": "2.5.1",
     "formik": "^2.4.9",
+    "jsonwebtoken": "^9.0.3",
     "lodash": "^4.17.21",
     "next": "16.0.3",
     "next-intl": "^4.6.1",
@@ -43,9 +44,11 @@
     "react-dom": "19.2.0",
     "react-hot-toast": "^2.4.1",
     "react-perfect-scrollbar": "1.5.8",
+    "react-toastify": "^11.0.5",
     "react-use": "17.6.0",
     "server-only": "0.0.1",
     "yup": "^1.4.0",
+    "zod": "^4.1.13",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
@@ -54,6 +57,7 @@
     "@iconify/types": "2.0.0",
     "@iconify/utils": "3.0.2",
     "@tailwindcss/postcss": "4.1.17",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "24.10.1",
     "@types/react": "19.2.6",
     "@types/react-dom": "19.2.3",
