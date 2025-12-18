@@ -76,12 +76,14 @@ export const login = async (req: Request, res: Response) => {
         const user = await userRepository.findByEmailWithRoles(email);
 
         if (!user || !user.password) {
+            console.log('User not found or no password', user);
             return res.status(401).json(
                 createErrorResponse('Invalid credentials', ErrorCode.UNAUTHORIZED, 401)
             );
         }
 
         const isValidPassword = await bcrypt.compare(password, user.password);
+        console.log('isValidPassword', isValidPassword);
         if (!isValidPassword) {
             return res.status(401).json(
                 createErrorResponse('Invalid credentials', ErrorCode.UNAUTHORIZED, 401)
