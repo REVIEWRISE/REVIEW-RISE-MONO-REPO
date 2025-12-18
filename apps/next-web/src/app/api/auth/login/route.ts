@@ -1,0 +1,66 @@
+/* eslint-disable import/no-unresolved */
+import { type NextRequest, NextResponse } from 'next/server'
+
+import { z } from 'zod'
+
+import { backendClient } from '@/utils/backendClient'
+
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL
+
+if (!AUTH_SERVICE_URL) {
+  throw new Error('Missing required environment variable: AUTH_SERVICE_URL')
+}
+
+// Define validation schema
+const loginSchema = z.object({
+  email: z.email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+
+    // Validate input
+    const validationResult = loginSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          message: 'Validation failed',
+          errors: validationResult.error.flatten().fieldErrors
+        },
+        { status: 400 }
+      )
+    }
+
+    // Proxy to auth service
+    let data;
+
+    const apiResponse = await backendClient('/v1/auth/login', {
+      method: 'POST',
+      data: validationResult.data,
+      baseUrl: AUTH_SERVICE_URL
+    })
+
+    if (apiResponse && apiResponse.data) {
+      data = apiResponse.data
+    } else {
+      data = apiResponse
+    }
+
+    const response = NextResponse.json({
+      user: data?.user,
+      accessToken: data?.accessToken,
+      message: 'Login successful'
+    })
+
+    return response
+  } catch (error: any) {
+    // Handle specific error cases if needed, otherwise fallback to generic error
+    return NextResponse.json(
+      { message: error.message || 'Internal Server Error' },
+      { status: error.status || 500 }
+    )
+  }
+}

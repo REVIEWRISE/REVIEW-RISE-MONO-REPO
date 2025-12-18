@@ -115,8 +115,17 @@ export const login = async (req: Request, res: Response) => {
             expires: expiresAt,
         });
 
+        const userResponse = {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: user.userRoles?.[0]?.role?.name || 'user'
+        };
+
         res.status(200).json(
             createSuccessResponse({
+                user: userResponse,
                 accessToken,
                 refreshToken
             }, 'Login successful')
@@ -192,6 +201,37 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 };
 
+export const me = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json(
+                createErrorResponse('Missing or invalid authorization header', ErrorCode.UNAUTHORIZED, 401)
+            );
+        }
+        const token = authHeader.substring('Bearer '.length);
+        // console.log("TOKEN", token)
+        // console.log(JWT_SECRET)
+        const payload = jwt.verify(token, JWT_SECRET) as any;
+        console.log("PAYLOAD", payload)
+        const roles = Array.isArray(payload.roles) ? payload.roles : [];
+        console.log("ROLES", roles)
+        const user = {
+            id: payload.userId,
+            email: payload.email,
+            role: roles[0] || 'user'
+        };
+        res.status(200).json(
+            createSuccessResponse({ user }, 'User fetched successfully', 200)
+        );
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Me error:', error);
+        return res.status(401).json(
+            createErrorResponse('Invalid token', ErrorCode.UNAUTHORIZED, 401)
+        );
+    }
+};
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
         const { email } = forgotPasswordSchema.parse(req.body);

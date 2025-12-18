@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 
 // Load environment variables
 const envPath = path.resolve(__dirname, '../../../../.env');
@@ -191,43 +192,98 @@ async function main() {
 
     // 4. Create Sample Users (for development only)
     console.log('👤 Creating sample users...');
+    const hashedPassword = await bcrypt.hash('password123', 10);
+
     const user1 = await prisma.user.upsert({
         where: { email: 'owner@example.com' },
-        update: {},
+        update: {
+            password: hashedPassword,
+        },
         create: {
             email: 'owner@example.com',
             name: 'John Owner',
-            phone: '+1-555-0101',
-            status: 'active',
             emailVerified: new Date(),
+            password: hashedPassword,
         },
     });
 
     const user2 = await prisma.user.upsert({
         where: { email: 'admin@example.com' },
-        update: {},
+        update: {
+            password: hashedPassword,
+        },
         create: {
             email: 'admin@example.com',
             name: 'Jane Admin',
-            phone: '+1-555-0102',
-            status: 'active',
             emailVerified: new Date(),
+            password: hashedPassword,
         },
     });
 
     const user3 = await prisma.user.upsert({
         where: { email: 'manager@example.com' },
-        update: {},
+        update: {
+            password: hashedPassword,
+        },
         create: {
             email: 'manager@example.com',
             name: 'Bob Manager',
-            phone: '+1-555-0103',
-            status: 'active',
             emailVerified: new Date(),
+            password: hashedPassword,
         },
     });
 
     console.log(`✅ Created 3 sample users\n`);
+
+    // 4b. Assign System Roles to Users
+    console.log('🔗 Assigning system roles to users...');
+
+    // Assign Owner role to user1
+    await prisma.userRole.upsert({
+        where: {
+            userId_roleId: {
+                userId: user1.id,
+                roleId: ownerRole.id,
+            },
+        },
+        update: {},
+        create: {
+            userId: user1.id,
+            roleId: ownerRole.id,
+        },
+    });
+
+    // Assign Admin role to user2
+    await prisma.userRole.upsert({
+        where: {
+            userId_roleId: {
+                userId: user2.id,
+                roleId: adminRole.id,
+            },
+        },
+        update: {},
+        create: {
+            userId: user2.id,
+            roleId: adminRole.id,
+        },
+    });
+
+    // Assign Manager role to user3
+    await prisma.userRole.upsert({
+        where: {
+            userId_roleId: {
+                userId: user3.id,
+                roleId: managerRole.id,
+            },
+        },
+        update: {},
+        create: {
+            userId: user3.id,
+            roleId: managerRole.id,
+        },
+    });
+
+    console.log(`✅ Assigned system roles to users\n`);
 
     // 5. Create Sample Businesses
     console.log('🏢 Creating sample businesses...');
@@ -264,51 +320,36 @@ async function main() {
     // 6. Create Locations
     console.log('📍 Creating locations...');
     await prisma.location.upsert({
-        where: { id: 'acme-downtown' },
+        where: { id: '11111111-1111-1111-1111-111111111111' },
         update: {},
         create: {
-            id: 'acme-downtown',
+            id: '11111111-1111-1111-1111-111111111111',
             name: 'ACME Downtown',
-            address: '123 Main Street',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            country: 'US',
-            phone: '+1-555-1001',
+            address: '123 Main Street, New York, NY 10001, US',
             status: 'active',
             businessId: business1.id,
         },
     });
 
     await prisma.location.upsert({
-        where: { id: 'acme-uptown' },
+        where: { id: '22222222-2222-2222-2222-222222222222' },
         update: {},
         create: {
-            id: 'acme-uptown',
+            id: '22222222-2222-2222-2222-222222222222',
             name: 'ACME Uptown',
-            address: '456 Park Avenue',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10021',
-            country: 'US',
-            phone: '+1-555-1002',
+            address: '456 Park Avenue, New York, NY 10021, US',
             status: 'active',
             businessId: business1.id,
         },
     });
 
     await prisma.location.upsert({
-        where: { id: 'tech-cafe-main' },
+        where: { id: '33333333-3333-3333-3333-333333333333' },
         update: {},
         create: {
-            id: 'tech-cafe-main',
+            id: '33333333-3333-3333-3333-333333333333',
             name: 'Tech Cafe Main',
-            address: '789 Tech Boulevard',
-            city: 'San Francisco',
-            state: 'CA',
-            zipCode: '94102',
-            country: 'US',
-            phone: '+1-555-2001',
+            address: '789 Tech Boulevard, San Francisco, CA 94102, US',
             status: 'active',
             businessId: business2.id,
         },
@@ -371,10 +412,10 @@ async function main() {
     // 8. Create Sample Subscriptions
     console.log('💳 Creating subscriptions...');
     await prisma.subscription.upsert({
-        where: { id: 'sub-acme' },
+        where: { id: '44444444-4444-4444-4444-444444444444' },
         update: {},
         create: {
-            id: 'sub-acme',
+            id: '44444444-4444-4444-4444-444444444444',
             businessId: business1.id,
             plan: 'professional',
             status: 'active',
@@ -385,10 +426,10 @@ async function main() {
     });
 
     await prisma.subscription.upsert({
-        where: { id: 'sub-tech-cafe' },
+        where: { id: '55555555-5555-5555-5555-555555555555' },
         update: {},
         create: {
-            id: 'sub-tech-cafe',
+            id: '55555555-5555-5555-5555-555555555555',
             businessId: business2.id,
             plan: 'starter',
             status: 'active',

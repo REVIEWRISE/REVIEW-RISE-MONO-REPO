@@ -24,6 +24,9 @@ import Button from '@mui/material/Button'
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
 
+// Context Imports
+import { useAuth } from '@/contexts/AuthContext'
+
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
   width: 8,
@@ -45,6 +48,7 @@ const UserDropdown = () => {
   const router = useRouter()
 
   const { settings } = useSettings()
+  const { user, logout } = useAuth()
 
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
@@ -63,8 +67,7 @@ const UserDropdown = () => {
   }
 
   const handleUserLogout = async () => {
-    // Redirect to login page
-    router.push('/login')
+    logout()
   }
 
   return (
@@ -103,12 +106,12 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e as MouseEvent | TouchEvent)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-6 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
+                    <Avatar alt={user?.firstName || 'John Doe'} src={user?.avatar || '/images/avatars/1.png'} />
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        John Doe
+                        {user?.firstName || 'John Doe'} {user?.lastName || ''}
                       </Typography>
-                      <Typography variant='caption'>admin@reviewrise.com</Typography>
+                      <Typography variant='caption'>{user?.email || 'admin@reviewrise.com'}</Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />
