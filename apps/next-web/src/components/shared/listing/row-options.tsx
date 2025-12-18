@@ -6,28 +6,21 @@ import { IconButton, Menu, MenuItem } from '@mui/material';
 import toast from 'react-hot-toast';
 
 import type { AbilityRule } from '@/types/general/permission';
+import type { ListingItemAction } from '@/types/general/listing-item';
 
 
 import DeleteConfirmationDialog from '../dialog/delete-confirmation-dialog';
-import Can from '../layouts/other/Can';
 
-interface RowOption {
-  name: string;
-  icon: string;
-  onClick: () => void;
-  permission: AbilityRule;
-}
-
-interface RowOptionsProps<T extends { id?: string }> {
+interface RowOptionsProps<T extends { id?: string | number }> {
   item: T;
-  options?: RowOption[];
+  options?: ListingItemAction[];
   onEdit?: (item: T) => void;
   onDelete?: () => Promise<void> | void;
   deletePermissionRule?: AbilityRule;
   editPermissionRule?: AbilityRule;
 }
 
-const RowOptions = <T extends { id?: string }>({
+const RowOptions = <T extends { id?: string | number }>({
   item,
   options,
   onEdit,
@@ -92,15 +85,23 @@ const RowOptions = <T extends { id?: string }>({
         {options?.map((option, index) => (
           <MenuItem
             key={index}
-            onClick={option.onClick}
+            onClick={() => {
+              option.onClick();
+              handleRowOptionsClose();
+            }}
             sx={{
               gap: 3,
               '& i': { color: 'text.secondary' },
-              '&:hover i': { color: 'primary.main' }
+              '&:hover i': { color: option.variant === 'danger' ? 'error.main' : 'primary.main' },
+              color: option.variant === 'danger' ? 'error.main' : 'text.primary'
             }}
           >
-            <i className={option.icon + ' text-[20px]'} />
-            {option.name}
+            {typeof option.icon === 'string' ? (
+              <i className={option.icon + ' text-[20px]'} />
+            ) : (
+              option.icon
+            )}
+            {option.label}
           </MenuItem>
         ))}
 

@@ -35,7 +35,7 @@
     "editTitle": "Edit Location",
     "form": {
       "name": "Location Name",
-      "businessId": "Account ID",
+      "businessId": "Account",
       "address": "Address",
       "timezone": "Timezone",
       "status": "Status",

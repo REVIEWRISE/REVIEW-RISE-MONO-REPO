@@ -163,7 +163,7 @@ const FormPageWrapper = <T extends FormikValues>({
   };
 
   const content = (
-    <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={onSubmit}>
+    <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={onSubmit} enableReinitialize>
       {(formik: FormikProps<T>) => (
         <>
           {/* 🌟 Confirmation Dialog Rendering 🌟 */}

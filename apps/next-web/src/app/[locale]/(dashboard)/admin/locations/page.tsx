@@ -1,8 +1,8 @@
 'use client'
 
-import { Typography, Chip, Button } from '@mui/material'
+import { Typography, Chip, Button, Box, IconButton, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import type { GridColDef } from '@mui/x-data-grid'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 import Grid from '@mui/material/Grid'
 import ItemsListing from '@/components/shared/listing'
@@ -11,9 +11,14 @@ import CustomSelectBox from '@/components/shared/form/custom-select'
 import CustomSideDrawer from '@/components/shared/drawer/side-drawer'
 import LocationForm from '@/components/admin/locations/LocationForm'
 import RowOptions from '@/components/shared/listing/row-options'
-
+import LocationListSearch from '@/components/admin/locations/LocationListSearch'
+import useTranslation from '@/hooks/useTranslation'
+import { createLocationAdapter } from '@/components/shared/listing/adapters'
+import LocationCard from '@/components/admin/locations/LocationCard'
 import { usePaginatedList } from '@/hooks/usePaginatedList'
-import { useTranslation } from '@/hooks/useTranslation'
+
+// ... existing code ...
+
 const LocationList = () => {
     const t = useTranslation('dashboard')
     const tCommon = useTranslation('common')
@@ -22,6 +27,7 @@ const LocationList = () => {
     const [status, setStatus] = useState('all')
     const [isDrawerOpen, setIsDrawerOpen] = useState(false)
     const [selectedLocation, setSelectedLocation] = useState<any>(null)
+    const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
 
     // Define Filter Component
     const FilterComponent = ({ formik }: { formik: any }) => {
@@ -48,7 +54,8 @@ const LocationList = () => {
         '/admin/locations',
         {
             search: search || undefined,
-            status: status === 'all' ? undefined : status
+            status: status === 'all' ? undefined : status,
+            ['include[business]']: 'true'
         }
     )
 
@@ -57,9 +64,19 @@ const LocationList = () => {
         setIsDrawerOpen(true)
     }
 
-    const handleEdit = (row: any) => {
-        setSelectedLocation(row)
-        setIsDrawerOpen(true)
+    const handleEdit = (id: number) => {
+        // Use loose equality to handle potential string/number mismatch
+        // eslint-disable-next-line eqeqeq
+        const location = data?.data?.find((item: any) => item.id == id)
+        if (location) {
+            setSelectedLocation(location)
+            setIsDrawerOpen(true)
+        }
+    }
+
+    // TODO: Implement actual delete call when API is ready or use a hook
+    const handleDelete = async (id: number) => {
+        console.log('Delete location', id)
     }
 
     const handleDrawerClose = () => {
@@ -73,38 +90,48 @@ const LocationList = () => {
         refetch()
     }
 
+    // Create adapter with handlers
+    const locationAdapter = useMemo(
+        () => createLocationAdapter(handleEdit, handleDelete),
+        [data]
+    )
+
+    // Transform data using the adapter
+    const formattedItems = useMemo(() => {
+        return data?.data ? data.data.map(locationAdapter) : []
+    }, [data, locationAdapter])
+
     const columns: GridColDef[] = [
         {
-            field: 'name',
+            field: 'primaryLabel',
             headerName: t('locations.form.name'),
             flex: 1,
             minWidth: 200,
             renderCell: (params) => (
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
-                    {params.row.name}
+                    {params.row.primaryLabel}
                 </Typography>
             )
         },
         {
-            field: 'address',
+            field: 'secondaryLabel',
             headerName: t('locations.form.address'),
             flex: 1,
             minWidth: 250,
             renderCell: (params) => (
                 <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                    {params.row.address}
+                    {params.row.secondaryLabel}
                 </Typography>
             )
         },
         {
-            field: 'business',
+            field: 'tertiaryLabel',
             headerName: t('locations.form.businessId'),
             flex: 1,
             minWidth: 200,
-            valueGetter: (value: any, row: any) => row.business?.name || 'N/A',
             renderCell: (params) => (
                 <Chip
-                    label={params.row.business?.name || 'N/A'}
+                    label={params.row.tertiaryLabel || 'N/A'}
                     variant='tonal'
                     size='small'
                     color='primary'
@@ -118,10 +145,10 @@ const LocationList = () => {
             width: 120,
             renderCell: (params) => (
                 <Chip
-                    label={params.row.status}
-                    color={params.row.status === 'active' ? 'success' : 'secondary'}
+                    label={params.row.status?.label}
+                    color={params.row.status?.color || 'default'}
                     size='small'
-                    variant='tonal'
+                    variant={params.row.status?.variant || 'tonal'}
                     sx={{ textTransform: 'capitalize' }}
                 />
             )
@@ -134,8 +161,7 @@ const LocationList = () => {
             renderCell: (params) => (
                 <RowOptions
                     item={params.row}
-                    onEdit={handleEdit}
-                    editPermissionRule={{ action: 'manage', subject: 'all' }}
+                    options={params.row.actions}
                 />
             )
         }
@@ -144,11 +170,32 @@ const LocationList = () => {
     return (
         <Grid container spacing={6}>
             <Grid size={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <ToggleButtonGroup
+                        value={viewMode}
+                        exclusive
+                        onChange={(e, newMode) => {
+                            if (newMode) setViewMode(newMode)
+                        }}
+                        aria-label="view mode"
+                        size="small"
+                        color="primary"
+                    >
+                        <ToggleButton value="table" aria-label="table view">
+                            <i className="tabler-table" />
+                        </ToggleButton>
+                        <ToggleButton value="grid" aria-label="grid view">
+                            <i className="tabler-layout-grid" />
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
                 <ItemsListing
                     title="locations.listTitle"
-                    items={data?.data || []}
+                    items={formattedItems}
                     isLoading={isLoading}
-                    type={ITEMS_LISTING_TYPE.table.value}
+                    type={viewMode === 'table' ? ITEMS_LISTING_TYPE.table.value : ITEMS_LISTING_TYPE.grid.value}
+                    ItemViewComponent={LocationCard}
                     pagination={{
                         page: meta?.page || 1,
                         pageSize: meta?.limit || 10,
@@ -175,7 +222,8 @@ const LocationList = () => {
                             enabled: true,
                             searchKeys: ['name'],
                             onSearch: (term: string) => setSearch(term),
-                            permission: { action: 'manage', subject: 'all' }
+                            permission: { action: 'manage', subject: 'all' },
+                            component: LocationListSearch
                         },
                         filter: {
                             enabled: true,
@@ -185,6 +233,7 @@ const LocationList = () => {
                         }
                     }}
                     FilterComponentItems={FilterComponent}
+                    breakpoints={{ xs: 12, sm: 6, md: 4, lg: 4 }}
                 />
             </Grid>
 
@@ -206,5 +255,4 @@ const LocationList = () => {
         </Grid>
     )
 }
-
 export default LocationList

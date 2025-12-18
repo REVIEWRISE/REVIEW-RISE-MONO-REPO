@@ -90,6 +90,7 @@ const ItemsListing = <T extends object>({
         action: string;
         subject: string;
       };
+      component?: React.ComponentType<any>;
     };
     export?: {
       enabled: boolean;

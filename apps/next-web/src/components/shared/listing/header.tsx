@@ -43,6 +43,7 @@ interface ListHeaderProps {
         action: string;
         subject: string;
       };
+      component?: React.ComponentType<any>;
     };
     export?: {
       enabled: boolean;
@@ -168,11 +169,17 @@ const ListHeader = (props: ListHeaderProps) => {
           }}
         >
           {search?.enabled && (
-            <CustomTextField
-              value={searchTerm}
-              sx={{ mr: 4 }}
-              onChange={handleSearchChange}
-            />
+            search.component ? (
+              <Box sx={{ mr: 4 }}>
+                <search.component onSearch={(term: string) => search.onSearch(term, features?.search?.searchKeys || [])} />
+              </Box>
+            ) : (
+              <CustomTextField
+                value={searchTerm}
+                sx={{ mr: 4 }}
+                onChange={handleSearchChange}
+              />
+            )
           )}
           <Box
             sx={{

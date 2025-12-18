@@ -41,7 +41,7 @@ export const adaptLocationToListingItem: ListingItemAdapter<Location> = (locatio
         id: location.id,
         primaryLabel: location.name,
         secondaryLabel: fullAddress || location.address,
-        tertiaryLabel: location.businessName,
+        tertiaryLabel: (location as any).business?.name || location.businessName,
         status: statusConfig[location.status],
         meta: {
             businessId: location.businessId,
@@ -98,7 +98,8 @@ export const createLocationAdapter = (
                     () => onEdit(location.id),
                     {
                         permission: { action: 'update', subject: 'Location' },
-                        variant: 'secondary'
+                        variant: 'secondary',
+                        icon: 'tabler-edit'
                     }
                 ),
                 createAction(
@@ -106,7 +107,8 @@ export const createLocationAdapter = (
                     () => onDelete(location.id),
                     {
                         permission: { action: 'delete', subject: 'Location' },
-                        variant: 'danger'
+                        variant: 'danger',
+                        icon: 'tabler-trash'
                     }
                 )
             ]

@@ -28,7 +28,7 @@ const TableListing = <T,>({ columns, items, pagination, onPagination, isLoading 
 
   return (
     <Box sx={{ width: '100%', mb: 6 }}>
-      <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
+      <Card sx={{ borderRadius: 1.5, border: (theme) => `1px solid ${theme.palette.divider}`, boxShadow: 'none' }}>
         <DataGrid
           rows={items}
           pageSizeOptions={[5, 10, 25, 50]}
@@ -45,33 +45,42 @@ const TableListing = <T,>({ columns, items, pagination, onPagination, isLoading 
           sx={{
             border: 0,
             '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: (theme) => (theme.palette.mode === 'light' ? '#f9fafb' : '#1f2937'),
+              backgroundColor: (theme) => theme.palette.background.default,
               color: 'text.secondary',
-              fontSize: '0.8125rem',
-              fontWeight: 500,
+              fontSize: '0.75rem',
+              fontWeight: 600,
               textTransform: 'uppercase',
-              letterSpacing: '1px',
+              letterSpacing: '0.17px',
               borderBottom: (theme) => `1px solid ${theme.palette.divider}`
+            },
+            '& .MuiDataGrid-cell': {
+              fontSize: '0.875rem',
+              color: 'text.primary',
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+              alignContent: 'center',
+              '&:focus': {
+                outline: 'none'
+              }
             },
             '& .MuiDataGrid-row': {
               '&:hover': {
-                backgroundColor: (theme) => (theme.palette.mode === 'light' ? '#f3f4f6' : '#374151'),
+                backgroundColor: (theme) => theme.palette.action.hover,
                 cursor: 'pointer',
-                transition: 'background-color 0.2s ease-in-out'
+                transition: 'background-color 0.2s ease-in-out',
               }
-            },
-            '& .MuiDataGrid-cell': {
-              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-              fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              color: 'text.secondary'
             },
             '& .MuiDataGrid-footerContainer': {
               borderTop: (theme) => `1px solid ${theme.palette.divider}`,
               '& .MuiTablePagination-root': {
                 color: 'text.secondary'
               }
+            },
+            // Remove cell focus outline
+            '& .MuiDataGrid-cell:focus-within': {
+              outline: 'none'
+            },
+            '& .MuiDataGrid-columnHeader:focus': {
+              outline: 'none'
             }
           }}
         />
