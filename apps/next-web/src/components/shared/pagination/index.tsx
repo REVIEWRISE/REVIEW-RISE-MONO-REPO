@@ -26,6 +26,7 @@ const CustomTablePagination: React.FC<CustomTablePaginationProps> = ({ onPaginat
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
+
     onPaginationChange(newRowsPerPage, 1); // Reset to first page
   };
 

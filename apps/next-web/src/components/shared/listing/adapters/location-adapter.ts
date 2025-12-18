@@ -1,4 +1,5 @@
-import type { ListingItem, ListingItemAdapter } from '@/types/general/listing-item';
+import type { ListingItemAdapter } from '@/types/general/listing-item';
+
 import { createStatus, createAction, createBatchAdapter } from './adapter-utils';
 
 /**

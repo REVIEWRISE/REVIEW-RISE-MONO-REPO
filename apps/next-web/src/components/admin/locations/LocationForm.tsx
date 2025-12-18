@@ -8,15 +8,19 @@ import * as Yup from 'yup'
 import type { FormikProps } from 'formik'
 
 import Grid from '@mui/material/Grid'
+
+import Typography from '@mui/material/Typography'
+
+import type { ApiResponse, ApiPayload } from '@platform/contracts'
+
 import CustomTextBox from '@/components/shared/form/custom-text-box'
 import CustomSelectBox from '@/components/shared/form/custom-select'
 import FormBackendAutocomplete from '@/components/shared/form/FormBackendAutocomplete'
-import Typography from '@mui/material/Typography'
 
 import { useTranslation } from '@/hooks/useTranslation'
 import apiClient from '@/lib/apiClient'
 import FormPageWrapper from '@/components/shared/form/form-wrapper'
-import type { ApiResponse, ApiPayload } from '@platform/contracts'
+
 
 const validationSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
@@ -54,7 +58,6 @@ interface LocationFormProps {
 const LocationForm = ({ initialData, isEdit = false, onCancel, onSuccess }: LocationFormProps) => {
     const router = useRouter()
     const t = useTranslation('dashboard')
-    const common = useTranslation('common')
 
     const initialValues: LocationFormData = useMemo(() => ({
         name: initialData?.name || '',
@@ -82,11 +85,16 @@ const LocationForm = ({ initialData, isEdit = false, onCancel, onSuccess }: Loca
 
     const createActionFunc = async (payload: ApiPayload<LocationFormData>): Promise<ApiResponse<LocationFormData>> => {
         const { data } = payload
+
         if (isEdit && initialData?.id) {
             const res = await apiClient.patch(`/admin/locations/${initialData.id}`, data)
+
+
             return res.data
         } else {
             const res = await apiClient.post('/admin/locations', data)
+
+
             return res.data
         }
     }
@@ -118,6 +126,7 @@ const LocationForm = ({ initialData, isEdit = false, onCancel, onSuccess }: Loca
                 <Grid container spacing={5}>
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <CustomTextBox
+                            formik={formik}
                             fullWidth
                             label={t('locations.form.name')}
                             name='name'

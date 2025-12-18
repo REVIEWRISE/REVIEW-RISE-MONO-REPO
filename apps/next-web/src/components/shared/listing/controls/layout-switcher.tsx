@@ -1,4 +1,5 @@
 import { ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
+
 import { useListingConfig } from '../hooks';
 
 export const LayoutSwitcher = () => {

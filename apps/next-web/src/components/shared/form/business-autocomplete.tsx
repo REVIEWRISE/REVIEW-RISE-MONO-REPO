@@ -1,13 +1,16 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
+
 import { useField, useFormikContext } from 'formik'
 import debounce from 'lodash/debounce'
 import { CircularProgress } from '@mui/material'
+
+import type { BusinessDto, PaginatedResponse } from '@platform/contracts'
+
 import CustomAutocomplete from '@/@core/components/mui/Autocomplete'
 import CustomTextField from '@/@core/components/mui/TextField'
 import apiClient from '@/lib/apiClient'
-import type { BusinessDto, PaginatedResponse } from '@platform/contracts'
 
 interface BusinessAutocompleteProps {
     name: string
@@ -25,29 +28,34 @@ const BusinessAutocomplete: React.FC<BusinessAutocompleteProps> = ({ name, label
     const [loading, setLoading] = useState(false)
     const [inputValue, setInputValue] = useState('')
 
-    const fetchBusinesses = useCallback(
-        debounce(async (search: string) => {
-            setLoading(true)
-            try {
-                const response = await apiClient.get<PaginatedResponse<BusinessDto>>('/admin/businesses', {
-                    params: { search, limit: 20 }
-                })
-                setOptions(response.data.data || [])
-            } catch (error) {
-                console.error('Error fetching businesses:', error)
-                setOptions([])
-            } finally {
-                setLoading(false)
-            }
-        }, 500),
+    const fetchBusinesses = useMemo(
+        () =>
+            debounce(async (search: string) => {
+                setLoading(true)
+
+                try {
+                    const response = await apiClient.get<PaginatedResponse<BusinessDto>>('/admin/businesses', {
+                        params: { search, limit: 20 }
+                    })
+
+                    setOptions(response.data.data || [])
+                } catch (error) {
+                    console.error('Error fetching businesses:', error)
+                    setOptions([])
+                } finally {
+                    setLoading(false)
+                }
+            }, 500),
         []
     )
 
     useEffect(() => {
         if (!open) {
             setOptions([])
+
             return
         }
+
         fetchBusinesses(inputValue)
     }, [open, inputValue, fetchBusinesses])
 

@@ -11,6 +11,7 @@
     "logout": "Logout"
   },
   "common": {
+    "apply": "Apply",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -43,7 +44,10 @@
     "success-created": "created successfully",
     "success-updated": "updated successfully",
     "error-create": "Failed to create",
-    "error-update": "Failed to update"
+    "error-update": "Failed to update",
+    "search-placeholder": "Type to search...",
+    "type-min-chars": "Type at least {minChars} characters",
+    "no-results": "No results found"
   },
   "dialog": {
     "confirm-edit-title": "Confirm Edit",

@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
+
 import type { Pagination } from '@platform/contracts';
+
 import { ListingContext } from './listing-context';
 import type { EmptyStateProps } from '../states';
 
@@ -112,17 +114,21 @@ export const ListingProvider = <T extends object>({
     const toggleSelection = useCallback((id: string | number) => {
         setSelectedItems(prev => {
             const next = new Set(prev);
+
             if (next.has(id)) {
                 next.delete(id);
             } else {
                 next.add(id);
             }
-            return next;
+
+            
+return next;
         });
     }, []);
 
     const selectAll = useCallback(() => {
         const allIds = items.map((item: any) => item.id);
+
         setSelectedItems(new Set(allIds));
     }, [items]);
 

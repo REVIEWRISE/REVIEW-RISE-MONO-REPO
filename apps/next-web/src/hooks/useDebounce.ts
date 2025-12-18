@@ -9,6 +9,7 @@ export function useDebounce<T extends (...args: any[]) => any>(func: T, wait: nu
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
+
         timeoutRef.current = setTimeout(() => {
             func(...args);
         }, wait);

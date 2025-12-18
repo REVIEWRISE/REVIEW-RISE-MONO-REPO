@@ -119,7 +119,7 @@ const RowOptions = <T extends { id?: string | number }>({
           </MenuItem>
         )}
 
-        {onDelete && (
+        {onDelete && deletePermissionRule && (
           <MenuItem
             onClick={handleOpenDeleteDialog}
             sx={{

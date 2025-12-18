@@ -3,13 +3,15 @@ import { NextResponse } from 'next/server';
 
 import { locationRepository } from '@platform/db';
 import { z } from 'zod';
+import type {
+    CreateLocationRequest,
+    LocationDto
+} from '@platform/contracts';
 import {
     createPaginatedResponse,
     createSuccessResponse,
     createErrorResponse,
-    createValidationErrorResponse,
-    CreateLocationRequest,
-    LocationDto
+    createValidationErrorResponse
 } from '@platform/contracts';
 
 // Input validation schemas
@@ -53,7 +55,8 @@ export async function GET(request: Request) {
         );
     } catch (error) {
         console.error('Error fetching locations:', error);
-        return NextResponse.json(
+        
+return NextResponse.json(
             createErrorResponse('Failed to fetch locations', 'INTERNAL_SERVER_ERROR', 500, error),
             { status: 500 }
         );
@@ -87,7 +90,8 @@ export async function POST(request: Request) {
         );
     } catch (error) {
         console.error('Error creating location:', error);
-        return NextResponse.json(
+        
+return NextResponse.json(
             createErrorResponse('Failed to create location', 'INTERNAL_SERVER_ERROR', 500, error),
             { status: 500 }
         );

@@ -1,8 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+
+import { TextField } from '@mui/material'
 import { useField, useFormikContext } from 'formik'
-import { TextField, CircularProgress } from '@mui/material'
+
 import BackendAutocomplete from './BackendAutocomplete'
 
 interface FormBackendAutocompleteProps {
@@ -54,6 +56,7 @@ const FormBackendAutocomplete: React.FC<FormBackendAutocompleteProps> = ({
             disabled={disabled || isSubmitting}
             onSelectionChange={(newValue) => {
                 setSelectedObject(newValue)
+
                 if (newValue) {
                     helpers.setValue(newValue[optionValue])
                 } else {

@@ -1,9 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
+
 import { CircularProgress, Autocomplete, TextField } from '@mui/material'
+
 import apiClient from '@/lib/apiClient'
 import { useDebounce } from '@/hooks/useDebounce'
+import useTranslation from '@/hooks/useTranslation'
 
 interface BackendAutocompleteProps {
     endpoint: string
@@ -24,8 +27,8 @@ interface BackendAutocompleteProps {
 const BackendAutocomplete: React.FC<BackendAutocompleteProps> = ({
     endpoint,
     onSelectionChange,
-    label = 'Search',
-    placeholder = 'Type to search...',
+    label,
+    placeholder,
     minChars = 3,
     debounceTime = 500,
     optionLabel = 'name',
@@ -36,6 +39,12 @@ const BackendAutocomplete: React.FC<BackendAutocompleteProps> = ({
     renderInput,
     disabled = false
 }) => {
+    const t = useTranslation('common')
+
+    // Default valus using translation if not provided props
+    const effectiveLabel = label || t('common.search')
+    const effectivePlaceholder = placeholder || t('form.search-placeholder')
+
     // State
     const [open, setOpen] = useState(false)
     const [options, setOptions] = useState<any[]>([])
@@ -46,22 +55,28 @@ const BackendAutocomplete: React.FC<BackendAutocompleteProps> = ({
     const value = controlledValue !== undefined ? controlledValue : internalValue
 
     // Stabilize queryParams to prevent infinite loop
-    const stableQueryParams = React.useMemo(() => queryParams, [JSON.stringify(queryParams)])
+    const queryParamsString = JSON.stringify(queryParams)
+    const stableQueryParams = React.useMemo(() => JSON.parse(queryParamsString), [queryParamsString])
 
     // Api Call
     const fetchDataRaw = useCallback(async (search: string) => {
         if (search.length < minChars) {
             setOptions([])
+
             return
         }
 
         setLoading(true)
+
         try {
             const response = await apiClient.get(endpoint, {
                 params: { search, limit: 10, ...stableQueryParams }
             })
+
+
             // Support both data.data (paginated) and direct data (list)
             const items = response.data?.data || response.data || []
+
             setOptions(items)
         } catch (error) {
             console.error(`Error fetching from ${endpoint}:`, error)
@@ -95,16 +110,19 @@ const BackendAutocomplete: React.FC<BackendAutocompleteProps> = ({
             value={value}
             getOptionLabel={(option) => {
                 if (typeof option === 'string') return option
+
                 return option[optionLabel] || ''
             }}
             isOptionEqualToValue={(option, value) => option[optionValue] === value[optionValue]}
             filterOptions={(x) => x} // Disable client-side filtering
             onInputChange={(_, newInputValue, reason) => {
                 setInputValue(newInputValue)
+
                 if (newInputValue === '' && reason === 'clear') {
                     onSelectionChange(null)
                     setOptions([])
                 }
+
                 if (reason === 'input' && newInputValue.length >= minChars) {
                     if (!open) setOpen(true)
                 }
@@ -113,9 +131,10 @@ const BackendAutocomplete: React.FC<BackendAutocompleteProps> = ({
                 if (controlledValue === undefined) {
                     setInternalValue(newValue)
                 }
+
                 onSelectionChange(newValue)
             }}
-            noOptionsText={inputValue.length < minChars ? `Type at least ${minChars} characters` : 'No results found'}
+            noOptionsText={inputValue.length < minChars ? t('form.type-min-chars', { minChars }) : t('form.no-results')}
             renderInput={(params) => {
                 if (renderInput) {
                     return renderInput({
@@ -131,11 +150,13 @@ const BackendAutocomplete: React.FC<BackendAutocompleteProps> = ({
                         }
                     })
                 }
+
+
                 return (
                     <TextField
                         {...params}
-                        label={label}
-                        placeholder={placeholder}
+                        label={effectiveLabel}
+                        placeholder={effectivePlaceholder}
                         sx={{ width: 250 }}
                         size='small'
                         inputProps={{

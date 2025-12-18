@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react'; // <-- Imported useState
 
-import { useRouter } from '@/i18n/routing';
 
 import { LoadingButton } from '@mui/lab';
 import { Box, Button, Grid } from '@mui/material'; // <-- Imported Dialog components
@@ -12,6 +11,8 @@ import { toast } from 'react-hot-toast';
 import type * as Yup from 'yup';
 
 import type { ApiResponse, ApiPayload } from '@platform/contracts';
+
+import { useRouter } from '@/i18n/routing';
 
 import RequiredFieldsContext from '@/context/required-fields-context';
 
@@ -115,15 +116,19 @@ const FormPageWrapper = <T extends FormikValues>({
     if (error.error && typeof error.error === 'object' && (error.error as any).details) {
       const details = (error.error as any).details;
       const errors: Record<string, string> = {};
+
       Object.keys(details).forEach((key) => {
         // Take the first error message for each field
         if (Array.isArray(details[key]) && details[key].length > 0) {
           errors[key] = details[key][0];
         }
       });
-      return errors;
+      
+return errors;
     }
-    return {};
+
+    
+return {};
   };
 
 

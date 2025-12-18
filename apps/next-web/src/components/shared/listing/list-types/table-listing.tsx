@@ -75,6 +75,7 @@ const TableListing = <T,>({ columns, items, pagination, onPagination, isLoading 
                 color: 'text.secondary'
               }
             },
+
             // Remove cell focus outline
             '& .MuiDataGrid-cell:focus-within': {
               outline: 'none'

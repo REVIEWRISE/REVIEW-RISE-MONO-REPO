@@ -1,24 +1,14 @@
-// ** MUI Imports
-import { Fragment, useContext, useState } from 'react';
+import { Fragment, useState } from 'react';
 
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import { Box, Button, IconButton, Typography } from '@mui/material';
 
-// ** Custom Component Import
+import useTranslation from '@/hooks/useTranslation';
 
-// ** Icon Imports
-
-
-import { IconButton, Typography } from '@mui/material';
-
-import { useTranslation } from '@/hooks/useTranslation';
-import FilterList from './filter';
-
-import type { ExportConfigValues, ExportFieldOption } from './export';
+import CustomTextField from '@core/components/mui/TextField';
 import ExportComponentOption from './export';
-import CustomTextField from '@/@core/components/mui/TextField';
-import { AbilityContext } from '../layouts/other/Can';
-import type { CreateActionConfig } from '@/types/general/listing';
+import FilterList from './filter-list';
+
+import type { CreateActionConfig, ExportConfigValues, ExportFieldOption } from '@/types/general/listing';
 
 interface ListHeaderProps {
   createActionConfig: CreateActionConfig;
@@ -83,7 +73,6 @@ const ListHeader = (props: ListHeaderProps) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
-  const ability = useContext(AbilityContext);
 
 
 
@@ -159,6 +148,7 @@ const ListHeader = (props: ListHeaderProps) => {
         }}
       >
         <Box>
+          <Typography variant="h5">{title}</Typography>
         </Box>
         <Box
           sx={{

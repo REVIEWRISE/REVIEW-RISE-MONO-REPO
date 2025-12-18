@@ -1,4 +1,10 @@
 {
+  "navigation": {
+    "dashboard": "Dashboard",
+    "reviews": "Reviews",
+    "home": "Home",
+    "about": "About"
+  },
   "overview": {
     "title": "Dashboard Overview",
     "welcome": "Welcome back",

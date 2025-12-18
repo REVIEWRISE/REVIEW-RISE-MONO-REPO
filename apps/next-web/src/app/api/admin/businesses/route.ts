@@ -2,10 +2,12 @@
 import { NextResponse } from 'next/server';
 
 import { businessRepository } from '@platform/db';
+import type {
+    BusinessDto
+} from '@platform/contracts';
 import {
     createPaginatedResponse,
-    createErrorResponse,
-    BusinessDto
+    createErrorResponse
 } from '@platform/contracts';
 
 export async function GET(request: Request) {
@@ -50,7 +52,8 @@ export async function GET(request: Request) {
         );
     } catch (error) {
         console.error('Error searching businesses:', error);
-        return NextResponse.json(
+        
+return NextResponse.json(
             createErrorResponse('Failed to search businesses', 'INTERNAL_SERVER_ERROR', 500, error),
             { status: 500 }
         );

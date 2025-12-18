@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+
 import BackendAutocomplete from '@/components/shared/form/BackendAutocomplete'
 
 interface LocationListSearchProps {

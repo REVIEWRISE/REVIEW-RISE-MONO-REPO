@@ -1,8 +1,8 @@
 import { Fragment } from 'react';
+
 import { Container, useMediaQuery } from '@mui/material';
 
 import { ITEMS_LISTING_TYPE } from '@/configs/listingConfig';
-import { useTranslation } from '@/hooks/useTranslation';
 import PaginationComponent from '../pagination';
 import { SkeletonTable, SkeletonCard, SkeletonGrid, EmptyState, ErrorState } from './states';
 import GridListing from './list-types/grid-listing';
@@ -16,7 +16,6 @@ import { useListing, useListingState, useListingConfig } from './hooks';
  * Uses context when available, falls back to props
  */
 export const ListingContent = () => {
-    const t = useTranslation('common');
     const isSmallScreen = useMediaQuery('(max-width:600px)');
 
     // Get data from context
@@ -103,5 +102,7 @@ const getAdjustedListingType = (type: string, isSmallScreen: boolean) => {
     if (type === ITEMS_LISTING_TYPE.table.value && isSmallScreen) {
         return ITEMS_LISTING_TYPE.list.value;
     }
+
+
     return type;
 };

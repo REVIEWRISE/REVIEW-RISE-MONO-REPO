@@ -1,8 +1,11 @@
 import { createContext } from 'react';
+
 import type { Pagination } from '@platform/contracts';
+
 import type { EmptyStateProps } from '../states';
 
 export interface ListingContextValue<T = any> {
+
     // Data
     items: T[];
     pagination: Pagination | null;

@@ -1,4 +1,4 @@
-import type { ListingItem, ListingItemAdapter, ListingItemBatchAdapter } from '@/types/general/listing-item';
+import type { ListingItemAdapter, ListingItemBatchAdapter } from '@/types/general/listing-item';
 
 /**
  * Creates a batch adapter from a single-item adapter

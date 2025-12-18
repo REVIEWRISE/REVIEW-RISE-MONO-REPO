@@ -1,27 +1,28 @@
 'use client'
 
-import { Typography, Chip, Button, Box, IconButton, ToggleButton, ToggleButtonGroup } from '@mui/material'
+import { useMemo, useState, useCallback } from 'react'
+
+import { Box, Chip, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import type { GridColDef } from '@mui/x-data-grid'
-import { useState, useMemo } from 'react'
 
 import Grid from '@mui/material/Grid'
-import ItemsListing from '@/components/shared/listing'
-import { ITEMS_LISTING_TYPE } from '@/configs/listingConfig'
-import CustomSelectBox from '@/components/shared/form/custom-select'
-import CustomSideDrawer from '@/components/shared/drawer/side-drawer'
-import LocationForm from '@/components/admin/locations/LocationForm'
-import RowOptions from '@/components/shared/listing/row-options'
-import LocationListSearch from '@/components/admin/locations/LocationListSearch'
-import useTranslation from '@/hooks/useTranslation'
-import { createLocationAdapter } from '@/components/shared/listing/adapters'
+
 import LocationCard from '@/components/admin/locations/LocationCard'
+import LocationForm from '@/components/admin/locations/LocationForm'
+import LocationListSearch from '@/components/admin/locations/LocationListSearch'
+import CustomSideDrawer from '@/components/shared/drawer/side-drawer'
+import CustomSelectBox from '@/components/shared/form/custom-select'
+import ItemsListing from '@/components/shared/listing'
+import { createLocationAdapter } from '@/components/shared/listing/adapters'
+import RowOptions from '@/components/shared/listing/row-options'
+import { ITEMS_LISTING_TYPE } from '@/configs/listingConfig'
 import { usePaginatedList } from '@/hooks/usePaginatedList'
+import useTranslation from '@/hooks/useTranslation'
 
 // ... existing code ...
 
 const LocationList = () => {
     const t = useTranslation('dashboard')
-    const tCommon = useTranslation('common')
 
     const [search, setSearch] = useState('')
     const [status, setStatus] = useState('all')
@@ -30,7 +31,7 @@ const LocationList = () => {
     const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
 
     // Define Filter Component
-    const FilterComponent = ({ formik }: { formik: any }) => {
+    const FilterComponent = () => {
         return (
             <Grid container spacing={5}>
                 <Grid size={12}>
@@ -64,20 +65,21 @@ const LocationList = () => {
         setIsDrawerOpen(true)
     }
 
-    const handleEdit = (id: number) => {
+    const handleEdit = useCallback((id: number) => {
         // Use loose equality to handle potential string/number mismatch
         // eslint-disable-next-line eqeqeq
         const location = data?.data?.find((item: any) => item.id == id)
+
         if (location) {
             setSelectedLocation(location)
             setIsDrawerOpen(true)
         }
-    }
+    }, [data])
 
     // TODO: Implement actual delete call when API is ready or use a hook
-    const handleDelete = async (id: number) => {
+    const handleDelete = useCallback(async (id: number) => {
         console.log('Delete location', id)
-    }
+    }, [])
 
     const handleDrawerClose = () => {
         setIsDrawerOpen(false)
@@ -93,7 +95,7 @@ const LocationList = () => {
     // Create adapter with handlers
     const locationAdapter = useMemo(
         () => createLocationAdapter(handleEdit, handleDelete),
-        [data]
+        [handleEdit, handleDelete]
     )
 
     // Transform data using the adapter
@@ -255,4 +257,5 @@ const LocationList = () => {
         </Grid>
     )
 }
+
 export default LocationList

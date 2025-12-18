@@ -27,6 +27,7 @@ export interface ListingItemAction {
  * All domain models should be adapted to this shape for consistent rendering
  */
 export interface ListingItem {
+
     // Core identification
     id: string | number;
 

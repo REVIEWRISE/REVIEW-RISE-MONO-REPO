@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 
 import type { GridSize } from '@mui/material';
-import { Container, Typography, useMediaQuery } from '@mui/material';
+import { Container, useMediaQuery } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 
 
@@ -15,7 +15,6 @@ import { defaultCreateActionConfig } from '@/types/general/listing';
 
 
 import { ITEMS_LISTING_TYPE } from '@/configs/listingConfig';
-import { useTranslation } from '@/hooks/useTranslation';
 import PaginationComponent from '../pagination';
 import type { ExportConfigValues, ExportFieldOption } from "./export";
 import ListHeader from './header';
@@ -23,8 +22,8 @@ import GridListing from './list-types/grid-listing';
 import ListListing from './list-types/list-listing';
 import MasonryListing from './list-types/masonry-listing';
 import TableListing from './list-types/table-listing';
-import { SkeletonTable, SkeletonCard, SkeletonGrid, EmptyState, ErrorState } from './states';
-import type { EmptyStateProps, ErrorStateProps } from './states';
+import type { EmptyStateProps } from './states';
+import { EmptyState, ErrorState, SkeletonCard, SkeletonGrid, SkeletonTable } from './states';
 
 
 const ItemsListing = <T extends object>({
@@ -114,7 +113,6 @@ const ItemsListing = <T extends object>({
   onRetry?: () => void;
   emptyStateConfig?: EmptyStateProps;
 }) => {
-  const t = useTranslation('common');
   const isSmallScreen = useMediaQuery('(max-width:600px)');
 
   const [fetchRequestParams, setFetchRequestParams] = useState<GetRequestParams>(defaultGetRequestParams);

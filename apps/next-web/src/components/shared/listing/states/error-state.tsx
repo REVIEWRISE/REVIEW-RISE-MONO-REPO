@@ -1,5 +1,7 @@
-import { Box, Button, Stack, Typography, Alert, Collapse } from '@mui/material';
 import { useState } from 'react';
+
+import { Box, Button, Stack, Typography, Alert, Collapse } from '@mui/material';
+
 import { useTranslation } from '@/hooks/useTranslation';
 
 export interface ErrorStateProps {

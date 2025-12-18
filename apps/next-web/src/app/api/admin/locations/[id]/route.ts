@@ -3,12 +3,14 @@ import { NextResponse } from 'next/server';
 
 import { locationRepository } from '@platform/db';
 import { z } from 'zod';
+import type {
+    UpdateLocationRequest,
+    LocationDto
+} from '@platform/contracts';
 import {
     createSuccessResponse,
     createErrorResponse,
-    createValidationErrorResponse,
-    UpdateLocationRequest,
-    LocationDto
+    createValidationErrorResponse
 } from '@platform/contracts';
 
 const updateLocationSchema = z.object({
@@ -40,7 +42,8 @@ export async function GET(
         );
     } catch (error) {
         console.error('Error fetching location:', error);
-        return NextResponse.json(
+        
+return NextResponse.json(
             createErrorResponse('Failed to fetch location', 'INTERNAL_SERVER_ERROR', 500, error),
             { status: 500 }
         );
@@ -72,7 +75,8 @@ export async function PATCH(
         );
     } catch (error) {
         console.error('Error updating location:', error);
-        return NextResponse.json(
+        
+return NextResponse.json(
             createErrorResponse('Failed to update location', 'INTERNAL_SERVER_ERROR', 500, error),
             { status: 500 }
         );
@@ -91,7 +95,8 @@ export async function DELETE(
         );
     } catch (error) {
         console.error('Error deleting location:', error);
-        return NextResponse.json(
+        
+return NextResponse.json(
             createErrorResponse('Failed to delete location', 'INTERNAL_SERVER_ERROR', 500, error),
             { status: 500 }
         );

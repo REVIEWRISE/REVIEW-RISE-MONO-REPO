@@ -1,4 +1,5 @@
 import { Box, Button, Stack, Typography } from '@mui/material';
+
 import { useTranslation } from '@/hooks/useTranslation';
 
 export interface EmptyStateProps {

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+
 import { useListing } from './use-listing';
 
 /**
@@ -27,11 +28,13 @@ export const useOptimisticUpdate = <T extends { id: string | number }>() => {
         const updatedItems = items.map(item =>
             item.id === id ? updater(item) : item
         );
+
         setOptimisticItems(updatedItems);
 
         try {
             // Sync with server
             await apiCall();
+
             // Refresh from server to get authoritative state
             refresh();
         } catch (error) {
@@ -55,11 +58,13 @@ export const useOptimisticUpdate = <T extends { id: string | number }>() => {
 
         // Optimistically remove from UI
         const updatedItems = items.filter(item => item.id !== id);
+
         setOptimisticItems(updatedItems);
 
         try {
             // Sync with server
             await apiCall();
+
             // Refresh from server
             refresh();
         } catch (error) {
@@ -84,9 +89,12 @@ export const useOptimisticUpdate = <T extends { id: string | number }>() => {
         try {
             // Create on server
             const createdItem = await apiCall();
+
+
             // Refresh to get server state
             refresh();
-            return createdItem;
+            
+return createdItem;
         } catch (error) {
             // Rollback on error
             setOptimisticItems(items);
