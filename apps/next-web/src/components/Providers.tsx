@@ -19,6 +19,9 @@ type Props = ChildrenType & {
   direction: Direction
 }
 
+// React Query Wrapper
+import ReactQueryProvider from '@components/ReactQueryProvider'
+
 const Providers = async (props: Props) => {
   // Props
   const { children, direction } = props
