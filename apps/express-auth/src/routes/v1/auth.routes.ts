@@ -8,7 +8,7 @@ import {
     verifyEmailLimiter,
     resendVerificationEmailLimiter,
 } from '../../middleware/rateLimiter';
-import { register, login, refreshToken, forgotPassword, resetPassword, verifyEmail, resendVerificationEmail } from '../../controllers/auth.controller';
+import { register, login, refreshToken, forgotPassword, resetPassword, verifyEmail, resendVerificationEmail, me } from '../../controllers/auth.controller';
 
 const router = Router();
 
@@ -19,5 +19,6 @@ router.post('/forgot-password', forgotPasswordLimiter, forgotPassword);
 router.post('/reset-password', passwordResetLimiter, resetPassword);
 router.post('/verify-email', verifyEmailLimiter, verifyEmail);
 router.post('/resend-verification', resendVerificationEmailLimiter, resendVerificationEmail);
+router.get('/me', me);
 
 export default router;

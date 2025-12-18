@@ -338,7 +338,7 @@ const SubMenu: ForwardRefRenderFunction<HTMLLIElement, SubMenuProps> = (props, r
     >
       {childNodes.map(node =>
         cloneElement(node, {
-          ...getItemProps({
+          ...(getItemProps as any)({
             onClick(event: MouseEvent<HTMLAnchorElement>) {
               if (node.props.children && !Array.isArray(node.props.children)) {
                 node.props.onClick?.(event)

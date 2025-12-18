@@ -1,7 +1,5 @@
+/* eslint-disable import/no-unresolved */
 'use client'
-
-// Next Imports
-import { useParams } from 'next/navigation'
 
 // MUI Imports
 import { useTheme } from '@mui/material/styles'
@@ -13,7 +11,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import type { VerticalMenuContextProps } from '@menu/components/vertical-menu/Menu'
 
 // Component Imports
-import { Menu, MenuItem } from '@menu/vertical-menu'
+import { Menu, MenuItem, SubMenu } from '@menu/vertical-menu'
 
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
@@ -24,6 +22,12 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 // Style Imports
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
+
+import { useAuth } from '@/contexts/AuthContext'
+
+// Config Imports
+import menuData, { type MenuItem as MenuItemType } from '@/configs/menu'
+import { type RoleType } from '@/configs/roles'
 
 type RenderExpandIconProps = {
   open?: boolean
@@ -44,13 +48,48 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
   // Hooks
   const theme = useTheme()
   const verticalNavOptions = useVerticalNav()
-  const params = useParams()
-  const { locale } = params
+  const { user } = useAuth()
 
   // Vars
   const { isBreakpointReached, transitionDuration } = verticalNavOptions
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
+
+  const renderMenuItems = (items: MenuItemType[]) => {
+    return items.map((item, index) => {
+      // Check if user has permission
+      if (item.allowedRoles && user?.role && !item.allowedRoles.includes(user.role as RoleType)) {
+        return null
+      }
+
+      // If no user and role is required, hide it (or handle as needed)
+      if (item.allowedRoles && !user) {
+        return null
+      }
+
+      if (item.children) {
+        return (
+          <SubMenu
+            key={index}
+            label={item.title}
+            icon={item.icon ? <i className={item.icon} /> : undefined}
+          >
+            {renderMenuItems(item.children)}
+          </SubMenu>
+        )
+      }
+
+      return (
+        <MenuItem
+          key={index}
+          href={item.href}
+          icon={item.icon ? <i className={item.icon} /> : undefined}
+        >
+          {item.title}
+        </MenuItem>
+      )
+    })
+  }
 
   return (
     // eslint-disable-next-line lines-around-comment
@@ -75,28 +114,8 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-        <MenuItem href={`/${locale}/dashboard`} icon={<i className='tabler-smart-home' />}>
-          Dashboard
-        </MenuItem>
-        <MenuItem href={`/${locale}/admin`} icon={<i className='tabler-settings' />}>
-          Admin Panel
-        </MenuItem>
-        <MenuItem href={`/${locale}/social-rise`} icon={<i className='tabler-social' />}>
-          SocialRise
-        </MenuItem>
-        <MenuItem href={`/${locale}/seo-intelligence`} icon={<i className='tabler-report-analytics' />}>
-          SEO Intelligence
-        </MenuItem>
+        {renderMenuItems(menuData)}
       </Menu>
-      {/* <Menu
-        popoutMenuOffset={{ mainAxis: 23 }}
-        menuItemStyles={menuItemStyles(verticalNavOptions, theme)}
-        renderExpandIcon={({ open }) => <RenderExpandIcon open={open} transitionDuration={transitionDuration} />}
-        renderExpandedMenuItemIcon={{ icon: <i className='tabler-circle text-xs' /> }}
-        menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
-      >
-        <GenerateVerticalMenu menuData={menuData(dictionary)} />
-      </Menu> */}
     </ScrollWrapper>
   )
 }

@@ -148,7 +148,7 @@ model UserBusinessRole {
 
 model Subscription {
   id                   String    @id @default(uuid())
-  businessId           String
+  businessId           String    @db.Uuid
   plan                 String
   status               String
   currentPeriodEnd     DateTime
