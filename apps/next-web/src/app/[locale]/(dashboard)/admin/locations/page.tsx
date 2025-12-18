@@ -10,6 +10,7 @@ import { ITEMS_LISTING_TYPE } from '@/configs/listingConfig'
 import CustomSelectBox from '@/components/shared/form/custom-select'
 import CustomSideDrawer from '@/components/shared/drawer/side-drawer'
 import LocationForm from '@/components/admin/locations/LocationForm'
+import RowOptions from '@/components/shared/listing/row-options'
 
 import { usePaginatedList } from '@/hooks/usePaginatedList'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -79,7 +80,7 @@ const LocationList = () => {
             flex: 1,
             minWidth: 200,
             renderCell: (params) => (
-                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
                     {params.row.name}
                 </Typography>
             )
@@ -88,14 +89,28 @@ const LocationList = () => {
             field: 'address',
             headerName: t('locations.form.address'),
             flex: 1,
-            minWidth: 250
+            minWidth: 250,
+            renderCell: (params) => (
+                <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                    {params.row.address}
+                </Typography>
+            )
         },
         {
             field: 'business',
             headerName: t('locations.form.businessId'),
             flex: 1,
             minWidth: 200,
-            valueGetter: (params: any) => params.row.business?.name || 'N/A'
+            valueGetter: (value: any, row: any) => row.business?.name || 'N/A',
+            renderCell: (params) => (
+                <Chip
+                    label={params.row.business?.name || 'N/A'}
+                    variant='tonal'
+                    size='small'
+                    color='primary'
+                    sx={{ backgroundColor: (theme) => `rgba(${theme.palette.primary.main}, 0.08)` }}
+                />
+            )
         },
         {
             field: 'status',
@@ -104,25 +119,24 @@ const LocationList = () => {
             renderCell: (params) => (
                 <Chip
                     label={params.row.status}
-                    color={params.row.status === 'active' ? 'success' : 'default'}
+                    color={params.row.status === 'active' ? 'success' : 'secondary'}
                     size='small'
                     variant='tonal'
+                    sx={{ textTransform: 'capitalize' }}
                 />
             )
         },
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 100,
+            width: 250,
             sortable: false,
             renderCell: (params) => (
-                <Button
-                    onClick={() => handleEdit(params.row)}
-                    size='small'
-                    variant='text'
-                >
-                    Edit
-                </Button>
+                <RowOptions
+                    item={params.row}
+                    onEdit={handleEdit}
+                    editPermissionRule={{ action: 'manage', subject: 'all' }}
+                />
             )
         }
     ]

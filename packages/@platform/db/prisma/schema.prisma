@@ -151,8 +151,8 @@ model UserBusinessRole {
 }
 
 model Subscription {
-  id                   String    @id @default(uuid())
-  businessId           String
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId           String    @db.Uuid
   plan                 String
   status               String
   currentPeriodEnd     DateTime

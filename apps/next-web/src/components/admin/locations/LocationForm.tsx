@@ -10,6 +10,7 @@ import type { FormikProps } from 'formik'
 import Grid from '@mui/material/Grid'
 import CustomTextBox from '@/components/shared/form/custom-text-box'
 import CustomSelectBox from '@/components/shared/form/custom-select'
+import BusinessAutocomplete from '@/components/shared/form/business-autocomplete'
 import Typography from '@mui/material/Typography'
 
 import { useTranslation } from '@/hooks/useTranslation'
@@ -124,12 +125,12 @@ const LocationForm = ({ initialData, isEdit = false, onCancel, onSuccess }: Loca
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                        <CustomTextBox
-                            fullWidth
+                        <BusinessAutocomplete
                             label={t('locations.form.businessId')}
                             name='businessId'
                             placeholder={t('locations.form.businessId')}
                             disabled={isEdit}
+                            initialBusiness={initialData ? (initialData as any).business : null}
                         />
                     </Grid>
                     <Grid size={12}>

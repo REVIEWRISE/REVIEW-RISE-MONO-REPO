@@ -37,14 +37,14 @@ type Props = {
 }
 
 // Next Imports
-import { Open_Sans } from 'next/font/google'
+import { Public_Sans } from 'next/font/google'
 
 // Font Configuration
-const openSans = Open_Sans({
+const publicSans = Public_Sans({
     subsets: ['latin'],
     display: 'swap',
-    variable: '--font-open-sans',
-    weight: ['300', '400', '500', '600', '700', '800']
+    variable: '--font-public-sans',
+    weight: ['300', '400', '500', '600', '700', '800', '900']
 })
 
 const LocaleLayout = async (props: Props) => {
@@ -63,7 +63,7 @@ const LocaleLayout = async (props: Props) => {
 
     return (
         <html id='__next' lang={locale} dir={direction} suppressHydrationWarning>
-            <body className={`flex is-full min-bs-full flex-auto flex-col ${openSans.className}`}>
+            <body className={`flex is-full min-bs-full flex-auto flex-col ${publicSans.className}`}>
                 <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
                 <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
             </body>

@@ -197,8 +197,6 @@ async function main() {
         create: {
             email: 'owner@example.com',
             name: 'John Owner',
-            phone: '+1-555-0101',
-            status: 'active',
             emailVerified: new Date(),
         },
     });
@@ -209,8 +207,6 @@ async function main() {
         create: {
             email: 'admin@example.com',
             name: 'Jane Admin',
-            phone: '+1-555-0102',
-            status: 'active',
             emailVerified: new Date(),
         },
     });
@@ -221,8 +217,6 @@ async function main() {
         create: {
             email: 'manager@example.com',
             name: 'Bob Manager',
-            phone: '+1-555-0103',
-            status: 'active',
             emailVerified: new Date(),
         },
     });
@@ -264,51 +258,36 @@ async function main() {
     // 6. Create Locations
     console.log('📍 Creating locations...');
     await prisma.location.upsert({
-        where: { id: 'acme-downtown' },
+        where: { id: '00000000-0000-0000-0000-000000000001' },
         update: {},
         create: {
-            id: 'acme-downtown',
+            id: '00000000-0000-0000-0000-000000000001',
             name: 'ACME Downtown',
             address: '123 Main Street',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            country: 'US',
-            phone: '+1-555-1001',
             status: 'active',
             businessId: business1.id,
         },
     });
 
     await prisma.location.upsert({
-        where: { id: 'acme-uptown' },
+        where: { id: '00000000-0000-0000-0000-000000000002' },
         update: {},
         create: {
-            id: 'acme-uptown',
+            id: '00000000-0000-0000-0000-000000000002',
             name: 'ACME Uptown',
             address: '456 Park Avenue',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10021',
-            country: 'US',
-            phone: '+1-555-1002',
             status: 'active',
             businessId: business1.id,
         },
     });
 
     await prisma.location.upsert({
-        where: { id: 'tech-cafe-main' },
+        where: { id: '00000000-0000-0000-0000-000000000003' },
         update: {},
         create: {
-            id: 'tech-cafe-main',
+            id: '00000000-0000-0000-0000-000000000003',
             name: 'Tech Cafe Main',
             address: '789 Tech Boulevard',
-            city: 'San Francisco',
-            state: 'CA',
-            zipCode: '94102',
-            country: 'US',
-            phone: '+1-555-2001',
             status: 'active',
             businessId: business2.id,
         },
@@ -371,10 +350,10 @@ async function main() {
     // 8. Create Sample Subscriptions
     console.log('💳 Creating subscriptions...');
     await prisma.subscription.upsert({
-        where: { id: 'sub-acme' },
+        where: { id: '00000000-0000-0000-0000-000000000004' },
         update: {},
         create: {
-            id: 'sub-acme',
+            id: '00000000-0000-0000-0000-000000000004',
             businessId: business1.id,
             plan: 'professional',
             status: 'active',
@@ -385,10 +364,10 @@ async function main() {
     });
 
     await prisma.subscription.upsert({
-        where: { id: 'sub-tech-cafe' },
+        where: { id: '00000000-0000-0000-0000-000000000005' },
         update: {},
         create: {
-            id: 'sub-tech-cafe',
+            id: '00000000-0000-0000-0000-000000000005',
             businessId: business2.id,
             plan: 'starter',
             status: 'active',

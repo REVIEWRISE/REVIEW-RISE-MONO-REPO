@@ -66,8 +66,18 @@ const RowOptions = <T extends { id?: string }>({
 
   return (
     <>
-      <IconButton size="small" onClick={handleRowOptionsClick}>
-        <i className="tabler:dots-vertical" />
+      <IconButton
+        size="small"
+        onClick={handleRowOptionsClick}
+        sx={{
+          color: 'text.secondary',
+          '&:hover': {
+            backgroundColor: (theme) => `rgba(${theme.palette.primary.mainChannel} / 0.08)`,
+            color: 'primary.main'
+          }
+        }}
+      >
+        <i className="tabler-dots-vertical text-[22px]" />
       </IconButton>
 
       <Menu
@@ -80,28 +90,47 @@ const RowOptions = <T extends { id?: string }>({
         PaperProps={{ style: { minWidth: '8rem' } }}
       >
         {options?.map((option, index) => (
-          <MenuItem key={index} onClick={option.onClick} sx={{ '& svg': { mr: 2 } }}>
+          <MenuItem
+            key={index}
+            onClick={option.onClick}
+            sx={{
+              gap: 3,
+              '& i': { color: 'text.secondary' },
+              '&:hover i': { color: 'primary.main' }
+            }}
+          >
             <i className={option.icon + ' text-[20px]'} />
             {option.name}
           </MenuItem>
         ))}
 
         {onEdit && editPermissionRule && (
-          <Can do={editPermissionRule.action} on={editPermissionRule.subject}>
-            <MenuItem onClick={handleEdit} sx={{ '& svg': { mr: 2 } }}>
-              <i className="tabler:edit text-[20px]" />
-              Edit
-            </MenuItem>
-          </Can>
+          <MenuItem
+            onClick={handleEdit}
+            sx={{
+              gap: 3,
+              '& i': { color: 'text.secondary' },
+              '&:hover i': { color: 'primary.main' }
+            }}
+          >
+            <i className="tabler:edit text-[20px]" />
+            Edit
+          </MenuItem>
         )}
 
-        {onDelete && deletePermissionRule && (
-          <Can do={deletePermissionRule.action} on={deletePermissionRule.subject}>
-            <MenuItem onClick={handleOpenDeleteDialog} sx={{ '& svg': { mr: 2 } }}>
-              <i className="tabler:trash text-[20px]" />
-              Delete
-            </MenuItem>
-          </Can>
+        {onDelete && (
+          <MenuItem
+            onClick={handleOpenDeleteDialog}
+            sx={{
+              gap: 3,
+              '& i': { color: 'text.secondary' },
+              '&:hover i': { color: 'error.main' },
+              '&:hover': { color: 'error.main' }
+            }}
+          >
+            <i className="tabler:trash text-[20px]" />
+            Delete
+          </MenuItem>
         )}
       </Menu>
 

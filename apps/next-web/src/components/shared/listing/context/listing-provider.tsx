@@ -147,7 +147,11 @@ export const ListingProvider = <T extends object>({
         ItemViewComponent,
         tableColumns,
         breakpoints,
-        features
+        features,
+        selectedItems,
+        toggleSelection,
+        selectAll,
+        clearSelection
     }), [
         items,
         pagination,
@@ -157,6 +161,19 @@ export const ListingProvider = <T extends object>({
         setPageSize,
         setSearch,
         setFilters,
+        retry,
+        refresh,
+        layout,
+        handleSetLayout,
+        emptyStateConfig,
+        ItemViewComponent,
+        tableColumns,
+        breakpoints,
+        features,
+        selectedItems,
+        toggleSelection,
+        selectAll,
+        clearSelection
     ]);
 
     return (
