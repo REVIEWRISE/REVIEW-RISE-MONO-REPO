@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+
 import { useAuth } from '@/contexts/AuthContext'
 import { getAuthTokenStatus, refreshAccessToken } from '@/app/actions/token'
 
@@ -13,7 +14,6 @@ export default function TokenRefresher() {
     if (!user) return
 
     let timeoutId: NodeJS.Timeout
-    let intervalId: NodeJS.Timeout
 
     const checkToken = async () => {
       // Prevent multiple simultaneous refresh attempts
@@ -44,6 +44,7 @@ export default function TokenRefresher() {
                 // Exponential backoff
                 const count = retryCountRef.current
                 const delay = Math.min(1000 * Math.pow(2, count), 30000)
+
                 console.log(`[TokenRefresher] Retrying in ${delay}ms... (Attempt ${count + 1})`)
 
                 retryCountRef.current = count + 1
@@ -56,11 +57,11 @@ export default function TokenRefresher() {
             isRefreshingRef.current = false
           }
         } else if (!status.isValid && !status.expiresAt) {
-             console.warn('[TokenRefresher] No valid token found, logging out...')
-             await logout()
+          console.warn('[TokenRefresher] No valid token found, logging out...')
+          await logout()
         } else {
-            // Token is fine
-            retryCountRef.current = 0
+          // Token is fine
+          retryCountRef.current = 0
         }
       } catch (error) {
         console.error('[TokenRefresher] Error checking token:', error)
@@ -72,7 +73,7 @@ export default function TokenRefresher() {
     checkToken()
 
     // Regular interval
-    intervalId = setInterval(checkToken, 60 * 1000)
+    const intervalId = setInterval(checkToken, 60 * 1000)
 
     return () => {
       clearInterval(intervalId)

@@ -1,9 +1,6 @@
 /* eslint-disable import/no-unresolved */
 'use client'
 
-// Next Imports
-import { useParams } from 'next/navigation'
-
 // MUI Imports
 import { useTheme } from '@mui/material/styles'
 
@@ -52,8 +49,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
   const theme = useTheme()
   const verticalNavOptions = useVerticalNav()
   const { user } = useAuth()
-  const params = useParams()
-  const { locale } = params
 
   // Vars
   const { isBreakpointReached, transitionDuration } = verticalNavOptions

@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
+
 import { z } from 'zod'
+
 import { backendClient } from '@/utils/backendClient'
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL

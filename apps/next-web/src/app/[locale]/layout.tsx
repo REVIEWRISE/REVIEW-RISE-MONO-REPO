@@ -1,5 +1,8 @@
 import { notFound } from 'next/navigation'
 
+// Next Imports
+import { Open_Sans } from 'next/font/google'
+
 // MUI Imports
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 
@@ -36,8 +39,6 @@ type Props = {
     params: Promise<{ locale: string }>
 }
 
-// Next Imports
-import { Open_Sans } from 'next/font/google'
 
 // Font Configuration
 const openSans = Open_Sans({
