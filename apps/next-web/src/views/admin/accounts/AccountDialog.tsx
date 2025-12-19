@@ -1,33 +1,30 @@
 /* eslint-disable import/no-unresolved */
 'use client'
 
-import { useEffect } from 'react'
+import { useMemo } from 'react'
 
 // MUI Imports
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
-import Button from '@mui/material/Button'
-import MenuItem from '@mui/material/MenuItem'
-import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import InputAdornment from '@mui/material/InputAdornment'
 import Box from '@mui/material/Box'
-import LoadingButton from '@mui/lab/LoadingButton'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
 
 // Third-party Imports
-import { useFormik } from 'formik'
 import * as yup from 'yup'
-import { toast } from 'react-toastify'
 
 // Core Imports
 import CustomTextField from '@core/components/mui/TextField'
 import CustomAvatar from '@core/components/mui/Avatar'
 
+// Shared Imports
+import FormPageWrapper from '@/components/shared/form/form-wrapper'
+
 // Actions
-/* eslint-disable import/no-unresolved */
 import { createAccount, updateAccount } from '@/app/actions/account'
 
 interface AccountDialogProps {
@@ -46,62 +43,43 @@ const validationSchema = yup.object({
 })
 
 const AccountDialog = ({ open, onClose, onSuccess, account }: AccountDialogProps) => {
-  const formik = useFormik({
-    initialValues: {
-      name: '',
-      email: '',
-      status: 'active',
-      plan: 'free',
-      description: ''
-    },
-    validationSchema,
-    onSubmit: async (values, { setSubmitting, resetForm }) => {
-      try {
-        let res
-
-        if (account) {
-          res = await updateAccount(account.id, values)
-        } else {
-          res = await createAccount(values)
-        }
-
-        if (res.success) {
-          toast.success(account ? 'Account updated successfully' : 'Account created successfully')
-          onSuccess()
-          onClose()
-          resetForm()
-        } else {
-          toast.error(res.message || 'Something went wrong')
-        }
-      } catch (error) {
-        console.log(error)
-        toast.error('An unexpected error occurred')
-      } finally {
-        setSubmitting(false)
-      }
-    }
-  })
-
-  // Update form values when account changes
-  useEffect(() => {
-    if (open) {
-      if (account) {
-        formik.setValues({
-          name: account.name || '',
-          email: account.email || '',
-          status: account.status || 'active',
-          plan: account.subscriptions?.[0]?.plan || 'free',
-          description: account.description || ''
-        })
-      } else {
-        formik.resetForm()
-      }
-    }
-  }, [account, open])
+  const initialValues = useMemo(
+    () => ({
+      name: account?.name || '',
+      email: account?.email || '',
+      status: account?.status || 'active',
+      plan: account?.subscriptions?.[0]?.plan || 'free',
+      description: account?.description || ''
+    }),
+    [account]
+  )
 
   const handleClose = () => {
     onClose()
-    formik.resetForm()
+  }
+
+  const handleAction = async (data: any) => {
+    let result
+    
+    if (account) {
+      result = await updateAccount(account.id, data)
+    } else {
+      result = await createAccount(data)
+    }
+
+    if (!result.success) {
+      throw result
+    }
+
+    return {
+      success: true,
+      data: result.data as any,
+      statusCode: 200,
+      meta: {
+        timestamp: new Date().toISOString(),
+        requestId: 'generated-from-client'
+      }
+    }
   }
 
   return (
@@ -140,127 +118,126 @@ const AccountDialog = ({ open, onClose, onSuccess, account }: AccountDialogProps
       </DialogTitle>
 
       <DialogContent sx={{ px: 6, pb: 6 }}>
-        <form onSubmit={formik.handleSubmit}>
-          <Grid container spacing={5}>
-            <Grid size={{ xs: 12 }}>
-              <CustomTextField
-                fullWidth
-                label='Account Name'
-                placeholder='e.g. Acme Corp'
-                {...formik.getFieldProps('name')}
-                error={formik.touched.name && Boolean(formik.errors.name)}
-                helperText={formik.touched.name && formik.errors.name}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <i className='tabler-building' />
-                      </InputAdornment>
-                    )
+        <FormPageWrapper
+          renderPage={false}
+          validationSchema={validationSchema}
+          initialValues={initialValues}
+          edit={!!account}
+          title={account ? 'Account' : 'Account'}
+          onCancel={handleClose}
+          getPayload={values => values}
+          createActionFunc={handleAction}
+          onActionSuccess={() => {
+            onSuccess()
+            handleClose()
+          }}
+        >
+          {formik => (
+            <Grid container spacing={5}>
+              <Grid size={{ xs: 12 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Account Name'
+                  placeholder='e.g. Acme Corp'
+                  {...formik.getFieldProps('name')}
+                  error={formik.touched.name && Boolean(formik.errors.name)}
+                  helperText={formik.touched.name && (formik.errors.name as string)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <i className='tabler-building' />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <CustomTextField
+                  fullWidth
+                  label='Owner Email'
+                  placeholder='e.g. admin@acme.com'
+                  {...formik.getFieldProps('email')}
+                  error={formik.touched.email && Boolean(formik.errors.email)}
+                  helperText={
+                    (formik.touched.email && (formik.errors.email as string)) ||
+                    (account && 'Owner email cannot be changed directly')
                   }
-                }}
-              />
+                  disabled={!!account}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <i className='tabler-mail' />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Status'
+                  {...formik.getFieldProps('status')}
+                  error={formik.touched.status && Boolean(formik.errors.status)}
+                  helperText={formik.touched.status && (formik.errors.status as string)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <i className='tabler-activity' />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                >
+                  <MenuItem value='active'>Active</MenuItem>
+                  <MenuItem value='inactive'>Inactive</MenuItem>
+                  <MenuItem value='pending'>Pending</MenuItem>
+                </CustomTextField>
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Plan'
+                  {...formik.getFieldProps('plan')}
+                  error={formik.touched.plan && Boolean(formik.errors.plan)}
+                  helperText={formik.touched.plan && (formik.errors.plan as string)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <i className='tabler-credit-card' />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                >
+                  <MenuItem value='free'>Free</MenuItem>
+                  <MenuItem value='pro'>Pro</MenuItem>
+                  <MenuItem value='enterprise'>Enterprise</MenuItem>
+                </CustomTextField>
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <CustomTextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label='Description'
+                  placeholder='Brief description...'
+                  {...formik.getFieldProps('description')}
+                  error={formik.touched.description && Boolean(formik.errors.description)}
+                  helperText={formik.touched.description && (formik.errors.description as string)}
+                />
+              </Grid>
             </Grid>
-            <Grid size={{ xs: 12 }}>
-              <CustomTextField
-                fullWidth
-                label='Owner Email'
-                placeholder='e.g. admin@acme.com'
-                {...formik.getFieldProps('email')}
-                error={formik.touched.email && Boolean(formik.errors.email)}
-                helperText={(formik.touched.email && formik.errors.email) || (account && 'Owner email cannot be changed directly')}
-                disabled={!!account}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <i className='tabler-mail' />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-              <CustomTextField
-                select
-                fullWidth
-                label='Status'
-                {...formik.getFieldProps('status')}
-                error={formik.touched.status && Boolean(formik.errors.status)}
-                helperText={formik.touched.status && formik.errors.status}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <i className='tabler-activity' />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-              >
-                <MenuItem value='active'>Active</MenuItem>
-                <MenuItem value='inactive'>Inactive</MenuItem>
-                <MenuItem value='pending'>Pending</MenuItem>
-              </CustomTextField>
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-              <CustomTextField
-                select
-                fullWidth
-                label='Plan'
-                {...formik.getFieldProps('plan')}
-                error={formik.touched.plan && Boolean(formik.errors.plan)}
-                helperText={formik.touched.plan && formik.errors.plan}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <i className='tabler-credit-card' />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-              >
-                <MenuItem value='free'>Free</MenuItem>
-                <MenuItem value='pro'>Pro</MenuItem>
-                <MenuItem value='enterprise'>Enterprise</MenuItem>
-              </CustomTextField>
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <CustomTextField
-                fullWidth
-                multiline
-                rows={3}
-                label='Description'
-                placeholder='Brief description...'
-                {...formik.getFieldProps('description')}
-                error={formik.touched.description && Boolean(formik.errors.description)}
-                helperText={formik.touched.description && formik.errors.description}
-              />
-            </Grid>
-          </Grid>
-        </form>
+          )}
+        </FormPageWrapper>
       </DialogContent>
-      <DialogActions sx={{ justifyContent: 'end', px: 6, pb: 8, pt: 2}}>
-        <Button
-          onClick={handleClose}
-          variant='tonal'
-          color='secondary'
-          sx={{ mr: 2 }}
-        >
-          Cancel
-        </Button>
-        <LoadingButton
-          loading={formik.isSubmitting}
-          loadingPosition='start'
-          variant='contained'
-          onClick={() => formik.handleSubmit()}
-          startIcon={<i className='tabler-check' />}
-        >
-          {formik.isSubmitting ? (account ? 'Updating...' : 'Creating...') : account ? 'Update Account' : 'Create Account'}
-        </LoadingButton>
-      </DialogActions>
     </Dialog>
   )
 }
