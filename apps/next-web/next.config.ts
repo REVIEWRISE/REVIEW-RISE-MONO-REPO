@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  transpilePackages: ['@platform/utils', '@platform/contracts', '@platform/i18n']
+  transpilePackages: ['@platform/utils', '@platform/contracts', '@platform/i18n', '@platform/db']
 }
 
 export default withNextIntl(nextConfig)
