@@ -4,15 +4,14 @@
 import { useMemo } from 'react'
 
 // MUI Imports
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
+import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import InputAdornment from '@mui/material/InputAdornment'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import MenuItem from '@mui/material/MenuItem'
+import Divider from '@mui/material/Divider'
 
 // Third-party Imports
 import * as yup from 'yup'
@@ -83,41 +82,33 @@ const AccountDialog = ({ open, onClose, onSuccess, account }: AccountDialogProps
   }
 
   return (
-    <Dialog
+    <Drawer
       open={open}
+      anchor='right'
       onClose={handleClose}
-      maxWidth='sm'
-      fullWidth
-      sx={{ '& .MuiDialog-paper': { overflow: 'visible' } }}
+      variant='temporary'
+      ModalProps={{ keepMounted: true }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
-      <IconButton
-        aria-label='close'
-        onClick={handleClose}
-        sx={{
-          top: 12,
-          right: 12,
-          position: 'absolute',
-          color: 'text.secondary'
-        }}
-      >
-        <i className='tabler-x' />
-      </IconButton>
+      <Box sx={{ p: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant='h5'>{account ? 'Edit Account' : 'New Account'}</Typography>
+        <IconButton size='small' onClick={handleClose} sx={{ color: 'text.secondary' }}>
+          <i className='tabler-x' style={{ fontSize: '1.5rem' }} />
+        </IconButton>
+      </Box>
 
-      <DialogTitle component='div' sx={{ textAlign: 'center', pt: 10, pb: 4, px: 6 }}>
+      <Divider />
+
+      <Box sx={{ p: 6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
           <CustomAvatar skin='light' color='primary' variant='rounded' sx={{ width: 58, height: 58 }}>
             <i className='tabler-building-skyscraper' style={{ fontSize: '2rem' }} />
           </CustomAvatar>
         </Box>
-        <Typography variant='h4' sx={{ mb: 1 }}>
-          {account ? 'Edit Account' : 'New Account'}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography variant='body2' color='text.secondary' align='center' sx={{ mb: 6 }}>
           {account ? 'Update account details and subscription' : 'Create a new organization account'}
         </Typography>
-      </DialogTitle>
 
-      <DialogContent sx={{ px: 6, pb: 6 }}>
         <FormPageWrapper
           renderPage={false}
           validationSchema={validationSchema}
@@ -237,8 +228,8 @@ const AccountDialog = ({ open, onClose, onSuccess, account }: AccountDialogProps
             </Grid>
           )}
         </FormPageWrapper>
-      </DialogContent>
-    </Dialog>
+      </Box>
+    </Drawer>
   )
 }
 
