@@ -29,6 +29,7 @@
     "@mui/utils": "7.3.5",
     "@mui/x-data-grid": "^8.22.0",
     "@platform/contracts": "workspace:*",
+    "@platform/db": "workspace:^",
     "@platform/i18n": "workspace:*",
     "@platform/utils": "workspace:*",
     "@tanstack/react-query": "^5.90.12",
