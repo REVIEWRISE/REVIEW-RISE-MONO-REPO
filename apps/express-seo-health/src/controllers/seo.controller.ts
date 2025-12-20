@@ -10,7 +10,7 @@ const analyzeSchema = z.object({
 
 export const analyzeSEO = async (req: Request, res: Response) => {
     const startTime = Date.now();
-    const requestId = req.id || crypto.randomUUID();
+    const requestId = (req as any).id || crypto.randomUUID();
     
     try {
         // Validate input

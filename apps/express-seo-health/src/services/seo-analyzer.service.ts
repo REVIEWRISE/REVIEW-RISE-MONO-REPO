@@ -1,4 +1,4 @@
-import { prisma } from '@platform/db';
+import { seoSnapshotRepository } from '@platform/db';
 import { fetchWebsite } from './website-fetcher.service';
 import { extractSEOData } from './html-parser.service';
 import { evaluateRules } from './rules-engine.service';
@@ -70,15 +70,13 @@ export async function analyzeSEOHealth(url: string, userId?: string) {
         // Persist to DB
         let snapshotId: string | undefined;
         try {
-            const snapshot = await prisma.seoSnapshot.create({
-                data: {
-                    url: fetchResult.finalUrl,
-                    healthScore: healthScore,
-                    categoryScores: result.categoryScores as any,
-                    recommendations: result.recommendations as any,
-                    seoElements: seoData as any,
-                    userId: userId || null
-                }
+            const snapshot = await seoSnapshotRepository.create({
+                url: fetchResult.finalUrl,
+                healthScore: healthScore,
+                categoryScores: result.categoryScores as any,
+                recommendations: result.recommendations as any,
+                seoElements: seoData as any,
+                userId: userId || null
             });
             snapshotId = snapshot.id;
             // eslint-disable-next-line no-console
