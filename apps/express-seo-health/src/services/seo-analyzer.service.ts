@@ -76,7 +76,7 @@ export async function analyzeSEOHealth(url: string, userId?: string) {
                 categoryScores: result.categoryScores as any,
                 recommendations: result.recommendations as any,
                 seoElements: seoData as any,
-                userId: userId || null
+                ...(userId ? { user: { connect: { id: userId } } } : {})
             });
             snapshotId = snapshot.id;
             // eslint-disable-next-line no-console
