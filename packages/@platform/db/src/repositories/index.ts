@@ -5,7 +5,7 @@
  * Import repositories from this file to use in your application.
  * 
  * @example
- * import { userRepository, businessRepository } from '@platform/db/repositories';
+ * import { userRepository, businessRepository } from '@platform/db';
  * 
  * const user = await userRepository.findByEmail('user@example.com');
  * const businesses = await businessRepository.findByUserId(user.id);
@@ -27,6 +27,8 @@ export { SeoSnapshotRepository, seoSnapshotRepository } from './seo-snapshot.rep
 export { KeywordRepository, keywordRepository } from './keyword.repository';
 export { KeywordRankRepository, keywordRankRepository } from './keyword-rank.repository';
 export { VisibilityMetricRepository, visibilityMetricRepository } from './visibility-metric.repository';
+export { JobRepository, jobRepository } from './job.repository';
+export { ReviewSyncLogRepository, reviewSyncLogRepository } from './review-sync-log.repository';
 
 // Import repositories for the convenience object
 import { userRepository } from './user.repository';
@@ -43,6 +45,8 @@ import { seoSnapshotRepository } from './seo-snapshot.repository';
 import { keywordRepository } from './keyword.repository';
 import { keywordRankRepository } from './keyword-rank.repository';
 import { visibilityMetricRepository } from './visibility-metric.repository';
+import { jobRepository } from './job.repository';
+import { reviewSyncLogRepository } from './review-sync-log.repository';
 
 // Re-export all repositories as a single object for convenience
 export const repositories = {
@@ -60,5 +64,6 @@ export const repositories = {
     keyword: keywordRepository,
     keywordRank: keywordRankRepository,
     visibilityMetric: visibilityMetricRepository,
+    job: jobRepository,
+    reviewSyncLog: reviewSyncLogRepository,
 } as const;
-

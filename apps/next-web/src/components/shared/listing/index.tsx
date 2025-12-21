@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { Fragment, useState } from 'react';
 
 import type { GridSize } from '@mui/material';
@@ -63,6 +64,8 @@ const ItemsListing = <T extends object>({
   onCreateClick?: () => void;
   tableProps?: {
     headers: GridColDef[];
+    getRowClassName?: (params: any) => string;
+    onRowClick?: (params: any) => void;
   };
   hasCreate?: boolean;
   hasFilter?: boolean;
@@ -149,6 +152,8 @@ const ItemsListing = <T extends object>({
         onPagination={onPagination}
         items={items}
         columns={tableProps?.headers}
+        getRowClassName={tableProps?.getRowClassName}
+        onRowClick={tableProps?.onRowClick}
       />
     ),
     default: ItemViewComponent && <GridListing ItemViewComponent={ItemViewComponent} items={items} />
@@ -191,6 +196,7 @@ const ItemsListing = <T extends object>({
                 description={emptyStateConfig?.description}
                 action={emptyStateConfig?.action}
                 illustration={emptyStateConfig?.illustration}
+                icon={emptyStateConfig?.icon}
               />
             ) : (
               <>

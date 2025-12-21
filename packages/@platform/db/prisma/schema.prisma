@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../../../../node_modules/.prisma/client"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -81,6 +81,8 @@ model Business {
   userBusinessRoles UserBusinessRole[]
   keywords      Keyword[]
   visibilityMetrics VisibilityMetric[]
+  jobs          Job[]
+  reviewSyncLogs ReviewSyncLog[]
 
 
   @@index([name])
@@ -103,6 +105,8 @@ model Location {
   business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   keywords    Keyword[]
   visibilityMetrics VisibilityMetric[]
+  jobs        Job[]
+  reviewSyncLogs ReviewSyncLog[]
 
   @@index([businessId])
 }
@@ -200,6 +204,47 @@ model AuditLog {
 
   @@index([userId])
   @@index([entityId])
+  @@index([createdAt])
+}
+
+model ReviewSyncLog {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  // Context
+  businessId  String    @db.Uuid
+  locationId  String    @db.Uuid
+  platform    String    // google, facebook, etc.
+  
+  // Status
+  status      String    // success, failed
+  errorMessage String?
+  errorStack  String?
+  
+  // Metrics
+  reviewsSynced Int     @default(0)
+  durationMs  Int?
+  
+  // Raw Data (for debugging)
+  requestData Json?
+  responseData Json?
+  
+  // Relation to the Job that created this log
+  jobId       String?   @db.Uuid
+  
+  // Timestamps
+  startedAt   DateTime
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location    Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([businessId])
+  @@index([locationId])
+  @@index([platform])
+  @@index([status])
   @@index([createdAt])
 }
 
@@ -329,3 +374,37 @@ model VisibilityMetric {
 }
 
 
+model Job {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        String    // reviews, social_posts, seo_crawls, ai_tasks
+  status      String    // pending, processing, completed, failed, resolved, ignored
+  
+  // Relations
+  businessId  String?   @db.Uuid
+  locationId  String?   @db.Uuid
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  reviewSyncLogs ReviewSyncLog[]
+
+  // Data
+  payload     Json?     // Snapshot of input data
+  result      Json?     // Output or metadata
+  error       Json?     // Detailed error info (message, stack, code)
+
+  // Retry logic
+  retryCount  Int       @default(0)
+  maxRetries  Int       @default(3)
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+
+  @@index([type])
+  @@index([status])
+  @@index([businessId])
+  @@index([locationId])
+  @@index([createdAt])
+}
