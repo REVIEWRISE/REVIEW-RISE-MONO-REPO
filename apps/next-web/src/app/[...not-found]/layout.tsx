@@ -9,6 +9,9 @@ import { Public_Sans } from 'next/font/google'
 
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
 
+// Third-party Imports
+import { NextIntlClientProvider } from 'next-intl'
+
 // Platform Imports
 import { defaultLocale, getLocaleDirection } from '@platform/i18n'
 
@@ -37,7 +40,9 @@ export default async function NotFoundLayout({
     <html id='__next' lang={defaultLocale} dir={direction} suppressHydrationWarning>
       <body className={`flex is-full min-bs-full flex-auto flex-col ${publicSans.className}`}>
         <InitColorSchemeScript attribute='data' defaultMode={systemMode} />
-        {children}
+        <NextIntlClientProvider locale={defaultLocale}>
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   )

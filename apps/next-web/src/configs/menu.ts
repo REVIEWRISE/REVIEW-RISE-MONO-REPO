@@ -44,6 +44,31 @@ const menuData: MenuItem[] = [
     href: '/admin/locations',
     icon: 'tabler-map-pin',
     allowedRoles: [ROLES.ADMIN]
+  },
+  {
+    title: 'navigation.failed-jobs',
+    href: '/admin/failed-jobs',
+    icon: 'tabler-alert-circle',
+    allowedRoles: [ROLES.ADMIN]
+  },
+  {
+    title: 'navigation.logs',
+    icon: 'tabler-cpu',
+    allowedRoles: [ROLES.ADMIN],
+    children: [
+      {
+        title: 'navigation.social-media-post-logs',
+        href: '/admin/logs/social-posts',
+        icon: 'tabler-brand-twitter',
+        allowedRoles: [ROLES.ADMIN]
+      },
+      {
+        title: 'navigation.review-sync-logs',
+        href: '/admin/logs/reviews',
+        icon: 'tabler-refresh',
+        allowedRoles: [ROLES.ADMIN]
+      }
+    ]
   }
 ]
 
