@@ -26,18 +26,18 @@ const NavbarContent = () => {
       <div className='flex items-center gap-4 flex-grow'>
         <NavToggle />
         <div className='hidden md:flex items-center gap-4'>
-            <LocationDropdown />
+          <LocationDropdown />
         </div>
 
         <div className='flex-grow mx-4'>
-            <GlobalSearch />
+          <GlobalSearch />
         </div>
       </div>
 
       <div className='flex items-center gap-2'>
-        <LocaleSwitcher />
         <ModeDropdown />
         <NotificationDropdown />
+        <LocaleSwitcher />
         <UserDropdown />
       </div>
     </div>
