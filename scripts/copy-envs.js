@@ -17,12 +17,27 @@ function walkDir(dir) {
             }
         } else if (file === '.env.example') {
             const envPath = path.join(dir, '.env');
-            if (!fs.existsSync(envPath)) {
+
+            // --- CHANGE START ---
+            // Check if .env already exists and delete it
+            if (fs.existsSync(envPath)) {
+                try {
+                    fs.unlinkSync(envPath);
+                    console.log(`Deleted old .env in ${dir}`);
+                } catch (err) {
+                    console.error(`Error deleting existing .env in ${dir}:`, err);
+                    continue; // Skip copy if we couldn't delete the old one
+                }
+            }
+
+            // Copy the new file
+            try {
                 fs.copyFileSync(fullPath, envPath);
                 console.log(`Created .env from .env.example in ${dir}`);
-            } else {
-                console.log(`Skipped ${dir} (.env already exists)`);
+            } catch (err) {
+                console.error(`Error copying .env in ${dir}:`, err);
             }
+            // --- CHANGE END ---
         }
     }
 }
