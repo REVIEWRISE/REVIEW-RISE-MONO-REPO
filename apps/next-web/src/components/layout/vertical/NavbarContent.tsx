@@ -5,15 +5,16 @@
 import classnames from 'classnames'
 
 // Component Imports
-import ModeDropdown from '@components/layout/shared/ModeDropdown'
-import UserDropdown from '@components/layout/shared/UserDropdown'
-import LocationDropdown from '@components/layout/shared/LocationDropdown'
-import NotificationDropdown from '@components/layout/shared/NotificationDropdown'
 import GlobalSearch from '@components/layout/shared/GlobalSearch'
+import LocationDropdown from '@components/layout/shared/LocationDropdown'
+import ModeDropdown from '@components/layout/shared/ModeDropdown'
+import NotificationDropdown from '@components/layout/shared/NotificationDropdown'
+import UserDropdown from '@components/layout/shared/UserDropdown'
 
 // Util Imports
 import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
 
+import LanguageDropdown from '../shared/LanguageDropdown'
 import NavToggle from './NavToggle'
 
 const NavbarContent = () => {
@@ -22,15 +23,17 @@ const NavbarContent = () => {
       <div className='flex items-center gap-4 flex-grow'>
         <NavToggle />
         <div className='hidden md:flex items-center gap-4'>
-             <LocationDropdown />
+          <LocationDropdown />
         </div>
         <div className='flex-grow mx-4'>
-            <GlobalSearch />
+          <GlobalSearch />
         </div>
       </div>
       <div className='flex items-center gap-2'>
         <ModeDropdown />
         <NotificationDropdown />
+        <LanguageDropdown />
+
         <UserDropdown />
       </div>
     </div>
