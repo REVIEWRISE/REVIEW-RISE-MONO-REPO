@@ -24,6 +24,9 @@ export { PasswordResetTokenRepository, passwordResetTokenRepository } from './pa
 export { EmailVerificationTokenRepository, emailVerificationTokenRepository } from './email-verification-token.repository';
 export { AuditLogRepository, auditLogRepository } from './audit-log.repository';
 export { SeoSnapshotRepository, seoSnapshotRepository } from './seo-snapshot.repository';
+export { KeywordRepository, keywordRepository } from './keyword.repository';
+export { KeywordRankRepository, keywordRankRepository } from './keyword-rank.repository';
+export { VisibilityMetricRepository, visibilityMetricRepository } from './visibility-metric.repository';
 
 // Import repositories for the convenience object
 import { userRepository } from './user.repository';
@@ -37,6 +40,9 @@ import { passwordResetTokenRepository } from './password-reset-token.repository'
 import { emailVerificationTokenRepository } from './email-verification-token.repository';
 import { auditLogRepository } from './audit-log.repository';
 import { seoSnapshotRepository } from './seo-snapshot.repository';
+import { keywordRepository } from './keyword.repository';
+import { keywordRankRepository } from './keyword-rank.repository';
+import { visibilityMetricRepository } from './visibility-metric.repository';
 
 // Re-export all repositories as a single object for convenience
 export const repositories = {
@@ -51,5 +57,8 @@ export const repositories = {
     emailVerificationToken: emailVerificationTokenRepository,
     auditLog: auditLogRepository,
     seoSnapshot: seoSnapshotRepository,
+    keyword: keywordRepository,
+    keywordRank: keywordRankRepository,
+    visibilityMetric: visibilityMetricRepository,
 } as const;
 

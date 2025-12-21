@@ -7,7 +7,9 @@
     "locations": "Locations",
     "accounts": "Accounts",
     "home": "Home",
-    "about": "About"
+    "about": "About",
+    "seo-overview": "Overview",
+    "seo-visibility": "SERP Visibility"
   },
   "overview": {
     "title": "Dashboard Overview",

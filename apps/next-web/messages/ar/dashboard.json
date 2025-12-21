@@ -7,7 +7,9 @@
     "locations": "الفروع",
     "accounts": "الحسابات",
     "home": "الرئيسية",
-    "about": "عن الموقع"
+    "about": "عن الموقع",
+    "seo-overview": "نظرة عامة",
+    "seo-visibility": "ظهور في نتائج البحث"
   },
   "overview": {
     "title": "نظرة عامة على لوحة التحكم",
