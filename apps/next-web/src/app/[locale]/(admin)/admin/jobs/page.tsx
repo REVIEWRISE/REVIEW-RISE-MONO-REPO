@@ -1,8 +1,5 @@
-/* eslint-disable import/no-unresolved */
-import JobList from '@/views/admin/jobs/JobList'
+import { redirect } from 'next/navigation'
 
-const JobsPage = () => {
-  return <JobList />
+export default async function JobsPage() {
+  redirect('/admin/jobs/failed')
 }
-
-export default JobsPage

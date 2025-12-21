@@ -7,6 +7,9 @@
     "locations": "الفروع",
     "accounts": "الحسابات",
     "jobs": "المهام",
+    "failed-jobs": "المهام الفاشلة",
+    "social-media-post-logs": "سجلات منشورات التواصل الاجتماعي",
+    "review-sync-logs": "سجلات مزامنة المراجعات",
     "home": "الرئيسية",
     "about": "عن الموقع"
   },

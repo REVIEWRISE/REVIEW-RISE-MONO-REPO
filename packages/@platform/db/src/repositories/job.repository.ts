@@ -26,8 +26,9 @@ export class JobRepository extends BaseRepository<
     fromDate?: Date;
     toDate?: Date;
     search?: string;
+    platform?: string;
   }) {
-    const { page = 1, limit = 10, type, businessId, locationId, fromDate, toDate, search } = options;
+    const { page = 1, limit = 10, type, businessId, locationId, fromDate, toDate, search, platform } = options;
     const skip = (page - 1) * limit;
 
     const where: Prisma.JobWhereInput = {
@@ -36,6 +37,13 @@ export class JobRepository extends BaseRepository<
 
     if (type && type.length > 0) {
       where.type = { in: type };
+    }
+
+    if (platform) {
+      where.payload = {
+        path: ['platform'],
+        equals: platform
+      };
     }
 
     if (businessId) {

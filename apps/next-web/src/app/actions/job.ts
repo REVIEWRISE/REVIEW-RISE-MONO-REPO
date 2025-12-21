@@ -7,7 +7,7 @@ import { jobRepository } from '@platform/db'
 
 export async function getJobs(params: any) {
   try {
-    const { page = 1, limit = 10, type, businessId, locationId, fromDate, toDate, search } = params
+    const { page = 1, limit = 10, type, businessId, locationId, fromDate, toDate, search, platform } = params
 
     // Normalize type array if it comes as string or undefined
     let types = type
@@ -30,6 +30,7 @@ export async function getJobs(params: any) {
       fromDate: fromDate ? new Date(fromDate) : undefined,
       toDate: toDate ? new Date(toDate) : undefined,
       search,
+      platform,
     })
 
     return {

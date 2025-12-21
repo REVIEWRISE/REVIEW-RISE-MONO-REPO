@@ -7,6 +7,9 @@
     "locations": "Locations",
     "accounts": "Accounts",
     "jobs": "Jobs",
+    "failed-jobs": "Failed Jobs",
+    "social-media-post-logs": "Social Media Post Logs",
+    "review-sync-logs": "Review Sync Logs",
     "home": "Home",
     "about": "About"
   },

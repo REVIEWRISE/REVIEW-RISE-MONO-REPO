@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Box, Card } from '@mui/material';
-import type { GridColDef, GridPaginationModel } from '@mui/x-data-grid';
+import type { GridColDef, GridPaginationModel, GridRowParams } from '@mui/x-data-grid';
 import { DataGrid } from '@mui/x-data-grid';
 import type { Pagination } from '@platform/contracts';
 
@@ -12,9 +12,11 @@ interface TableListingProps<T> {
   pagination: Pagination;
   isLoading: boolean;
   onPagination?: (pageSize: number, page: number) => void;
+  getRowClassName?: (params: any) => string;
+  onRowClick?: (params: GridRowParams) => void;
 }
 
-const TableListing = <T,>({ columns, items, pagination, onPagination, isLoading }: TableListingProps<T>) => {
+const TableListing = <T,>({ columns, items, pagination, onPagination, isLoading, getRowClassName, onRowClick }: TableListingProps<T>) => {
 
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: pagination?.page - 1,
@@ -42,6 +44,8 @@ const TableListing = <T,>({ columns, items, pagination, onPagination, isLoading 
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
           loading={isLoading}
+          getRowClassName={getRowClassName}
+          onRowClick={onRowClick}
           sx={{
             border: 0,
             '& .MuiDataGrid-columnHeaders': {
@@ -63,9 +67,9 @@ const TableListing = <T,>({ columns, items, pagination, onPagination, isLoading 
               }
             },
             '& .MuiDataGrid-row': {
+              cursor: onRowClick ? 'pointer' : 'default',
               '&:hover': {
                 backgroundColor: (theme) => theme.palette.action.hover,
-                cursor: 'pointer',
                 transition: 'background-color 0.2s ease-in-out',
               }
             },

@@ -41,7 +41,11 @@ const getJobTypeColor = (type: string): any => {
   return colors[type] || 'secondary'
 }
 
-const JobList = () => {
+type Props = {
+  initialType?: string
+}
+
+const JobList = ({ initialType = '' }: Props) => {
   const theme = useTheme()
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,7 +54,7 @@ const JobList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const [filters, setFilters] = useState({
-    type: '',
+    type: initialType,
     status: 'failed',
     search: ''
   })
