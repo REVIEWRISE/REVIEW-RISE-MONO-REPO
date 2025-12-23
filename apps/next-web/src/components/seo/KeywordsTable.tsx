@@ -16,10 +16,10 @@ interface KeywordsTableProps {
 
 const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
   const columns: GridColDef[] = [
-    { 
-      field: 'keyword', 
-      headerName: 'Keyword', 
-      flex: 1, 
+    {
+      field: 'keyword',
+      headerName: 'Keyword',
+      flex: 1,
       minWidth: 200,
       renderCell: (params: GridRenderCellParams) => (
         <Box>
@@ -29,24 +29,24 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
         </Box>
       )
     },
-    { 
-      field: 'currentRank', 
-      headerName: 'Rank', 
+    {
+      field: 'currentRank',
+      headerName: 'Rank',
       width: 100,
       renderCell: (params: GridRenderCellParams) => {
         const rank = params.value as number | undefined;
-        let color: 'success' | 'warning' | 'error' | 'default' = 'default';
-        
+        let color: 'success' | 'warning' | 'error' | 'default' | 'info' = 'default';
+
         if (rank && rank <= 3) color = 'success';
         else if (rank && rank <= 10) color = 'info';
         else if (rank && rank <= 20) color = 'warning';
         else if (rank) color = 'error';
 
         return rank ? (
-          <Chip 
-            label={rank} 
-            color={color} 
-            size="small" 
+          <Chip
+            label={rank}
+            color={color}
+            size="small"
             variant={rank <= 10 ? 'filled' : 'outlined'}
           />
         ) : (
@@ -54,9 +54,9 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
         );
       }
     },
-    { 
-      field: 'mapPackPosition', 
-      headerName: 'Map Pack', 
+    {
+      field: 'mapPackPosition',
+      headerName: 'Map Pack',
       width: 100,
       renderCell: (params: GridRenderCellParams) => {
         const rank = params.value as number | undefined;
@@ -67,9 +67,9 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
         );
       }
     },
-    { 
-      field: 'searchVolume', 
-      headerName: 'Volume', 
+    {
+      field: 'searchVolume',
+      headerName: 'Volume',
       width: 100,
       type: 'number',
       renderCell: (params: GridRenderCellParams) => (
@@ -78,9 +78,9 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
         </Typography>
       )
     },
-    { 
-      field: 'difficulty', 
-      headerName: 'KD %', 
+    {
+      field: 'difficulty',
+      headerName: 'KD %',
       width: 100,
       type: 'number',
       renderCell: (params: GridRenderCellParams) => {
@@ -88,7 +88,7 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
         let color = 'success.main';
         if (val && val > 70) color = 'error.main';
         else if (val && val > 40) color = 'warning.main';
-        
+
         return val ? (
           <Typography variant="body2" color={color} fontWeight="medium">
             {val}
@@ -117,9 +117,9 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
       headerName: 'Status',
       width: 100,
       renderCell: (params: GridRenderCellParams) => (
-        <Chip 
-          label={params.value} 
-          size="small" 
+        <Chip
+          label={params.value}
+          size="small"
           color={params.value === 'active' ? 'success' : 'default'}
           variant="outlined"
         />
