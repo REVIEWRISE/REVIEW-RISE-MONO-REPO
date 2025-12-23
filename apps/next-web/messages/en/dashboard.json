@@ -6,13 +6,18 @@
     "seo-intelligence": "SEO Intelligence",
     "locations": "Locations",
     "accounts": "Accounts",
+    "subscription-issues": "Subscription Issues",
     "jobs": "Jobs",
     "logs": "Logs",
     "failed-jobs": "Failed Jobs",
     "social-media-post-logs": "Social Media Post Logs",
     "review-sync-logs": "Review Sync Logs",
     "home": "Home",
-    "about": "About"
+    "about": "About",
+    "smart-reviews": "SmartReviews",
+    "gbp-rocket": "GBPRocket",
+    "ad-rise": "AdRise",
+    "brand-rise": "BrandRise"
   },
   "overview": {
     "title": "Dashboard Overview",
