@@ -102,7 +102,7 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
       flex: 1,
       minWidth: 150,
       renderCell: (params: GridRenderCellParams) => {
-        const tags = params.value as string[];
+        const tags = Array.isArray(params.value) ? Array.from(new Set(params.value as string[])) : [];
         return (
           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', my: 1 }}>
             {tags.map((tag) => (

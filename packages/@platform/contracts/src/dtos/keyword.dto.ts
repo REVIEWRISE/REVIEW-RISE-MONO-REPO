@@ -26,6 +26,10 @@ export interface CreateKeywordDTO {
   searchVolume?: number;
   difficulty?: number;
   tags?: string[];
+  language?: string;
+  city?: string;
+  country?: string;
+  deviceType?: 'desktop' | 'mobile';
 }
 
 export interface UpdateKeywordDTO {
@@ -71,4 +75,33 @@ export interface CreateKeywordRankDTO {
 
 export interface BulkIngestRanksDTO {
   keywords: CreateKeywordRankDTO[];
+}
+
+export interface SuggestKeywordsDTO {
+  businessId: string;
+  locationId?: string;
+  category?: string;
+  seedTerms?: string[];
+  limit?: number;
+}
+
+export interface SuggestKeywordsResponseDTO {
+  suggestions: Array<{
+    keyword: string;
+    tags: string[];
+  }>;
+}
+
+export interface HarvestCompetitorDTO {
+  businessId: string;
+  competitorDomain?: string;
+  competitorGbpId?: string;
+  limit?: number;
+}
+
+export interface HarvestCompetitorResponseDTO {
+  keywords: Array<{
+    keyword: string;
+    tags: string[];
+  }>;
 }
