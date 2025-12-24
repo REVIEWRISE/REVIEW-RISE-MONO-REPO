@@ -24,6 +24,22 @@ export type SystemSettingsData = {
     window_ms: number
     strategy: string
   }
+  email_config: {
+    smtp_host: string
+    smtp_port: number
+    smtp_user: string
+    smtp_password: string
+    from_email: string
+    from_name: string
+  }
+  security_config: {
+    session_timeout_minutes: number
+    password_min_length: number
+    require_special_chars: boolean
+    require_numbers: boolean
+    require_uppercase: boolean
+    enable_2fa: boolean
+  }
   maintenance_mode: boolean
 }
 
@@ -35,6 +51,22 @@ const DEFAULT_SETTINGS: SystemSettingsData = {
   default_timezone: 'UTC',
   notification_defaults: { email: true, sms: false, push: true },
   rate_limit_config: { max_requests: 100, window_ms: 60000, strategy: 'ip' },
+  email_config: {
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_user: '',
+    smtp_password: '',
+    from_email: 'noreply@risereview.com',
+    from_name: 'RiseReview',
+  },
+  security_config: {
+    session_timeout_minutes: 60,
+    password_min_length: 8,
+    require_special_chars: true,
+    require_numbers: true,
+    require_uppercase: true,
+    enable_2fa: false,
+  },
   maintenance_mode: false,
 }
 
@@ -59,6 +91,14 @@ export async function getSystemSettings(): Promise<SystemSettingsData> {
       rate_limit_config: {
         ...DEFAULT_SETTINGS.rate_limit_config,
         ...(settingsMap.rate_limit_config || {}),
+      },
+      email_config: {
+        ...DEFAULT_SETTINGS.email_config,
+        ...(settingsMap.email_config || {}),
+      },
+      security_config: {
+        ...DEFAULT_SETTINGS.security_config,
+        ...(settingsMap.security_config || {}),
       },
     }
   } catch (error) {
@@ -115,6 +155,26 @@ export async function updateSystemSettings(formData: FormData) {
       strategy: formData.get('rate_limit_strategy') as string || 'ip',
     }
 
+    // Email Config
+    const emailConfig = {
+      smtp_host: formData.get('smtp_host') as string || '',
+      smtp_port: Number(formData.get('smtp_port')) || 587,
+      smtp_user: formData.get('smtp_user') as string || '',
+      smtp_password: formData.get('smtp_password') as string || '',
+      from_email: formData.get('from_email') as string || '',
+      from_name: formData.get('from_name') as string || '',
+    }
+
+    // Security Config
+    const securityConfig = {
+      session_timeout_minutes: Number(formData.get('session_timeout_minutes')) || 60,
+      password_min_length: Number(formData.get('password_min_length')) || 8,
+      require_special_chars: formData.get('require_special_chars') === 'on',
+      require_numbers: formData.get('require_numbers') === 'on',
+      require_uppercase: formData.get('require_uppercase') === 'on',
+      enable_2fa: formData.get('enable_2fa') === 'on',
+    }
+
     const updates = [
       { key: 'site_name', value: siteName },
       { key: 'site_title', value: siteTitle },
@@ -124,6 +184,8 @@ export async function updateSystemSettings(formData: FormData) {
       { key: 'maintenance_mode', value: maintenanceMode },
       { key: 'notification_defaults', value: notificationDefaults },
       { key: 'rate_limit_config', value: rateLimitConfig },
+      { key: 'email_config', value: emailConfig },
+      { key: 'security_config', value: securityConfig },
     ]
 
     for (const update of updates) {
