@@ -144,7 +144,7 @@ const KeywordListing = ({
           total: formattedItems.length,
           lastPage: 1
         } as any}
-        onPaginationChange={() => {}}
+        onPaginationChange={() => { }}
         createActionConfig={{
           show: true,
           onClick: handleCreate
@@ -162,14 +162,14 @@ const KeywordListing = ({
             enabled: true,
             component: () => (
               <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{ xs: 4 }}>
                   <Select fullWidth value={statusFilter} onChange={e => onStatusFilter(e.target.value as any)}>
                     <MenuItem value="all">All</MenuItem>
                     <MenuItem value="active">Active</MenuItem>
                     <MenuItem value="archived">Archived</MenuItem>
                   </Select>
                 </Grid>
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{ xs: 4 }}>
                   <TextField label="Tag contains" value={tagFilter} onChange={e => onTagFilter(e.target.value)} fullWidth />
                 </Grid>
               </Grid>

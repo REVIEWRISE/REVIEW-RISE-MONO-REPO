@@ -47,28 +47,7 @@ const InlineFilter: React.FC<InlineFilterProps> = ({
                     <Grid size={12}>
                       <FilterComponentItems formik={formik} />
                     </Grid>
-                    <Grid size={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                      <Button
-                        onClick={() => {
-                          formik.resetForm();
-                          handleFilter({}); // Optional: clear filters on reset
-                        }}
-                        type="reset"
-                        variant="outlined"
-                        color="secondary"
-                      >
-                        {t('common.reset')}
-                      </Button>
-                      <LoadingButton
-                        loading={formik.isSubmitting}
-                        disabled={formik.isSubmitting}
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                      >
-                        {t('common.apply')}
-                      </LoadingButton>
-                    </Grid>
+
                   </Grid>
                 </form>
               )}
