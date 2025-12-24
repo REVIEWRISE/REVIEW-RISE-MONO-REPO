@@ -63,7 +63,7 @@ export class KeywordController {
       );
     } catch (error) {
       console.error('Error listing keywords:', error);
-      res.status(500).json(createErrorResponse('Failed to list keywords', 500));
+      res.status(500).json(createErrorResponse('Failed to list keywords', ErrorCode.INTERNAL_SERVER_ERROR, 500));
     }
   }
 

@@ -10,6 +10,7 @@ import type { KeywordDTO } from '@platform/contracts'
 
 import FormPageWrapper from '@/components/shared/form/form-wrapper'
 import CustomTextBox from '@/components/shared/form/custom-text-box'
+import CustomTagsInput from '@/components/shared/form/custom-tags-input'
 import CustomSelectBox from '@/components/shared/form/custom-select'
 
 const API_URL = 'http://localhost:3012/api/v1'
@@ -77,17 +78,17 @@ const KeywordForm = ({ businessId, initialData, onCancel, onSuccess }: KeywordFo
           tags: Array.isArray(values.tags)
             ? values.tags
             : String(values.tags || '')
-                .split(',')
-                .map(t => t.trim())
-                .filter(Boolean)
+              .split(',')
+              .map(t => t.trim())
+              .filter(Boolean)
         },
         files: []
       })}
       createActionFunc={async (payload: any) => {
         const res = await axios.post(`${API_URL}/keywords`, payload.data)
 
-        
-return res.data
+
+        return res.data
       }}
       onActionSuccess={onSuccess}
     >
@@ -119,7 +120,7 @@ return res.data
             <CustomTextBox name="country" label="Country" fullWidth />
           </Grid>
           <Grid size={{ xs: 12 }}>
-            <CustomTextBox name="tags" label="Tags (comma separated)" fullWidth multiline />
+            <CustomTagsInput name="tags" label="Tags (comma separated)" fullWidth multiline />
           </Grid>
           <Grid size={{ xs: 12 }}>
             <Stack direction="row" spacing={2} alignItems="center">
