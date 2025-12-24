@@ -1,10 +1,10 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useTheme } from '@mui/material/styles'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import dynamic from 'next/dynamic'
 
 // Types
 import type { ApexOptions } from 'apexcharts'

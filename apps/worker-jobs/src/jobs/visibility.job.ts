@@ -1,4 +1,4 @@
-import { businessRepository, visibilityComputationService } from '@platform/db';
+ 
 
 export const computeDailyVisibilityMetrics = async () => {
     console.log('Starting daily visibility metric computation...');
@@ -13,8 +13,7 @@ export const computeDailyVisibilityMetrics = async () => {
     const endOfYesterday = new Date(yesterday);
     endOfYesterday.setHours(23, 59, 59, 999);
 
-    let processedCount = 0;
-    let errorCount = 0;
+    
 
     try {
         // Fetch all businesses (pagination might be needed for large scale, but fine for now)
@@ -41,13 +40,13 @@ export const computeDailyVisibilityMetrics = async () => {
         
         // Let's assume we can iterate.
         // For now, I'll attempt to use `businessRepository` if I can.
-    } catch (e) {
+    } catch {
        // ...
     }
 };
 
 // Re-writing with working logic:
-import { prisma } from '@platform/db'; // Assuming exported
+ 
 // Wait, is it?
 // Step 489 check... `src/index.ts` exports `export * from './repositories'`, `export * from './services'`. 
 // Does it export `prisma` client? 
@@ -62,7 +61,7 @@ import { prisma } from '@platform/db'; // Assuming exported
 // The `computeAllMetrics` service handles logic for ONE business.
 // I need ONE loop.
 
-import { repositories } from '@platform/db'; 
+ 
 
 export const runVisibilityJob = async () => {
   console.log('--- Job Start: Visibility Metrics ---');

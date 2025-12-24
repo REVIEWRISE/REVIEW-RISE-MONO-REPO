@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { keywordRepository, keywordRankRepository } from '@platform/db';
+import { keywordRepository, keywordRankRepository, rankTrackingService } from '@platform/db';
 import { createSuccessResponse, createErrorResponse } from '@platform/contracts';
 import type { CreateKeywordDTO, UpdateKeywordDTO } from '@platform/contracts';
 
@@ -29,22 +29,30 @@ export class KeywordController {
 
       res.json(
         createSuccessResponse(
-          keywords.map((k) => ({
-            id: k.id,
-            businessId: k.businessId,
-            locationId: k.locationId || undefined,
-            keyword: k.keyword,
-            searchVolume: k.searchVolume || undefined,
-            difficulty: k.difficulty || undefined,
-            tags: k.tags,
-            status: k.status,
-            createdAt: k.createdAt.toISOString(),
-            updatedAt: k.updatedAt.toISOString(),
-            // Include latest rank if available
-            currentRank: (k as any).ranks?.[0]?.rankPosition || undefined,
-            mapPackPosition: (k as any).ranks?.[0]?.mapPackPosition || undefined,
-            lastChecked: (k as any).ranks?.[0]?.capturedAt?.toISOString() || undefined,
-          }))
+          await Promise.all(
+            keywords.map(async (k) => {
+              const daily = await rankTrackingService.computeRankChange(k.id, 'daily')
+              const weekly = await rankTrackingService.computeRankChange(k.id, 'weekly')
+              return {
+                id: k.id,
+                businessId: k.businessId,
+                locationId: k.locationId || undefined,
+                keyword: k.keyword,
+                searchVolume: k.searchVolume || undefined,
+                difficulty: k.difficulty || undefined,
+                tags: k.tags,
+                status: k.status,
+                createdAt: k.createdAt.toISOString(),
+                updatedAt: k.updatedAt.toISOString(),
+                currentRank: (k as any).ranks?.[0]?.rankPosition || undefined,
+                mapPackPosition: (k as any).ranks?.[0]?.mapPackPosition || undefined,
+                lastChecked: (k as any).ranks?.[0]?.capturedAt?.toISOString() || undefined,
+                dailyChange: daily.delta || undefined,
+                weeklyChange: weekly.delta || undefined,
+                significantChange: daily.significant || weekly.significant || false
+              }
+            })
+          )
         )
       );
     } catch (error) {

@@ -8,19 +8,19 @@ import Container from '@mui/material/Container';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import MenuItem from '@mui/material/MenuItem';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
-import { useTheme } from '@mui/material/styles';
 import axios from 'axios';
 
+import type { VisibilityMetricDTO, KeywordDTO } from '@platform/contracts';
 import { useAuth } from '@/contexts/AuthContext';
 import VisibilitySummaryCards from '@/components/seo/VisibilitySummaryCards';
 import KeywordsTable from '@/components/seo/KeywordsTable';
 import VisibilityTrendsChart from './VisibilityTrendsChart';
 import HeatmapGrid from '@/components/shared/charts/HeatmapGrid';
-import type { VisibilityMetricDTO, KeywordDTO } from '@platform/contracts';
+import KeywordRankChart from './KeywordRankChart';
 
-// This would typically come from an environment variable
 const API_URL = 'http://localhost:3012/api/v1';
 
 const VisibilityDashboard = () => {
@@ -33,8 +33,6 @@ const VisibilityDashboard = () => {
   const [keywords, setKeywords] = useState<KeywordDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const theme = useTheme();
 
   // Fetch user businesses on mount
   useEffect(() => {
@@ -178,6 +176,17 @@ const VisibilityDashboard = () => {
     values: k.ranks
   })) || [];
 
+  const [openChart, setOpenChart] = useState(false)
+  const [selectedKeyword, setSelectedKeyword] = useState<KeywordDTO | null>(null)
+  const handleViewHistory = (kw: KeywordDTO) => {
+    setSelectedKeyword(kw)
+    setOpenChart(true)
+  }
+  const handleCloseChart = () => {
+    setOpenChart(false)
+    setSelectedKeyword(null)
+  }
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
@@ -261,8 +270,14 @@ const VisibilityDashboard = () => {
             <Typography variant="h6" gutterBottom fontWeight="medium">
               Tracked Keywords
             </Typography>
-            <KeywordsTable keywords={keywords} loading={loading} />
+            <KeywordsTable keywords={keywords} loading={loading} onViewHistory={handleViewHistory} />
           </Box>
+          <KeywordRankChart
+            keywordId={selectedKeyword?.id || null}
+            keywordText={selectedKeyword?.keyword || null}
+            open={openChart}
+            onClose={handleCloseChart}
+          />
         </>
       )}
     </Container>
