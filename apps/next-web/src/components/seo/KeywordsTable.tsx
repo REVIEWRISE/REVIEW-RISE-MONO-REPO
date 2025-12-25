@@ -73,6 +73,27 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading, onView
       }
     },
     {
+      field: 'dailyChange',
+      headerName: 'Change',
+      width: 120,
+      renderCell: (params: GridRenderCellParams) => {
+        const delta = params.value as number | undefined
+        const significant = (params.row as KeywordDTO).significantChange
+        if (delta == null) {
+          return <Typography variant="caption" color="text.secondary">-</Typography>
+        }
+        const isUp = delta > 0
+        const label = `${isUp ? '▲' : delta < 0 ? '▼' : '—'} ${Math.abs(delta)}`
+        const color: 'success' | 'error' | 'default' | 'warning' = isUp ? 'success' : delta < 0 ? 'error' : 'default'
+        const variant = significant ? 'filled' : 'outlined'
+        return (
+          <Tooltip title={significant ? 'Significant change' : 'Change since yesterday'}>
+            <Chip label={label} color={color} size="small" variant={variant} />
+          </Tooltip>
+        )
+      }
+    },
+    {
       field: 'searchVolume',
       headerName: 'Volume',
       width: 100,
