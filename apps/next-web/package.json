@@ -61,7 +61,7 @@
     "react-player": "^2.16.0",
     "recharts": "^2.12.7",
     "keen-slider": "^6.8.6",
-    "react-datepicker": "^6.9.0"
+    "react-datepicker": "^9.1.0"
   },
   "devDependencies": {
     "@iconify/json": "2.2.408",
