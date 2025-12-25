@@ -9,7 +9,7 @@ WORKDIR /app
 
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/@platform/*/package.json ./packages/@platform/
-COPY apps/express-ad-rise/package.json ./apps/express-ad-rise/
+COPY apps/express-seo-health/package.json ./apps/express-seo-health/
 
 RUN pnpm fetch
 
@@ -28,12 +28,12 @@ COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=deps /app/package.json ./package.json
 
 COPY packages/@platform ./packages/@platform
-COPY apps/express-ad-rise ./apps/express-ad-rise
+COPY apps/express-seo-health ./apps/express-seo-health
 
 RUN pnpm install --frozen-lockfile --offline
 RUN pnpm --filter "@platform/*" run build || true
-RUN pnpm --filter @apps/express-ad-rise run build
-RUN pnpm --filter @apps/express-ad-rise deploy --prod /app/pruned
+RUN pnpm --filter @apps/express-seo-health run build
+RUN pnpm --filter @apps/express-seo-health deploy --prod /app/pruned
 
 # ============================================
 # Stage 3: Runner - Production image
@@ -51,10 +51,10 @@ COPY --from=builder --chown=expressjs:expressjs /app/pruned ./
 
 USER expressjs
 
-EXPOSE 3005
+EXPOSE 3011
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3005/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+  CMD node -e "require('http').get('http://localhost:3011/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 

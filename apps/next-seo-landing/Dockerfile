@@ -7,9 +7,11 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
+RUN apk add --no-cache libc6-compat
+
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/@platform/*/package.json ./packages/@platform/
-COPY apps/express-ad-rise/package.json ./apps/express-ad-rise/
+COPY apps/next-seo-landing/package.json ./apps/next-seo-landing/
 
 RUN pnpm fetch
 
@@ -19,6 +21,7 @@ RUN pnpm fetch
 FROM node:20-alpine AS builder
 
 RUN corepack enable && corepack prepare pnpm@9 --activate
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
@@ -28,34 +31,42 @@ COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=deps /app/package.json ./package.json
 
 COPY packages/@platform ./packages/@platform
-COPY apps/express-ad-rise ./apps/express-ad-rise
+COPY apps/next-seo-landing ./apps/next-seo-landing
 
 RUN pnpm install --frozen-lockfile --offline
 RUN pnpm --filter "@platform/*" run build || true
-RUN pnpm --filter @apps/express-ad-rise run build
-RUN pnpm --filter @apps/express-ad-rise deploy --prod /app/pruned
+RUN pnpm --filter @apps/next-seo-landing run build
 
 # ============================================
 # Stage 3: Runner - Production image
 # ============================================
 FROM node:20-alpine AS runner
 
-RUN apk add --no-cache dumb-init
+RUN apk add --no-cache dumb-init libc6-compat
 
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 expressjs && \
-    adduser --system --uid 1001 expressjs
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY --from=builder --chown=expressjs:expressjs /app/pruned ./
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-USER expressjs
+COPY --from=builder /app/apps/next-seo-landing/public ./public
 
-EXPOSE 3005
+COPY --from=builder --chown=nextjs:nodejs /app/apps/next-seo-landing/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/next-seo-landing/.next/static ./apps/next-seo-landing/.next/static
+
+USER nextjs
+
+EXPOSE 3001
+
+ENV PORT=3001
+ENV HOSTNAME="0.0.0.0"
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3005/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+  CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "apps/next-seo-landing/server.js"]
