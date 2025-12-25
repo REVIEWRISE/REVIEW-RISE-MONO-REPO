@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
@@ -47,11 +48,14 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({
        if (val <= 3) return theme.palette.success.main; 
        if (val <= 10) return alpha(theme.palette.success.main, 0.5);
        if (val <= 20) return theme.palette.warning.main;
-       return theme.palette.error.main; 
+       
+return theme.palette.error.main; 
     } else {
        // Simple intensity intensity (0-100)
        const opacity = Math.min(Math.max(val / 100, 0.1), 1);
-       return alpha(theme.palette.primary.main, opacity);
+
+       
+return alpha(theme.palette.primary.main, opacity);
     }
   };
 

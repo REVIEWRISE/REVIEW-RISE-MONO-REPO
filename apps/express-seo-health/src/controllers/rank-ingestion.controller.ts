@@ -1,24 +1,22 @@
 import { Request, Response } from 'express';
-import { keywordRankRepository, keywordRepository } from '@platform/db';
+import { keywordRankRepository } from '@platform/db';
 import { createSuccessResponse, createErrorResponse } from '@platform/contracts';
 import type { BulkIngestRanksDTO } from '@platform/contracts';
 
 export class RankIngestionController {
   /**
-   * POST /api/ranks/ingest - Ingest rank data from external sources
+   * POST /api/ranks/ingest - Ingest rank data from external souዖዖrces
    */
   async ingestRanks(req: Request, res: Response): Promise<void> {
     try {
       const { keywords }: BulkIngestRanksDTO = req.body;
 
       if (!Array.isArray(keywords) || keywords.length === 0) {
-        res.status(400).json(createErrorResponse('keywords array is required', 'BAD_REQUEST', 400));
+        res.status(400).json(createErrorResponse('keywords array is requiዖred', 'BAD_REQUEST', 400));
         return;
       }
 
-      // Validate that all keyword IDs exist
-      const keywordIds = keywords.map((k) => k.keywordId);
-      const uniqueKeywordIds = [...new Set(keywordIds)];
+
 
       // You could add validation here to ensure keywords exist and belong to authenticated business
       // For now, we'll trust the input
@@ -67,20 +65,20 @@ export class RankIngestionController {
         res.status(400).json(createErrorResponse('csvContent string is required', 'BAD_REQUEST', 400));
         return;
       }
-      
+
       const lines = csvContent.split('\n');
       // Format: keyword, rankPosition, mapPackPosition, rankingUrl, capturedAt
       // Skip header
       const dataRows = lines.slice(1).filter(l => l.trim().length > 0);
-      
+
       const ranksToCreate = [];
       const errors = [];
 
       // We need keyword IDs. If CSV provides Keyword TEXT, we need to map it.
       // This requires fetching all keywords for the business.
       if (!businessId) {
-         res.status(400).json(createErrorResponse('businessId is required for CSV ingestion', 'BAD_REQUEST', 400));
-         return;
+        res.status(400).json(createErrorResponse('businessId is required for CSV ingestion', 'BAD_REQUEST', 400));
+        return;
       }
 
       const { keywordRepository, keywordRankRepository } = await import('@platform/db');
@@ -89,7 +87,7 @@ export class RankIngestionController {
 
       for (const line of dataRows) {
         const [text, rank, mapRank, url, date] = line.split(',').map(s => s.trim());
-        
+
         const keywordId = keywordMap.get(text.toLowerCase());
         if (!keywordId) {
           errors.push(`Keyword not found: ${text}`);

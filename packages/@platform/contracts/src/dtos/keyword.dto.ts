@@ -17,6 +17,9 @@ export interface KeywordDTO {
   currentRank?: number;
   mapPackPosition?: number;
   lastChecked?: string;
+  dailyChange?: number;
+  weeklyChange?: number;
+  significantChange?: boolean;
 }
 
 export interface CreateKeywordDTO {

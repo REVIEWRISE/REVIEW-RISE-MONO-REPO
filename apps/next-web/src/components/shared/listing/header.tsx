@@ -3,9 +3,10 @@ import { Fragment, useState, useCallback, memo } from 'react';
 import { Box, Button, Card, CardContent, Chip, Divider, IconButton, Typography } from '@mui/material';
 import { Formik } from 'formik';
 
+import CustomTextField from '@core/components/mui/TextField';
+
 import useTranslation from '@/hooks/useTranslation';
 
-import CustomTextField from '@core/components/mui/TextField';
 import ExportComponentOption from './export';
 import FilterList from './filter-list';
 import InlineFilter from './inline-filter';
@@ -37,6 +38,7 @@ interface ListHeaderProps {
         subject: string;
       };
       component?: React.ComponentType<any>;
+      placeholder?: string;
     };
     export?: {
       enabled: boolean;
@@ -205,7 +207,7 @@ const ListHeader = memo((props: ListHeaderProps) => {
                 ) : (
                   <CustomTextField
                     value={searchTerm}
-                    placeholder={t('common.search-placeholder') || 'Search...'}
+                    placeholder={search?.placeholder || t('common.search-placeholder') || 'Search...'}
                     onChange={handleSearchChange}
                     sx={{ flex: 1 }}
                     InputProps={{

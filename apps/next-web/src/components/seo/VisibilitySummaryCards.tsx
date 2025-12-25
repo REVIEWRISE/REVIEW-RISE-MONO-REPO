@@ -1,11 +1,14 @@
 'use client';
 
 import React from 'react';
+
 import Grid from '@mui/material/Grid';
 import type { VisibilityMetricDTO } from '@platform/contracts';
-import MetricCard from '@/components/shared/analytics/MetricCard';
+
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
+
+import MetricCard from '@/components/shared/analytics/MetricCard';
 
 interface VisibilitySummaryCardsProps {
   metrics: VisibilityMetricDTO | null;

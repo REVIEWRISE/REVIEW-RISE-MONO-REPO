@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
@@ -53,16 +54,17 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
     const isUp = trend.direction === 'up';
     const isDown = trend.direction === 'down';
-    const isNeutral = trend.direction === 'neutral';
 
     let trendColor = theme.palette.text.secondary;
+
     if (isUp) trendColor = theme.palette.success.main;
     if (isDown) trendColor = theme.palette.error.main;
 
     const ArrowIcon = () => {
-        if (isUp) return <span style={{ marginRight: 4 }}>↑</span>;
-        if (isDown) return <span style={{ marginRight: 4 }}>↓</span>;
-        return <span style={{ marginRight: 4 }}>•</span>;
+      if (isUp) return <span style={{ marginRight: 4 }}>↑</span>;
+      if (isDown) return <span style={{ marginRight: 4 }}>↓</span>;
+
+      return <span style={{ marginRight: 4 }}>•</span>;
     };
 
     return (
@@ -118,9 +120,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
         transition: 'transform 0.2s, box-shadow 0.2s',
         '&:hover': onClick
           ? {
-              transform: 'translateY(-2px)',
-              boxShadow: theme.shadows[4],
-            }
+            transform: 'translateY(-2px)',
+            boxShadow: theme.shadows[4],
+          }
           : undefined,
       }}
       onClick={onClick}
@@ -153,13 +155,13 @@ const MetricCard: React.FC<MetricCardProps> = ({
         <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ my: 0.5 }}>
           {value}
         </Typography>
-        
+
         {renderTrend()}
-        
+
         {footer && (
-            <Box sx={{ mt: 2 }}>
-                {footer}
-            </Box>
+          <Box sx={{ mt: 2 }}>
+            {footer}
+          </Box>
         )}
       </Box>
     </Card>
