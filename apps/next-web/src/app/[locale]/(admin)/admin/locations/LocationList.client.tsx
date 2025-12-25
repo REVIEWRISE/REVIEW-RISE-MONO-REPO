@@ -194,7 +194,7 @@ export default function LocationListClient() {
                         ? ITEMS_LISTING_TYPE.table.value
                         : ITEMS_LISTING_TYPE.grid.value
                 }
-                ItemViewComponent={LocationCard}
+                ItemViewComponent={LocationCard as any}
                 tableProps={{ headers: columns }}
                 pagination={{
                     page: meta?.page || 1,
@@ -206,21 +206,27 @@ export default function LocationListClient() {
                     setPage(page)
                     setPageSize(size)
                 }}
+
                 createActionConfig={{
                     show: true,
-                    onClick: handleCreate
+                    onClick: handleCreate,
+                    onlyIcon: false,
+                    permission: { action: 'create', subject: 'location' }
                 }}
                 hasSearch
                 hasFilter
                 features={{
                     search: {
                         enabled: true,
-                        onSearch: setSearch
+                        onSearch: (term) => setSearch(term),
+                        searchKeys: ['name', 'address'],
+                        permission: { action: 'read', subject: 'location' }
                     },
                     filter: {
                         enabled: true,
                         component: FilterComponent,
-                        onFilter: (v: any) => setStatus(v.status || 'all')
+                        onFilter: (v: any) => setStatus(v.status || 'all'),
+                        permission: { action: 'read', subject: 'location' }
                     }
                 }}
             />
