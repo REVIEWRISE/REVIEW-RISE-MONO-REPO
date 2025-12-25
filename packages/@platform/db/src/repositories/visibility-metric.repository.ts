@@ -101,21 +101,29 @@ export class VisibilityMetricRepository extends BaseRepository<
     periodType: string,
     data: Omit<Prisma.VisibilityMetricCreateInput, 'business' | 'location' | 'periodStart' | 'periodEnd' | 'periodType'>
   ): Promise<VisibilityMetric> {
-    return this.delegate.upsert({
+    // Check if metric exists
+    const existing = await this.delegate.findFirst({
       where: {
-        businessId_locationId_periodStart_periodEnd_periodType: {
-          businessId,
-          locationId: locationId as any,
-          periodStart,
-          periodEnd,
-          periodType,
+        businessId,
+        locationId: locationId || null,
+        periodStart,
+        periodEnd,
+        periodType,
+      },
+    });
+
+    if (existing) {
+      return this.delegate.update({
+        where: { id: existing.id },
+        data: {
+          ...data,
+          computedAt: new Date(),
         },
-      },
-      update: {
-        ...data,
-        computedAt: new Date(),
-      },
-      create: {
+      });
+    }
+
+    return this.delegate.create({
+      data: {
         business: {
           connect: { id: businessId },
         },

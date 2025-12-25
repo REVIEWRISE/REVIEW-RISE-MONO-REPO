@@ -57,7 +57,11 @@
     "server-only": "0.0.1",
     "yup": "^1.4.0",
     "zod": "^4.1.13",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "react-player": "^2.16.0",
+    "recharts": "^2.12.7",
+    "keen-slider": "^6.8.6",
+    "react-datepicker": "^6.9.0"
   },
   "devDependencies": {
     "@iconify/json": "2.2.408",

@@ -1,20 +1,28 @@
 'use client';
 
 import React from 'react';
+
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import type { KeywordDTO } from '@platform/contracts';
 
 interface KeywordsTableProps {
   keywords: KeywordDTO[];
   loading?: boolean;
+  onViewHistory?: (keyword: KeywordDTO) => void;
 }
 
-const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
+const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading, onViewHistory }) => {
+  const [menuAnchor, setMenuAnchor] = React.useState<null | HTMLElement>(null);
+  const [menuKeyword, setMenuKeyword] = React.useState<KeywordDTO | null>(null);
+
   const columns: GridColDef[] = [
     {
       field: 'keyword',
@@ -60,11 +68,38 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
       width: 100,
       renderCell: (params: GridRenderCellParams) => {
         const rank = params.value as number | undefined;
-        return rank ? (
+
+        
+return rank ? (
           <Chip label={rank} color="primary" size="small" />
         ) : (
           <Typography variant="caption" color="text.secondary">-</Typography>
         );
+      }
+    },
+    {
+      field: 'dailyChange',
+      headerName: 'Change',
+      width: 120,
+      renderCell: (params: GridRenderCellParams) => {
+        const delta = params.value as number | undefined
+        const significant = (params.row as KeywordDTO).significantChange
+
+        if (delta == null) {
+          return <Typography variant="caption" color="text.secondary">-</Typography>
+        }
+
+        const isUp = delta > 0
+        const label = `${isUp ? '▲' : delta < 0 ? '▼' : '—'} ${Math.abs(delta)}`
+        const color: 'success' | 'error' | 'default' | 'warning' = isUp ? 'success' : delta < 0 ? 'error' : 'default'
+        const variant = significant ? 'filled' : 'outlined'
+
+        
+return (
+          <Tooltip title={significant ? 'Significant change' : 'Change since yesterday'}>
+            <Chip label={label} color={color} size="small" variant={variant} />
+          </Tooltip>
+        )
       }
     },
     {
@@ -86,6 +121,7 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
       renderCell: (params: GridRenderCellParams) => {
         const val = params.value as number | undefined;
         let color = 'success.main';
+
         if (val && val > 70) color = 'error.main';
         else if (val && val > 40) color = 'warning.main';
 
@@ -103,7 +139,9 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
       minWidth: 150,
       renderCell: (params: GridRenderCellParams) => {
         const tags = params.value as string[];
-        return (
+
+        
+return (
           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', my: 1 }}>
             {tags.map((tag) => (
               <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ fontSize: '0.75rem', height: 20 }} />
@@ -123,6 +161,24 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
           color={params.value === 'active' ? 'success' : 'default'}
           variant="outlined"
         />
+      )
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams) => (
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            setMenuAnchor(e.currentTarget);
+            setMenuKeyword(params.row as KeywordDTO);
+          }}
+        >
+          ⋮
+        </IconButton>
       )
     }
   ];
@@ -151,6 +207,24 @@ const KeywordsTable: React.FC<KeywordsTableProps> = ({ keywords, loading }) => {
           },
         }}
       />
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={() => {
+          setMenuAnchor(null);
+          setMenuKeyword(null);
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            if (menuKeyword && onViewHistory) onViewHistory(menuKeyword);
+            setMenuAnchor(null);
+            setMenuKeyword(null);
+          }}
+        >
+          View Ranking History
+        </MenuItem>
+      </Menu>
     </Box>
   );
 };

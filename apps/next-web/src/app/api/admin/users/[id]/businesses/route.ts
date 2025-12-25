@@ -1,5 +1,6 @@
 
 import { NextResponse } from 'next/server';
+
 import { createSuccessResponse, createErrorResponse } from '@platform/contracts';
 
 export async function GET(
@@ -25,7 +26,8 @@ export async function GET(
         return NextResponse.json(createSuccessResponse(businessDtos));
     } catch (error) {
         console.error('Error fetching user businesses:', error);
-        return NextResponse.json(
+        
+return NextResponse.json(
             createErrorResponse('Failed to fetch user businesses', 'INTERNAL_SERVER_ERROR', 500),
             { status: 500 }
         );

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { keywordRepository, keywordRankRepository } from '@platform/db';
-import { createSuccessResponse, createErrorResponse } from '@platform/contracts';
+import { keywordRepository, keywordRankRepository, rankTrackingService } from '@platform/db';
+import { createSuccessResponse, createErrorResponse, ErrorCode } from '@platform/contracts';
 import type { CreateKeywordDTO, UpdateKeywordDTO } from '@platform/contracts';
 
 export class KeywordController {
@@ -12,7 +12,7 @@ export class KeywordController {
       const { businessId, locationId, status, tags, limit = 50, offset = 0 } = req.query;
 
       if (!businessId) {
-        res.status(400).json(createErrorResponse('businessId is required', 400));
+        res.status(400).json(createErrorResponse('businessId is required', 'BAD_REQUEST', 400));
         return;
       }
 
@@ -29,27 +29,35 @@ export class KeywordController {
 
       res.json(
         createSuccessResponse(
-          keywords.map((k) => ({
-            id: k.id,
-            businessId: k.businessId,
-            locationId: k.locationId || undefined,
-            keyword: k.keyword,
-            searchVolume: k.searchVolume || undefined,
-            difficulty: k.difficulty || undefined,
-            tags: k.tags,
-            status: k.status,
-            createdAt: k.createdAt.toISOString(),
-            updatedAt: k.updatedAt.toISOString(),
-            // Include latest rank if available
-            currentRank: (k as any).ranks?.[0]?.rankPosition || undefined,
-            mapPackPosition: (k as any).ranks?.[0]?.mapPackPosition || undefined,
-            lastChecked: (k as any).ranks?.[0]?.capturedAt?.toISOString() || undefined,
-          }))
+          await Promise.all(
+            keywords.map(async (k) => {
+              const daily = await rankTrackingService.computeRankChange(k.id, 'daily')
+              const weekly = await rankTrackingService.computeRankChange(k.id, 'weekly')
+              return {
+                id: k.id,
+                businessId: k.businessId,
+                locationId: k.locationId || undefined,
+                keyword: k.keyword,
+                searchVolume: k.searchVolume || undefined,
+                difficulty: k.difficulty || undefined,
+                tags: k.tags,
+                status: k.status,
+                createdAt: k.createdAt.toISOString(),
+                updatedAt: k.updatedAt.toISOString(),
+                currentRank: (k as any).ranks?.[0]?.rankPosition || undefined,
+                mapPackPosition: (k as any).ranks?.[0]?.mapPackPosition || undefined,
+                lastChecked: (k as any).ranks?.[0]?.capturedAt?.toISOString() || undefined,
+                dailyChange: daily.delta || undefined,
+                weeklyChange: weekly.delta || undefined,
+                significantChange: daily.significant || weekly.significant || false
+              }
+            })
+          )
         )
       );
     } catch (error) {
       console.error('Error listing keywords:', error);
-      res.status(500).json(createErrorResponse('Failed to list keywords', 500));
+      res.status(500).json(createErrorResponse('Failed to list keywords', ErrorCode.INTERNAL_SERVER_ERROR, 500));
     }
   }
 
@@ -61,7 +69,7 @@ export class KeywordController {
       const data: CreateKeywordDTO = req.body;
 
       if (!data.businessId || !data.keyword) {
-        res.status(400).json(createErrorResponse('businessId and keyword are required', 400));
+        res.status(400).json(createErrorResponse('businessId and keyword are required', 'BAD_REQUEST', 400));
         return;
       }
 
@@ -74,10 +82,10 @@ export class KeywordController {
         tags: data.tags || [],
       });
 
-      res.status(201).json(createSuccessResponse({ id: keyword.id, ...keyword }));
+      res.status(201).json(createSuccessResponse(keyword));
     } catch (error) {
       console.error('Error creating keyword:', error);
-      res.status(500).json(createErrorResponse('Failed to create keyword', 500));
+      res.status(500).json(createErrorResponse('Failed to create keyword', ErrorCode.INTERNAL_SERVER_ERROR, 500));
     }
   }
 
@@ -94,7 +102,7 @@ export class KeywordController {
       res.json(createSuccessResponse(keyword));
     } catch (error) {
       console.error('Error updating keyword:', error);
-      res.status(500).json(createErrorResponse('Failed to update keyword', 500));
+      res.status(500).json(createErrorResponse('Failed to update keyword', ErrorCode.INTERNAL_SERVER_ERROR, 500));
     }
   }
 
@@ -110,7 +118,7 @@ export class KeywordController {
       res.json(createSuccessResponse({ message: 'Keyword deleted successfully' }));
     } catch (error) {
       console.error('Error deleting keyword:', error);
-      res.status(500).json(createErrorResponse('Failed to delete keyword', 500));
+      res.status(500).json(createErrorResponse('Failed to delete keyword', ErrorCode.INTERNAL_SERVER_ERROR, 500));
     }
   }
 
@@ -152,19 +160,19 @@ export class KeywordController {
       );
     } catch (error) {
       console.error('Error fetching keyword ranks:', error);
-      res.status(500).json(createErrorResponse('Failed to fetch keyword ranks', 500));
+      res.status(500).json(createErrorResponse('Failed to fetch keyword ranks', ErrorCode.INTERNAL_SERVER_ERROR, 500));
     }
   }
 
   /**
-   * POST /api/keywords/bulk - Bulk create keywords
+ * POST /api/keywords/bulk - Bulk create keywords
    */
   async bulkCreateKeywords(req: Request, res: Response): Promise<void> {
     try {
       const { keywords } = req.body;
 
       if (!Array.isArray(keywords) || keywords.length === 0) {
-        res.status(400).json(createErrorResponse('keywords array is required', 400));
+        res.status(400).json(createErrorResponse('keywords array is required', ErrorCode.BAD_REQUEST, 400));
         return;
       }
 
@@ -187,7 +195,7 @@ export class KeywordController {
       );
     } catch (error) {
       console.error('Error bulk creating keywords:', error);
-      res.status(500).json(createErrorResponse('Failed to bulk create keywords', 500));
+      res.status(500).json(createErrorResponse('Failed to bulk create keywords', ErrorCode.INTERNAL_SERVER_ERROR, 500));
     }
   }
 }

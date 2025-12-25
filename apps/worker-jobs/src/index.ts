@@ -21,6 +21,7 @@ app.get('/health', (req, res) => {
 });
 
 import { runVisibilityJob } from './jobs/visibility.job';
+import { runRankTrackingJob } from './jobs/rank-tracking.job';
 
 app.post('/jobs/compute-visibility', async (req, res) => {
     // Run async, don't wait for completion? Or wait?
@@ -32,6 +33,28 @@ app.post('/jobs/compute-visibility', async (req, res) => {
     res.status(202).json({ message: 'Visibility computation job started' });
 });
 
+app.post('/jobs/rank-tracking/daily', async (req, res) => {
+    runRankTrackingJob()
+        .then(result => console.log('Rank tracking job result:', result))
+        .catch(err => console.error('Rank tracking job failed:', err))
+    res.status(202).json({ message: 'Rank tracking job started' })
+})
+
+const scheduleDaily = (hour: number = 2) => {
+    const now = new Date()
+    const next = new Date(now)
+    next.setHours(hour, 0, 0, 0)
+    if (next <= now) next.setDate(next.getDate() + 1)
+    const delay = next.getTime() - now.getTime()
+    setTimeout(() => {
+        runRankTrackingJob().catch(err => console.error('Scheduled rank job failed:', err))
+        setInterval(() => {
+            runRankTrackingJob().catch(err => console.error('Scheduled rank job failed:', err))
+        }, 24 * 60 * 60 * 1000)
+    }, delay)
+}
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    scheduleDaily(2)
 });

@@ -1,5 +1,4 @@
 import { Fragment, useState, useCallback, memo } from 'react';
-/* eslint-disable import/no-unresolved */
 
 import { Box, Button, IconButton, Typography } from '@mui/material';
 

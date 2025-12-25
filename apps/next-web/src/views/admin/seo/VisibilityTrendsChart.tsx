@@ -1,10 +1,11 @@
 'use client'
 
+import dynamic from 'next/dynamic'
+
 import { useTheme } from '@mui/material/styles'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import dynamic from 'next/dynamic'
 
 // Types
 import type { ApexOptions } from 'apexcharts'
@@ -31,8 +32,10 @@ const VisibilityTrendsChart = ({ data, loading }: VisibilityTrendsChartProps) =>
       data: data.map(d => Number(d.shareOfVoice.toFixed(1)))
     }
   ]
+
   const divider = 'var(--mui-palette-divider)'
   const textDisabled = 'var(--mui-palette-text-disabled)'
+
   const options: ApexOptions = {
     chart: {
       parentHeightOffset: 0,
@@ -80,6 +83,7 @@ const VisibilityTrendsChart = ({ data, loading }: VisibilityTrendsChartProps) =>
 
     }
   }
+
   if (loading) {
     return (
       <Card sx={{ height: 460, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
