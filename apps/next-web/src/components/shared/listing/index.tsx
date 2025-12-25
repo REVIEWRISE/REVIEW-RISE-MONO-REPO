@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import { Fragment, useState, useMemo, useCallback, memo, lazy, Suspense } from 'react';
+import { Fragment, useState, useMemo, useCallback, lazy, Suspense } from 'react';
 
 import type { GridSize } from '@mui/material';
 import { Container, useMediaQuery } from '@mui/material';

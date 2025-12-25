@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -14,6 +15,7 @@ import FormControl from '@mui/material/FormControl';
 import axios from 'axios';
 
 import type { VisibilityMetricDTO, KeywordDTO } from '@platform/contracts';
+
 import { useAuth } from '@/contexts/AuthContext';
 import VisibilitySummaryCards from '@/components/seo/VisibilitySummaryCards';
 import KeywordsTable from '@/components/seo/KeywordsTable';
@@ -47,6 +49,7 @@ const VisibilityDashboard = () => {
 
         if (response.data?.data && response.data.data.length > 0) {
           setBusinesses(response.data.data);
+
           // Auto-select first business
           setBusinessId(response.data.data[0].id);
         } else {
@@ -66,9 +69,11 @@ const VisibilityDashboard = () => {
   const fetchData = useCallback(async (id: string) => {
     setLoading(true);
     setError(null);
+
     try {
       const today = new Date();
       const thirtyDaysAgo = new Date();
+
       thirtyDaysAgo.setDate(today.getDate() - 30);
 
       // 1. Fetch Latest Metric for Cards
@@ -124,20 +129,24 @@ const VisibilityDashboard = () => {
 
       if (heatmapRes.data?.data) {
         const apiData = heatmapRes.data.data;
+
         const transformedHeatmap = {
           dates: apiData.periods,
           keywords: apiData.keywords.map((kw: string, index: number) => ({
             id: `kw-${index}`, // fallback ID
             keyword: kw,
+
             // data is [keywordIndex][dateIndex]
             ranks: apiData.data[index]
           }))
         };
+
         setHeatmapData(transformedHeatmap);
       }
 
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
+
       // Don't overwrite "No businesses found" error if it was that
       setError(prev => prev || 'Failed to load dashboard data. Please check connection to SEO service.');
     } finally {
@@ -164,7 +173,8 @@ const VisibilityDashboard = () => {
 
   const sortedHistory = useMemo(() => {
     if (!historicalMetrics?.length) return [];
-    return [...historicalMetrics].sort((a, b) =>
+    
+return [...historicalMetrics].sort((a, b) =>
       new Date(a.periodStart).getTime() - new Date(b.periodStart).getTime()
     );
   }, [historicalMetrics]);
@@ -178,10 +188,12 @@ const VisibilityDashboard = () => {
 
   const [openChart, setOpenChart] = useState(false)
   const [selectedKeyword, setSelectedKeyword] = useState<KeywordDTO | null>(null)
+
   const handleViewHistory = (kw: KeywordDTO) => {
     setSelectedKeyword(kw)
     setOpenChart(true)
   }
+
   const handleCloseChart = () => {
     setOpenChart(false)
     setSelectedKeyword(null)

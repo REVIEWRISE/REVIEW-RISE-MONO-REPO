@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
+import dynamic from 'next/dynamic'
+
 import axios from 'axios'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import Card from '@mui/material/Card'
-import dynamic from 'next/dynamic'
 import type { ApexOptions } from 'apexcharts'
 
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'))
@@ -28,6 +30,7 @@ export default function KeywordRankChart({ keywordId, keywordText, open, onClose
     if (!open || !keywordId) return
     const today = new Date()
     const start = new Date()
+
     start.setDate(today.getDate() - 30)
     axios.get(`${API_URL}/keywords/${keywordId}/ranks`, {
       params: {
@@ -37,9 +40,11 @@ export default function KeywordRankChart({ keywordId, keywordText, open, onClose
       }
     }).then(res => {
       const data = res.data?.data || []
+
       const sorted = [...data].sort((a: any, b: any) =>
         new Date(a.capturedAt).getTime() - new Date(b.capturedAt).getTime()
       )
+
       setCategories(sorted.map((r: any) => r.capturedAt.split('T')[0]))
       setSeries([
         {

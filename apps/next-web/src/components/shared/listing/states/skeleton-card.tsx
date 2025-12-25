@@ -1,4 +1,5 @@
 import { memo } from 'react';
+
 import { Card, CardContent, Skeleton, Stack } from '@mui/material';
 
 interface SkeletonCardProps {

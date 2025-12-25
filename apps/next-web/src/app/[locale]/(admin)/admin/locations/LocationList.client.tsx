@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useCallback } from 'react'
+
 import dynamic from 'next/dynamic'
 
 import {
@@ -90,6 +91,7 @@ export default function LocationListClient() {
 
     const handleEdit = useCallback((id: string) => {
         const location = data?.data?.find((item: any) => item.id == id)
+
         if (location) {
             setSelectedLocation(location)
             setIsDrawerOpen(true)

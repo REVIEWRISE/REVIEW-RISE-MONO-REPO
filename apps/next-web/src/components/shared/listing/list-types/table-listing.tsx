@@ -37,7 +37,9 @@ const TableListing = memo(<T,>({ columns, items, pagination, onPagination, isLoa
     renderCell: (params) => {
       // Calculate global index based on pagination
       const currentRowIndex = items.findIndex((item: any) => item.id === params.row.id);
-      return (pagination?.page - 1) * pagination?.pageSize + currentRowIndex + 1;
+
+      
+return (pagination?.page - 1) * pagination?.pageSize + currentRowIndex + 1;
     }
   }), [items, pagination]);
 
