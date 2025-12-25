@@ -1,6 +1,10 @@
 /* eslint-disable import/no-unresolved */
 'use client'
 
+export const metadata = {
+    title: 'Locations'
+}
+
 import { useMemo, useState, useCallback } from 'react'
 
 import { Box, Chip, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
