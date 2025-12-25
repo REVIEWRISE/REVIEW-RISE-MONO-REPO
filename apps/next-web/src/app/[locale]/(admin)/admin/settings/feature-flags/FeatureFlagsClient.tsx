@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unresolved */
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 import {
   Box,
@@ -17,6 +17,7 @@ import { ITEMS_LISTING_TYPE } from '@/configs/listingConfig'
 
 import {
   type FeatureFlag,
+  getFeatureFlags,
   toggleFeatureFlag,
   deleteFeatureFlag,
 } from '@/app/actions/feature-flags'
@@ -31,9 +32,11 @@ export default function FeatureFlagsClient({
   const [searchTerm, setSearchTerm] = useState('')
   const [open, setOpen] = useState(false)
   const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [flags, setFlags] = useState<FeatureFlag[]>(initialFlags)
 
   // Filter flags
-  const filteredFlags = initialFlags.filter(
+  const filteredFlags = flags.filter(
     (flag) =>
       flag.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (flag.description &&
@@ -50,8 +53,30 @@ export default function FeatureFlagsClient({
     pagination.page * pagination.pageSize
   )
 
+  useEffect(() => {
+    let isMounted = true
+
+    setLoading(true)
+    getFeatureFlags()
+      .then((refreshed) => {
+        if (isMounted) setFlags(refreshed)
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const handleToggle = async (id: string, currentState: boolean) => {
+    setLoading(true)
     await toggleFeatureFlag(id, !currentState)
+    const refreshed = await getFeatureFlags()
+
+    setFlags(refreshed)
+    setLoading(false)
   }
 
   const handleEdit = (flag: FeatureFlag) => {
@@ -101,7 +126,14 @@ export default function FeatureFlagsClient({
             color="error"
             size="small"
             onClick={async () => {
-              if (confirm('Are you sure?')) await deleteFeatureFlag(params.row.id)
+              if (confirm('Are you sure?')) {
+                setLoading(true)
+                await deleteFeatureFlag(params.row.id)
+                const refreshed = await getFeatureFlags()
+
+                setFlags(refreshed)
+                setLoading(false)
+              }
             }}
           >
             Delete
@@ -110,7 +142,7 @@ export default function FeatureFlagsClient({
       ),
     },
   ], [])
-
+  
   return (
     <Box>
       <PageHeader
@@ -121,6 +153,7 @@ export default function FeatureFlagsClient({
       <ItemsListing
         items={paginatedFlags}
         type={ITEMS_LISTING_TYPE.table.value}
+        isLoading={loading}
         pagination={{
           page: pagination.page,
           pageSize: pagination.pageSize,
