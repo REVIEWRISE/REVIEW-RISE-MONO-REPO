@@ -46,6 +46,12 @@ const menuData: MenuItem[] = [
     allowedRoles: [ROLES.ADMIN]
   },
   {
+    title: 'navigation.ai-visibility',
+    href: '/admin/ai-visibility',
+    icon: 'tabler-eye',
+    allowedRoles: [ROLES.ADMIN]
+  },
+  {
     title: 'navigation.locations',
     href: '/admin/locations',
     icon: 'tabler-map-pin',
