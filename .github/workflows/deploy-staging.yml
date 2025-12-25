@@ -120,12 +120,30 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          ssh $VPS_USER@$VPS_HOST << 'EOF'
+          ssh -A -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST << 'EOF'
             set -e
+            
+            # Ensure deploy directory exists
+            if [ ! -d "${{ secrets.DEPLOY_PATH }}/.git" ]; then
+              echo "Repository not found at ${{ secrets.DEPLOY_PATH }}. Cloning..."
+              mkdir -p ${{ secrets.DEPLOY_PATH }}
+              
+              # Use SSH Agent Forwarding to clone
+              # Disable strict host checking for github.com to avoid prompt
+              export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+              git clone git@github.com:REVIEWRISE/REVIEW-RISE-MONO-REPO.git ${{ secrets.DEPLOY_PATH }}
+            
+            else
+              echo "Repository exists. Updating..."
+            fi
+
             cd ${{ secrets.DEPLOY_PATH }}
             
-            # Pull latest code
-            git pull origin develop
+            # Fetch and Checkout
+            export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+            git fetch origin
+            git checkout staging
+            git pull origin staging
             
             # Pull latest Docker images
             docker compose -f docker-compose.prod.yml pull
