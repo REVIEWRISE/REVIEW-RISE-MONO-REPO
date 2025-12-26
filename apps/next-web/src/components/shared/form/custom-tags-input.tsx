@@ -90,9 +90,7 @@ const CustomTagsInput: React.FC<CustomTagsInputProps> = ({
               // params.onKeyDown doesn't exist on AutocompleteRenderInputParams
               // The event handler is likely in params.InputProps or params.inputProps
               // We need to call the original handler to preserve Autocomplete functionality (arrows, etc.)
-              if (params.InputProps?.onKeyDown) {
-                (params.InputProps.onKeyDown as React.KeyboardEventHandler)(e);
-              }
+
               if (params.inputProps?.onKeyDown) {
                 (params.inputProps.onKeyDown as React.KeyboardEventHandler)(e);
               }
