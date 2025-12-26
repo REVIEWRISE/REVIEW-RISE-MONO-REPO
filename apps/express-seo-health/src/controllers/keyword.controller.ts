@@ -4,8 +4,6 @@ import { createSuccessResponse, createErrorResponse, ErrorCode } from '@platform
 import type {
   CreateKeywordDTO,
   UpdateKeywordDTO,
-  SuggestKeywordsDTO,
-  HarvestCompetitorDTO
 } from '@platform/contracts';
 
 export class KeywordController {
@@ -248,7 +246,7 @@ export class KeywordController {
       const seedTermsParam = req.query.seedTerms;
       const limitParam = req.query.limit;
       if (!businessId || typeof businessId !== 'string') {
-        res.status(400).json(createErrorResponse('businessId is required', ErrorCode.BAD_REQUEST,400));
+        res.status(400).json(createErrorResponse('businessId is required', ErrorCode.BAD_REQUEST, 400));
         return;
       }
       const locName =
