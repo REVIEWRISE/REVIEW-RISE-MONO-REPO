@@ -60,29 +60,10 @@ RUN pnpm --filter @apps/express-auth deploy --prod /app/pruned
 # pnpm deploy doesn't copy build artifacts, only source and dependencies
 RUN cp -r /app/apps/express-auth/dist /app/pruned/dist
 
-# Debug: Locate the .prisma folder
-# Copy ALL Prisma-related packages to the pruned directory
-# This ensures the complete dependency tree is present (client, runtime-utils, adapter, etc.)
-RUN PRISMA_SCOPE=$(find /app/node_modules -type d -path "*/@prisma" | head -n 1) && \
-  if [ -z "$PRISMA_SCOPE" ]; then \
-  echo "Error: @prisma scope not found"; \
-  exit 1; \
-  fi && \
-  echo "Found @prisma scope at $PRISMA_SCOPE" && \
-  mkdir -p /app/pruned/node_modules/@prisma && \
-  cp -r $PRISMA_SCOPE/* /app/pruned/node_modules/@prisma/ && \
-  echo "Copied all @prisma packages"
-
-# Copy the generated Prisma client (.prisma directory)
-RUN PRISMA_CLIENT=$(find /app -name .prisma -type d | head -n 1) && \
-  if [ -z "$PRISMA_CLIENT" ]; then \
-  echo "Error: .prisma directory not found"; \
-  exit 1; \
-  fi && \
-  echo "Found .prisma at $PRISMA_CLIENT" && \
-  mkdir -p /app/pruned/node_modules/.prisma && \
-  cp -r $PRISMA_CLIENT/* /app/pruned/node_modules/.prisma/ && \
-  echo "Copied generated Prisma client"
+# Generate Prisma Client in the pruned directory
+# pnpm deploy doesn't run postinstall hooks, so we must explicitly generate the client
+# This creates .prisma/client with proper runtime links to @prisma/client
+RUN cd /app/pruned && pnpm exec prisma generate --schema=./node_modules/@platform/db/prisma/schema.prisma
 
 # ============================================
 # Stage 3: Runner - Production image
