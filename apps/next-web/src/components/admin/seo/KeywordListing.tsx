@@ -147,7 +147,9 @@ const KeywordListing = ({
         onPaginationChange={() => { }}
         createActionConfig={{
           show: true,
-          onClick: handleCreate
+          onClick: handleCreate,
+          onlyIcon: false,
+          permission: { action: 'create', subject: 'Keyword' }
         }}
         hasSearch
         hasFilter
