@@ -64,8 +64,15 @@ RUN cp -r /app/apps/express-auth/dist /app/pruned/dist
 RUN find /app -name .prisma -type d
 
 # Copy the generated Prisma client to the pruned directory
-# We try to copy from the package specific node_modules first, but fallback or wildcard if needed
-RUN cp -r /app/packages/@platform/db/node_modules/.prisma /app/pruned/node_modules/.prisma || cp -r /app/node_modules/.prisma /app/pruned/node_modules/.prisma
+# We dynamically locate the .prisma folder because pnpm structure can vary
+RUN PRISMA_PATH=$(find /app -name .prisma -type d | head -n 1) && \
+  if [ -z "$PRISMA_PATH" ]; then \
+  echo "Error: .prisma directory not found"; \
+  exit 1; \
+  fi && \
+  echo "Found .prisma at $PRISMA_PATH" && \
+  mkdir -p /app/pruned/node_modules/.prisma && \
+  cp -r $PRISMA_PATH/* /app/pruned/node_modules/.prisma/
 
 # ============================================
 # Stage 3: Runner - Production image
