@@ -9,7 +9,6 @@ import useTranslation from '@/hooks/useTranslation';
 
 import ExportComponentOption from './export';
 import FilterList from './filter-list';
-import InlineFilter from './inline-filter';
 
 import type { CreateActionConfig, ExportConfigValues, ExportFieldOption } from '@/types/general/listing';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Drawer, Box, Button, Typography, IconButton } from '@mui/material';
+import { Box, Drawer, IconButton, Typography } from '@mui/material';
 
 import useTranslation from '@/hooks/useTranslation';
 
@@ -12,7 +12,7 @@ interface FilterListProps {
   initialValues?: any;
 }
 
-const FilterList = ({ open, toggle, handleFilter, FilterComponentItems }: FilterListProps) => {
+const FilterList = ({ open, toggle }: FilterListProps) => {
   const t = useTranslation('common');
 
   // Simple stub implementation
