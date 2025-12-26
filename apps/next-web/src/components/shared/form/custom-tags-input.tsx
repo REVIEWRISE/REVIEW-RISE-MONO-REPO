@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+
 import { useField, useFormikContext } from 'formik';
+
 import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
+
 import CustomTextField from '@/@core/components/mui/TextField';
 
 interface CustomTagsInputProps {
@@ -45,6 +48,7 @@ const CustomTagsInput: React.FC<CustomTagsInputProps> = ({
         const processedTags = newValue.reduce((acc: string[], tag: string) => {
           // Split by comma, trim whitespace, and remove empty strings
           const splitTags = tag.split(',').map(t => t.trim()).filter(Boolean);
+
           return [...acc, ...splitTags];
         }, []);
 
@@ -52,6 +56,7 @@ const CustomTagsInput: React.FC<CustomTagsInputProps> = ({
         const uniqueTags = Array.from(new Set(processedTags));
 
         helpers.setValue(uniqueTags);
+
         // Clear input value after selection (though reason='reset' usually handles it)
         setInputValue('');
       }}
@@ -60,6 +65,7 @@ const CustomTagsInput: React.FC<CustomTagsInputProps> = ({
       renderTags={(value: string[], getTagProps) =>
         value.map((option: string, index: number) => (
           <Chip
+
             // variant="filled" is the default and matches the gray background in the user's image
             label={option}
             size="small"
@@ -80,9 +86,11 @@ const CustomTagsInput: React.FC<CustomTagsInputProps> = ({
             if (e.key === ',') {
               e.preventDefault();
               e.stopPropagation();
+
               if (inputValue.trim()) {
                 const newTags = [...value, inputValue.trim()];
                 const uniqueTags = Array.from(new Set(newTags));
+
                 helpers.setValue(uniqueTags);
                 setInputValue('');
               }
