@@ -51,6 +51,7 @@ RUN addgroup --system --gid 1001 expressjs && \
     adduser --system --uid 1001 expressjs
 
 COPY --from=builder --chown=expressjs:expressjs /app/pruned ./
+COPY --from=builder --chown=expressjs:expressjs /app/apps/express-seo-health/dist ./dist
 
 USER expressjs
 

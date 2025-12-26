@@ -50,6 +50,7 @@ RUN addgroup --system --gid 1001 worker && \
     adduser --system --uid 1001 worker
 
 COPY --from=builder --chown=worker:worker /app/pruned ./
+COPY --from=builder --chown=worker:worker /app/apps/worker-jobs/dist ./dist
 
 USER worker
 
