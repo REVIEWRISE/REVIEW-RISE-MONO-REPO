@@ -84,9 +84,23 @@ log_info "Backup created at $BACKUP_DIR with timestamp $TIMESTAMP ✓"
 # ==============================================================================
 log_info "Logging into GHCR..."
 
+log_info "Logging into GHCR..."
+
 if [ -n "${GITHUB_TOKEN:-}" ] && [ -n "${GITHUB_ACTOR:-}" ]; then
-    echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-    log_info "Authenticated with ghcr.io ✓"
+    # Ensure lowercase actor for Docker compatibility
+    LOWER_ACTOR=$(echo "$GITHUB_ACTOR" | tr '[:upper:]' '[:lower:]')
+    
+    # Logout first to ensure clean state
+    docker logout ghcr.io > /dev/null 2>&1 || true
+    
+    echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$LOWER_ACTOR" --password-stdin
+    
+    if [ $? -eq 0 ]; then
+        log_info "Authenticated with ghcr.io as $LOWER_ACTOR ✓"
+    else
+        log_error "Failed to login to ghcr.io!"
+        # Do not exit, try pulling anyway (though likely to fail for private images)
+    fi
 else
     log_warn "GITHUB_TOKEN or GITHUB_ACTOR not set. Skipping docker login (pull may fail for private images)."
 fi
