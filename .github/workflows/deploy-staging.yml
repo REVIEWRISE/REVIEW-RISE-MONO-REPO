@@ -125,7 +125,6 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-        run: |
           ssh -A -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "export GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN }}'; bash -s" << 'EOF'
             set -e
             
