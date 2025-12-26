@@ -33,6 +33,7 @@ COPY packages/@platform ./packages/@platform
 COPY apps/express-brand ./apps/express-brand
 
 RUN pnpm install --frozen-lockfile --offline
+RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/*" run build || true
 RUN pnpm --filter @apps/express-brand run build
 RUN pnpm --filter @apps/express-brand deploy --prod /app/pruned

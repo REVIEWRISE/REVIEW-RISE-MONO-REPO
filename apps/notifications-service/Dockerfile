@@ -33,6 +33,8 @@ COPY packages/@platform ./packages/@platform
 COPY apps/notifications-service ./apps/notifications-service
 
 RUN pnpm install --frozen-lockfile --offline
+# Build shared packages first (if they need building)
+RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/*" run build || true
 RUN pnpm --filter @apps/notifications-service run build
 RUN pnpm --filter @apps/notifications-service deploy --prod /app/pruned

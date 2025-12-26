@@ -46,6 +46,7 @@ COPY apps/express-auth ./apps/express-auth
 RUN pnpm install --frozen-lockfile --offline
 
 # Build shared packages first (if they need building)
+RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/*" run build || true
 
 # Build the express-auth application

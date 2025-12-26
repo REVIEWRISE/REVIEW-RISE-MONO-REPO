@@ -33,6 +33,8 @@ COPY packages/@platform ./packages/@platform
 COPY apps/express-admin-portal ./apps/express-admin-portal
 
 RUN pnpm install --frozen-lockfile --offline
+# Build shared packages first (if they need building)
+RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/*" run build || true
 RUN pnpm --filter @apps/express-admin-portal run build
 RUN pnpm --filter @apps/express-admin-portal deploy --prod /app/pruned

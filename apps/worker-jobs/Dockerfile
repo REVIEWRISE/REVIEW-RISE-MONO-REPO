@@ -33,6 +33,8 @@ COPY packages/@platform ./packages/@platform
 COPY apps/worker-jobs ./apps/worker-jobs
 
 RUN pnpm install --frozen-lockfile --offline
+# Build shared packages first (if they need building)
+RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/*" run build || true
 RUN pnpm --filter @apps/worker-jobs run build
 RUN pnpm --filter @apps/worker-jobs deploy --prod /app/pruned

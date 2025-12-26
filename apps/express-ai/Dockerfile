@@ -33,6 +33,8 @@ COPY packages/@platform ./packages/@platform
 COPY apps/express-ai ./apps/express-ai
 
 RUN pnpm install --frozen-lockfile --offline
+# Build shared packages first (if they need building)
+RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/*" run build || true
 RUN pnpm --filter @apps/express-ai run build
 RUN pnpm --filter @apps/express-ai deploy --prod /app/pruned

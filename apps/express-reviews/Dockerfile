@@ -34,6 +34,8 @@ COPY packages/@platform ./packages/@platform
 COPY apps/express-reviews ./apps/express-reviews
 
 RUN pnpm install --frozen-lockfile --offline
+# Build shared packages first (if they need building)
+RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/*" run build || true
 RUN pnpm --filter @apps/express-reviews run build
 RUN pnpm --filter @apps/express-reviews deploy --prod /app/pruned
