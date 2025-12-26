@@ -99,7 +99,7 @@ module.exports = {
     'import/resolver': {
       node: {},
       typescript: {
-        project: './tsconfig.json'
+        project: './tsconfig.lint.json'
       }
     }
   },
