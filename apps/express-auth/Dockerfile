@@ -85,6 +85,10 @@ COPY --from=builder --chown=expressjs:expressjs /app/pruned ./
 # The custom output in schema.prisma generates to /app/node_modules/.prisma/client
 COPY --from=builder --chown=expressjs:expressjs /app/node_modules/.prisma ./node_modules/.prisma
 
+# CRITICAL: Explicitly copy @prisma/client-runtime-utils from pnpm store
+# pnpm deploy doesn't properly preserve this symlinked dependency, so we copy it manually
+COPY --from=builder --chown=expressjs:expressjs /app/node_modules/.pnpm/@prisma+client-runtime-utils@7.2.0 ./node_modules/.pnpm/@prisma+client-runtime-utils@7.2.0
+
 # Switch to non-root user
 USER expressjs
 
