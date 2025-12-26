@@ -4,7 +4,6 @@
     "reviews": "Reviews",
     "social-rise": "SocialRise",
     "seo-intelligence": "SEO Intelligence",
-    "locations": "Locations",
     "accounts": "Accounts",
     "subscription-issues": "Subscription Issues",
     "jobs": "Jobs",
@@ -23,7 +22,8 @@
     "brand-rise": "BrandRise",
     "settings": "Settings",
     "system-settings": "System Settings",
-    "feature-flags": "Feature Flags"
+    "feature-flags": "Feature Flags",
+    "ai-visibility": "AI Visibility"
   },
   "overview": {
     "title": "Dashboard Overview",
