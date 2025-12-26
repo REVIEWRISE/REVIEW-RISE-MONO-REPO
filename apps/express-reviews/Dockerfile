@@ -65,4 +65,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/apps/express-reviews/src/index.js"]
