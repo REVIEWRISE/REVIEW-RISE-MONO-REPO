@@ -47,7 +47,7 @@ RUN pnpm install --frozen-lockfile --offline
 
 # Build shared packages first (if they need building)
 RUN pnpm --filter "@platform/db" run db:generate
-RUN pnpm --filter "@platform/*" run build || true
+RUN pnpm --filter "@platform/*" run build
 
 # Build the express-auth application
 RUN pnpm --filter @apps/express-auth run build
@@ -72,7 +72,7 @@ WORKDIR /app
 
 # Create a non-root user for security
 RUN addgroup --system --gid 1001 expressjs && \
-    adduser --system --uid 1001 expressjs
+  adduser --system --uid 1001 expressjs
 
 # Copy only the pruned production dependencies and built code (includes dist now)
 COPY --from=builder --chown=expressjs:expressjs /app/pruned ./
