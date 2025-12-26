@@ -72,9 +72,9 @@ const AccountLocations = () => {
   }
 
   const handleEdit = useCallback(
-    (id: number) => {
+    (id: string) => {
       // eslint-disable-next-line eqeqeq
-      const location = locationsData?.data?.find((item: any) => item.id == id)
+      const location = locationsData?.data?.find((item: any) => item.id === id)
 
       if (location) {
         setSelectedLocation(location)
@@ -84,7 +84,7 @@ const AccountLocations = () => {
     [locationsData]
   )
 
-  const handleDelete = useCallback(async (id: number) => {
+  const handleDelete = useCallback(async (id: string) => {
     console.log('Delete location', id)
   }, [])
 

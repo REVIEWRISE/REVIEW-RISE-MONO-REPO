@@ -55,12 +55,6 @@ const menuData: MenuItem[] = [
     ]
   },
   {
-    title: 'navigation.locations',
-    href: '/admin/locations',
-    icon: 'tabler-map-pin',
-    allowedRoles: [ROLES.ADMIN]
-  },
-  {
     title: 'navigation.smart-reviews',
     href: '/admin/smart-reviews',
     icon: 'tabler-sparkles',
