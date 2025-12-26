@@ -58,6 +58,11 @@ const menuData: MenuItem[] = [
         title: 'navigation.seo-visibility',
         href: '/admin/seo-intelligence/visibility'
       }
+      ,
+      {
+        title: 'navigation.seo-keywords',
+        href: '/admin/seo-intelligence/keywords'
+      }
     ]
   },
   {
