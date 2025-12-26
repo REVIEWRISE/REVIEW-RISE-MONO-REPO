@@ -62,7 +62,7 @@ RUN cp -r /app/apps/express-auth/dist /app/pruned/dist
 
 # Copy the generated Prisma client to the pruned directory
 # The generated client is in node_modules/.prisma which pnpm deploy doesn't copy
-RUN cp -r /app/node_modules/.prisma /app/pruned/node_modules/.prisma
+RUN cp -r /app/packages/@platform/db/node_modules/.prisma /app/pruned/node_modules/.prisma
 
 # ============================================
 # Stage 3: Runner - Production image
