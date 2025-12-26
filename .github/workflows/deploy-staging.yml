@@ -153,6 +153,12 @@ jobs:
             # Pull latest Docker images
             docker compose -f docker-compose.prod.yml pull
             
+            # --- STAGING RESET (For Initial Setup) ---
+            # Remove this block after first successful deployment!
+            echo "⚠️  Wiping database volume to enforce init-db.sh execution..."
+            docker compose -f docker-compose.prod.yml down -v || true
+            # ----------------------------------------
+            
             # Create/Update .env.production from secret
             echo "${{ secrets.ENV_PRODUCTION }}" > .env.production
             
