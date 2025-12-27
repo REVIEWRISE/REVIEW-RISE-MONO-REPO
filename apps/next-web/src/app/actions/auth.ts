@@ -46,7 +46,8 @@ export async function loginAction(prevState: LoginResponse | null, formData: For
   // Determine local base URL for BFF call
   const headersList = await headers()
   const host = headersList.get('host')
-  const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
+  // Use HTTP for internal server-to-server calls (Nginx handles external HTTPS)
+  const protocol = 'http'
   const API_BASE_URL = `${protocol}://${host}`
 
   try {
