@@ -116,20 +116,9 @@ log_info "Images pulled successfully ✓"
 # ==============================================================================
 # Run Database Migrations
 # ==============================================================================
-log_info "Running database migrations..."
+# Migrations now run automatically via express-auth entrypoint script
+log_info "Database migrations will run automatically when express-auth starts ✓"
 
-# Run migrations using the db package's migrate:deploy script
-# This uses db-admin.ts which properly handles DATABASE_ADMIN_URL
-# Use express-auth since next-web standalone doesn't have full workspace
-docker compose -f "$COMPOSE_FILE" run --rm \
-    express-auth \
-    sh -c "cd /app && pnpm --filter @platform/db run db:migrate:deploy" || {
-    log_error "Database migration failed!"
-    log_warn "You can rollback using: ./scripts/rollback-staging.sh $TIMESTAMP"
-    exit 1
-}
-
-log_info "Database migrations completed ✓"
 
 # ==============================================================================
 # Seed Database (Optional - First Time Only)
