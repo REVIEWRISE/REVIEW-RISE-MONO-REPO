@@ -437,10 +437,10 @@ services:
   # ==================================================
 
   next-web:
-    image: ghcr.io/reviewrise/reviewrise-next-web:staging
-    # build:
-    #   context: .
-    #   dockerfile: apps/next-web/Dockerfile
+    # image: ghcr.io/reviewrise/reviewrise-next-web:staging
+    build:
+      context: .
+      dockerfile: apps/next-web/Dockerfile
     container_name: reviewrise-next-web
     restart: unless-stopped
     networks:
