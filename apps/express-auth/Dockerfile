@@ -51,7 +51,14 @@ RUN pnpm --filter "@platform/db" run db:generate
 # Build auth explicitly to ensure it runs
 RUN pnpm --filter "@platform/auth" run build
 # Verify auth build succeeded
-RUN test -f packages/@platform/auth/dist/index.js || (echo "CRITICAL: Auth build failed - dist/index.js missing" && ls -R packages/@platform/auth && exit 1)
+# Verify auth build succeeded and fix structure if nested
+# The build on VPS produces 'dist/auth/src/index.js' due to monorepo source references.
+# We move this to 'dist/index.js' to match package.json 'main' entry.
+RUN if [ -f packages/@platform/auth/dist/auth/src/index.js ]; then \
+  echo "Fixing nested build structure..."; \
+  mv packages/@platform/auth/dist/auth/src/* packages/@platform/auth/dist/; \
+  fi && \
+  test -f packages/@platform/auth/dist/index.js || (echo "CRITICAL: Auth build failed" && ls -R packages/@platform/auth && exit 1)
 RUN pnpm --filter "@platform/*" run build
 
 # Build the express-auth application
