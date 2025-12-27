@@ -21,6 +21,9 @@ if [ -n "$DATABASE_APP_URL" ]; then
     export DATABASE_URL="$DATABASE_APP_URL"
 fi
 
+# Switch back to app directory
+cd /app/apps/express-auth
+
 # If arguments are provided (e.g. running a script), execute them
 if [ $# -gt 0 ]; then
     exec dumb-init -- "$@"
