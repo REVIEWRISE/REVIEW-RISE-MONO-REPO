@@ -101,6 +101,13 @@ RUN ls -la packages/@platform/auth/dist && \
 COPY --from=builder --chown=expressjs:expressjs /app/package.json ./package.json
 COPY --from=builder --chown=expressjs:expressjs /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
+# Copy Prisma schema and migrations for auto-migration on startup
+COPY --from=builder --chown=expressjs:expressjs /app/packages/@platform/db/prisma ./packages/@platform/db/prisma
+COPY --from=builder --chown=expressjs:expressjs /app/packages/@platform/db/package.json ./packages/@platform/db/package.json
+
+# Copy entrypoint script
+COPY --chmod=755 apps/express-auth/docker-entrypoint.sh /docker-entrypoint.sh
+
 # Switch to non-root user
 USER expressjs
 
@@ -111,11 +118,8 @@ EXPOSE 3010
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3010/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
+# Use dumb-init and custom entrypoint for migrations
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Set working directory to the app folder so module resolution works as expected
 WORKDIR /app/apps/express-auth
-
-# Start the application using the built file in dist
-CMD ["node", "dist/apps/express-auth/src/index.js"]
