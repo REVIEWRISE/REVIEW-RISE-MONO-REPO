@@ -4,8 +4,8 @@ FROM nginx:1.25-alpine
 RUN apk add --no-cache wget
 
 # Copy Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY proxy_params.conf /etc/nginx/proxy_params.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/proxy_params.conf /etc/nginx/proxy_params.conf
 
 # Create SSL directory (certificates will be mounted as volume)
 RUN mkdir -p /etc/nginx/ssl
