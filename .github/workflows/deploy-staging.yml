@@ -22,7 +22,7 @@ jobs:
         service:
           - name: nginx
             dockerfile: ./nginx/Dockerfile
-            context: ./nginx
+            context: .
           - name: next-web
             dockerfile: ./apps/next-web/Dockerfile
             context: .
