@@ -15,6 +15,8 @@ set -u  # Exit on undefined variable
 # ==============================================================================
 COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.production"
+# Symlink for standard docker-compose behavior
+ln -sf "$ENV_FILE" .env
 BACKUP_DIR="./backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
