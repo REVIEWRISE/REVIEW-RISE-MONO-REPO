@@ -3,14 +3,19 @@
 # ============================================
 FROM node:20-alpine AS deps
 
+# Install PNPM globally
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
+# Copy workspace configuration files
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.json ./
+
+# Copy all package.json files to understand the workspace structure
 COPY packages/@platform/*/package.json ./packages/@platform/
 COPY apps/worker-jobs/package.json ./apps/worker-jobs/
 
+# Fetch dependencies using pnpm - this caches better than install
 RUN pnpm fetch
 
 # ============================================
@@ -22,6 +27,7 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
@@ -29,38 +35,73 @@ COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/tsconfig.json ./tsconfig.json
 
 
+# Copy all shared packages source code
 COPY packages/@platform ./packages/@platform
+
+# Copy the specific app source code
 COPY apps/worker-jobs ./apps/worker-jobs
 
+# Install all dependencies (uses cached node_modules from stage 1)
 RUN pnpm install --frozen-lockfile --offline
+
 # Build shared packages first (if they need building)
 RUN pnpm --filter "@platform/db" run db:generate
-RUN pnpm --filter "@platform/*" run build || true
+# Build auth explicitly to ensure it runs
+RUN pnpm --filter "@platform/auth" run build
+# Verify auth build succeeded and fix structure if nested
+RUN if [ -f packages/@platform/auth/dist/auth/src/index.js ]; then \
+  echo "Detected nested build structure. Patching package.json..."; \
+  sed -i 's|"./dist/index.js"|"./dist/auth/src/index.js"|g' packages/@platform/auth/package.json && \
+  sed -i 's|"./dist/index.d.ts"|"./dist/auth/src/index.d.ts"|g' packages/@platform/auth/package.json; \
+  fi
+
+RUN pnpm --filter "@platform/*" run build
+
+# Build the application
 RUN pnpm --filter @apps/worker-jobs run build
-RUN pnpm --filter @apps/worker-jobs deploy --prod /app/pruned
-RUN cp -r /app/apps/worker-jobs/dist /app/pruned/dist
 
 # ============================================
 # Stage 3: Runner - Production image
 # ============================================
 FROM node:20-alpine AS runner
 
+# Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 worker && \
-    adduser --system --uid 1001 worker
+# Create a non-root user for security
+RUN addgroup --system --gid 1001 expressjs && \
+  adduser --system --uid 1001 expressjs
 
-COPY --from=builder --chown=worker:worker /app/pruned ./
-COPY --from=builder --chown=worker:worker /app/apps/worker-jobs/dist ./dist
+# Copy root node_modules (for shared dependencies and pnpm virtual store)
+COPY --from=builder --chown=expressjs:expressjs /app/node_modules ./node_modules
 
-USER worker
+# Copy the specific app (including its node_modules, dist, and config)
+COPY --from=builder --chown=expressjs:expressjs /app/apps/worker-jobs ./apps/worker-jobs
 
-# Worker doesn't expose HTTP port, but we can add a health check file
+# Copy shared packages (including their node_modules and dist) to satisfy symlinks
+COPY --from=builder --chown=expressjs:expressjs /app/packages ./packages
+
+# Copy workspace config
+COPY --from=builder --chown=expressjs:expressjs /app/package.json ./package.json
+COPY --from=builder --chown=expressjs:expressjs /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+# Switch to non-root user
+USER expressjs
+
+# No HTTP port exposed for worker
+
+# Add health check (File based as in original)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD test -f /tmp/worker-healthy || exit 1
 
+# Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
+# Set working directory to the app folder so module resolution works as expected
+WORKDIR /app/apps/worker-jobs
+
+# Start the application using the built file in dist
 CMD ["node", "dist/apps/worker-jobs/src/index.js"]
