@@ -50,6 +50,8 @@ RUN pnpm install --frozen-lockfile --offline
 RUN pnpm --filter "@platform/db" run db:generate
 # Build auth explicitly to ensure it runs
 RUN pnpm --filter "@platform/auth" run build
+# Verify auth build succeeded
+RUN test -f packages/@platform/auth/dist/index.js || (echo "CRITICAL: Auth build failed - dist/index.js missing" && ls -la packages/@platform/auth && exit 1)
 RUN pnpm --filter "@platform/*" run build
 
 # Build the express-auth application
