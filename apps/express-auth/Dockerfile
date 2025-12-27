@@ -99,4 +99,4 @@ WORKDIR /app/apps/express-auth
 # Assuming dist structure matches src (e.g., dist/src/index.js or dist/index.js)
 # Based on previous logs: /app/dist/apps/express-auth/src/index.js was the path when we copied dist individually
 # In the apps/express-auth folder, it is likely dist/src/index.js
-CMD ["node", "dist/src/index.js"]
+CMD ["node", "dist/apps/express-auth/src/index.js"]
