@@ -29,6 +29,7 @@
     "seo-analyzer": "SEO Analyzer",
     "seo-visibility": "SERP Visibility",
     "seo-keywords": "SEO Keywords",
+    "reports-center": "Reports Center",
     "seo-listings": "Listings Manager",
     "gbp-rocket": "GBPRocket",
     "gbp-overview": "Overview",
@@ -704,6 +705,12 @@
     "title": "Account Details",
     "notFound": "Account not found",
     "createdOn": "Created {date}",
+    "active": "Active",
+    "inactive": "Inactive",
+    "planLabel": "{plan} Plan",
+    "edit": "Edit",
+    "editTooltip": "Edit account details",
+    "defaultBusinessName": "Business Account",
     "userDeleted": "User deleted",
     "deleteUserFailed": "Failed to delete user",
     "loadAccountFailed": "Failed to load account",
@@ -719,6 +726,27 @@
       "confirm": "Are you sure you want to remove {name} from this account?"
     },
     "overview": {
+      "reviewPerformance": {
+        "title": "Review Performance",
+        "subtitle": "Last 30 days · All locations",
+        "avgRating": "Avg Rating",
+        "avgRatingSub": "Across platforms",
+        "totalReviews": "Total Reviews",
+        "totalReviewsSub": "All time",
+        "responseRate": "Response Rate",
+        "responseRateSub": "Last 30 days",
+        "unanswered": "Unanswered",
+        "unansweredSub": "Need attention"
+      },
+      "platformConnections": {
+        "title": "Platform Connections",
+        "subtitle": "Review & listing integrations",
+        "google": "Google Business Profile",
+        "facebook": "Facebook Pages",
+        "reviewSync": "Review Sync",
+        "connected": "Connected",
+        "notConnected": "Not Connected"
+      },
       "subscription": {
         "title": "Subscription Details",
         "subtitle": "Current plan and status",
@@ -731,7 +759,10 @@
         "title": "Account Stats",
         "subtitle": "Overview of account usage",
         "locations": "Locations",
-        "users": "Users"
+        "users": "Users",
+        "locationsUsed": "Locations Used",
+        "teamMembers": "Team Members",
+        "connectPlatformsDesc": "Connect platforms inside each location's settings to enable automatic review syncing."
       }
     },
     "users": {
@@ -805,6 +836,63 @@
         "business": "Business",
         "location": "Location",
         "password": "Password"
+      }
+    },
+    "profile": {
+      "timezones": {
+        "gmt-12": "(GMT-12:00) International Date Line West",
+        "gmt-11": "(GMT-11:00) Midway Island, Samoa",
+        "gmt-10": "(GMT-10:00) Hawaii",
+        "gmt-9": "(GMT-09:00) Alaska",
+        "gmt-8": "(GMT-08:00) Pacific Time (US & Canada)",
+        "gmt-7": "(GMT-07:00) Mountain Time (US & Canada)",
+        "gmt-6": "(GMT-06:00) Central Time (US & Canada)",
+        "gmt-5": "(GMT-05:00) Eastern Time (US & Canada)",
+        "gmt-4": "(GMT-04:00) Atlantic Time (Canada)",
+        "gmt-l": "(GMT) London, Edinburgh, Lisbon, London",
+        "gmt+1": "(GMT+01:00) Amsterdam, Berlin, Bern, Rome",
+        "gmt+2": "(GMT+02:00) Athens, Bucharest, Istanbul",
+        "gmt+3": "(GMT+03:00) Moscow, St. Petersburg, Riyadh",
+        "gmt+4": "(GMT+04:00) Abu Dhabi, Muscat, Baku"
+      },
+      "title": "User Profile",
+      "subtitle": "Manage your personal details, security settings, and notifications.",
+      "tabs": {
+        "general": "General Info",
+        "security": "Security",
+        "preferences": "Preferences"
+      },
+      "general": {
+        "title": "Profile Details",
+        "uploadPhoto": "Upload New Photo",
+        "uploadHint": "Allowed JPG, GIF or PNG. Max size of 800K",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone Number",
+        "saveChanges": "Save Changes",
+        "saving": "Saving...",
+        "reset": "Reset"
+      },
+      "security": {
+        "changePassword": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "requirements": "Password Requirements:",
+        "reqMinChars": "• Minimum 8 characters long - the more, the better",
+        "reqLowerUpper": "• At least one lowercase & one uppercase character",
+        "reqNumberSymbol": "• At least one number, symbol, or whitespace character"
+      },
+      "preferences": {
+        "localization": "Localization",
+        "language": "Language",
+        "timezone": "Timezone",
+        "timezoneDesc": "Used to display timestamps for reviews and notifications.",
+        "notifications": "Notifications",
+        "notificationsDesc": "We will email you when these important events occur:",
+        "managedGlobally": "Notification settings are currently managed globally.",
+        "savePreferences": "Save Preferences"
       }
     }
   },
@@ -1393,6 +1481,116 @@
       "regenerate": "Regenerate Plan",
       "mockDateRange": "Feb 1-7, 2024",
       "launchSubtitle": "Actionable steps to improve your AI presence"
+    }
+  },
+  "reportsCenter": {
+    "title": "Reports Center",
+    "subtitle": "Build, brand, schedule, and archive high-fidelity reports.",
+    "business": "Business",
+    "loading": "Loading reports center...",
+    "emptyBusiness": "No businesses found for this user.",
+    "loadFailed": "Unable to load reports center data.",
+    "saveFailed": "Changes could not be saved.",
+    "generateFailed": "Report generation failed.",
+    "exportFailed": "Export generation failed.",
+    "generateReport": "Generate Report",
+    "preview": {
+      "cta": "Preview Report",
+      "close": "Close Preview",
+      "title": "Report Preview",
+      "introTitle": "Executive Overview",
+      "generatedOn": "Generated {date}",
+      "logoAlt": "Brand logo",
+      "logoFallback": "RR"
+    },
+    "builder": {
+      "title": "Report Builder",
+      "subtitle": "Select and reorder modules for a custom report."
+    },
+    "sections": {
+      "seo": "SEO Performance",
+      "reputation": "Reputation & Reviews",
+      "listings": "Listings Consistency"
+    },
+    "sectionHints": {
+      "seo": "Visibility trends, keyword gains, and technical signals.",
+      "reputation": "Sentiment, review velocity, and response coverage.",
+      "listings": "NAP accuracy, directory coverage, and fixes."
+    },
+    "templates": {
+      "title": "Template Library",
+      "executive": "Executive Summary",
+      "technical": "Technical Deep-Dive",
+      "reputation": "Reputation Growth"
+    },
+    "whiteLabel": {
+      "title": "White-Label Hub",
+      "subtitle": "Brand every report with your logo, colors, and voice.",
+      "uploadLogo": "Upload Logo",
+      "logoPreview": "Logo preview",
+      "logoTooLarge": "Logo must be under 1MB.",
+      "logoUploadFailed": "Logo upload failed.",
+      "primaryColor": "Primary Color",
+      "accentColor": "Accent Color",
+      "reportTitle": "Report Title",
+      "footer": "Footer Text",
+      "intro": "Intro Notes"
+    },
+    "schedule": {
+      "title": "Scheduling & Delivery",
+      "subtitle": "Automate delivery and alerts for every report run.",
+      "frequency": "Frequency",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "recipients": "Recipients",
+      "recipientsHint": "Type email and press Enter",
+      "invalidEmail": "Enter a valid email address.",
+      "enableTrigger": "Enable Trigger-Based Reporting",
+      "triggerLabel": "Send if SEO score drops by (points)",
+      "save": "Save Schedule",
+      "saving": "Saving...",
+      "nextRun": "Next run: {date}"
+    },
+    "vault": {
+      "title": "The Vault",
+      "empty": "No archived reports yet.",
+      "download": "Download",
+      "copyLink": "Copy Link",
+      "rerun": "Re-run",
+      "columns": {
+        "name": "Report",
+        "date": "Generated",
+        "type": "Type",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    },
+    "exports": {
+      "title": "Raw Data Export Suite",
+      "subtitle": "Queue background exports for deep analysis.",
+      "keywordHistory": "Keyword History",
+      "reviewList": "Review Lists",
+      "syncLogs": "Sync Logs",
+      "download": "Download File"
+    },
+    "share": {
+      "title": "Secure Report Access",
+      "previewTitle": "Shared Report Preview",
+      "loading": "Loading shared report...",
+      "passwordRequired": "A password is required to access this report.",
+      "passwordInvalid": "That password didn’t work. Please try again.",
+      "loadFailed": "Unable to load the shared report.",
+      "password": "Password",
+      "unlock": "Unlock Report",
+      "dialogTitle": "Generate Secure Share Link",
+      "dialogSubtitle": "Set a password to protect this share link. Leave it blank if you want no password.",
+      "passwordConfirm": "Confirm password",
+      "cancel": "Cancel",
+      "generateLink": "Generate link",
+      "generating": "Generating link...",
+      "passwordMismatch": "Passwords do not match.",
+      "generateFailed": "Could not generate a share link."
     }
   },
   "common": {
