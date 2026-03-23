@@ -512,4 +512,104 @@
     "loading": "Generating your Meta Ads Blueprint...",
     "error": "Failed to generate blueprint. Please try again."
   }
+  ,
+  "adsDashboard": {
+    "title": "Ads Dashboard",
+    "subtitle": "Paid Media & AI Blueprints",
+    "filters": {
+      "7d": "Last 7D",
+      "30d": "Last 30D",
+      "90d": "Last 90D"
+    },
+    "kpis": {
+      "totalSpend": "Total Ad Spend",
+      "roas": "ROAS",
+      "roasHint": "Return on ad spend",
+      "score": "Score",
+      "performanceDelta": "Performance Delta",
+      "cpc": "Avg CPC",
+      "ctr": "Avg CTR",
+      "vsPrevious": "{value} vs previous period"
+    },
+    "blueprint": {
+      "title": "Blueprint Builder (V2)",
+      "subtitle": "Pick a strategy template and generate high-performing copy."
+    },
+    "templates": {
+      "reviewBooster": {
+        "title": "Review Booster",
+        "description": "Drive more reviews with intent-based ads and fast CTAs."
+      },
+      "footTraffic": {
+        "title": "Foot-Traffic Driver",
+        "description": "Increase in-store visits with hyper-local messaging."
+      }
+    },
+    "copywriter": {
+      "title": "AI Copywriter",
+      "generate": "Generate Copy",
+      "generating": "Generating…",
+      "keywordTitle": "Top SEO Keywords",
+      "noKeywords": "No keywords detected yet",
+      "headlines": "Headlines",
+      "descriptions": "Descriptions",
+      "primaryText": "Primary Text",
+      "placeholder": "Generate copy to see AI suggestions here.",
+      "copyAll": "Copy All",
+      "copyToClipboard": "Copy to Clipboard"
+    },
+    "comparison": {
+      "title": "Multi-Platform Comparison",
+      "subtitle": "Key performance metrics across Google and Meta.",
+      "google": {
+        "title": "Google Ads",
+        "impressionShare": "Impression Share",
+        "keywords": "Keywords"
+      },
+      "meta": {
+        "title": "Meta Ads",
+        "reach": "Reach",
+        "engagement": "Engagement"
+      },
+      "leaderboard": "Efficiency Leaderboard",
+      "leaderboardHint": "Ranked by Cost Per Lead (CPL). Lower CPL means better efficiency for the selected date range.",
+      "winner": "Winning Platform"
+    },
+    "optimization": {
+      "title": "Optimization Feed",
+      "subtitle": "AI-driven alerts and budget recommendations.",
+      "applied": "Applied",
+      "severity": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "conversion": {
+      "title": "Conversion & Funnel Tracking",
+      "subtitle": "Live leads and full-funnel conversion flow.",
+      "funnel": {
+        "title": "Funnel Overview",
+        "subtitle": "Impression → Click → Visit → Conversion",
+        "live": "Live",
+        "impressions": "Impressions",
+        "clicks": "Clicks",
+        "visits": "Visits",
+        "conversions": "Conversions"
+      },
+      "leadLog": {
+        "title": "Lead Log",
+        "type": "Type",
+        "source": "Campaign Source",
+        "value": "Value",
+        "time": "Time",
+        "na": "—"
+      }
+    },
+    "status": {
+      "offlineTitle": "Ads service is offline",
+      "offlineSubtitle": "Start the AdRise service to load paid media data.",
+      "offlineBadge": "Offline"
+    }
+  }
 }
