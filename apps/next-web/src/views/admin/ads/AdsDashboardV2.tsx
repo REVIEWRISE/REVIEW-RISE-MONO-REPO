@@ -56,8 +56,6 @@ const getDeltaTone = (value: number, positiveIsGood = true) => {
 
 const formatRoasLabel = (value?: number) => `${value?.toFixed(2) ?? '0.00'}x`;
 
-const formatIndexedCopy = (index: number, value: string) => `${index + 1}. ${value}`;
-
 const toTrendDirection = (delta: number) => (delta > 0 ? 'up' : delta < 0 ? 'down' : 'neutral') as
   | 'up'
   | 'down'
@@ -125,6 +123,23 @@ return response.data ?? [];
       .filter(Boolean)
       .slice(0, 6);
   }, [keywordsQuery.data]);
+
+  const copyVariants = useMemo(() => {
+    if (!copyOutput) return [];
+
+    const maxLength = Math.max(
+      copyOutput.headlines?.length || 0,
+      copyOutput.descriptions?.length || 0,
+      copyOutput.primaryTexts?.length || 0
+    );
+
+    return Array.from({ length: maxLength }, (_, index) => ({
+      index,
+      headline: copyOutput.headlines?.[index] || '',
+      description: copyOutput.descriptions?.[index] || '',
+      primaryText: copyOutput.primaryTexts?.[index] || ''
+    })).filter(variant => variant.headline || variant.description || variant.primaryText);
+  }, [copyOutput]);
 
   const summaryResponse = adsQuery.data as
     | AdsDashboardSummary
@@ -447,115 +462,159 @@ return response.data ?? [];
               </Box>
 
               {copyOutput ? (
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <Card sx={{ p: 2, borderRadius: 2, height: '100%' }}>
-                      <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Typography fontWeight={700}>{t('copywriter.headlines')}</Typography>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => navigator.clipboard?.writeText(copyOutput.headlines.join('\n'))}
-                          startIcon={<i className="tabler-copy" />}
-                          sx={{ fontWeight: 700 }}
+                <Stack spacing={2}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} alignItems={{ xs: 'stretch', md: 'center' }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => navigator.clipboard?.writeText(copyOutput.primaryTexts.join('\n'))}
+                      startIcon={<i className="tabler-copy" />}
+                      sx={{ fontWeight: 700 }}
+                    >
+                      {t('copywriter.primaryText')}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => navigator.clipboard?.writeText(copyOutput.headlines.join('\n'))}
+                      startIcon={<i className="tabler-copy" />}
+                      sx={{ fontWeight: 700 }}
+                    >
+                      {t('copywriter.headlines')}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => navigator.clipboard?.writeText(copyOutput.descriptions.join('\n'))}
+                      startIcon={<i className="tabler-copy" />}
+                      sx={{ fontWeight: 700 }}
+                    >
+                      {t('copywriter.descriptions')}
+                    </Button>
+                  </Stack>
+
+                  <Grid container spacing={2}>
+                    {copyVariants.map((variant) => (
+                      <Grid size={{ xs: 12, md: 6 }} key={`copy-variant-${variant.index}`}>
+                        <Card
+                          sx={{
+                            p: 2,
+                            borderRadius: 2.5,
+                            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                            bgcolor: alpha(theme.palette.primary.main, 0.04),
+                            height: '100%'
+                          }}
                         >
-                          {t('copywriter.copyAll')}
-                        </Button>
-                      </Stack>
-                      <Stack spacing={0.75} sx={{ mt: 1 }}>
-                        {copyOutput.headlines.map((headline, index) => (
-                          <Stack key={`${headline}-${index}`} direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body2" sx={{ pr: 1, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {formatIndexedCopy(index, headline)}
-                            </Typography>
-                            <IconButton
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                            <Stack direction="row" spacing={1} alignItems="center">
+                              <Chip label={variant.index + 1} size="small" color="primary" />
+                              <Typography fontWeight={700}>{t('copywriter.generate')}</Typography>
+                            </Stack>
+                            <Button
                               size="small"
-                              onClick={() => navigator.clipboard?.writeText(headline)}
-                              aria-label={t('copywriter.copyToClipboard')}
-                              sx={{ border: '1px solid', borderColor: 'divider' }}
+                              variant="outlined"
+                              startIcon={<i className="tabler-copy" />}
+                              onClick={() =>
+                                navigator.clipboard?.writeText(
+                                  [
+                                    variant.primaryText ? `${t('copywriter.primaryText')}: ${variant.primaryText}` : null,
+                                    variant.headline ? `${t('copywriter.headlines')}: ${variant.headline}` : null,
+                                    variant.description ? `${t('copywriter.descriptions')}: ${variant.description}` : null
+                                  ]
+                                    .filter(Boolean)
+                                    .join('\n')
+                                )
+                              }
+                              sx={{ fontWeight: 700 }}
                             >
-                              <i className="tabler-copy" />
-                            </IconButton>
+                              {t('copywriter.copyAll')}
+                            </Button>
                           </Stack>
-                        ))}
-                      </Stack>
-                    </Card>
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <Card sx={{ p: 2, borderRadius: 2, height: '100%' }}>
-                      <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Typography fontWeight={700}>{t('copywriter.descriptions')}</Typography>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => navigator.clipboard?.writeText(copyOutput.descriptions.join('\n'))}
-                          startIcon={<i className="tabler-copy" />}
-                          sx={{ fontWeight: 700 }}
-                        >
-                          {t('copywriter.copyAll')}
-                        </Button>
-                      </Stack>
-                      <Stack spacing={0.75} sx={{ mt: 1 }}>
-                        {copyOutput.descriptions.map((description, index) => (
-                          <Stack key={`${description}-${index}`} direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body2" sx={{ pr: 1, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {formatIndexedCopy(index, description)}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={() => navigator.clipboard?.writeText(description)}
-                              aria-label={t('copywriter.copyToClipboard')}
-                              sx={{ border: '1px solid', borderColor: 'divider' }}
-                            >
-                              <i className="tabler-copy" />
-                            </IconButton>
+
+                          <Stack spacing={1}>
+                            {variant.primaryText ? (
+                              <Card sx={{ p: 1.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
+                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+                                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {t('copywriter.primaryText')}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mt: 0.25 }}>
+                                      {variant.primaryText}
+                                    </Typography>
+                                  </Box>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => navigator.clipboard?.writeText(variant.primaryText)}
+                                    aria-label={t('copywriter.copyToClipboard')}
+                                    sx={{ border: '1px solid', borderColor: 'divider' }}
+                                  >
+                                    <i className="tabler-copy" />
+                                  </IconButton>
+                                </Stack>
+                              </Card>
+                            ) : null}
+
+                            {variant.headline ? (
+                              <Card sx={{ p: 1.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
+                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+                                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {t('copywriter.headlines')}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mt: 0.25 }}>
+                                      {variant.headline}
+                                    </Typography>
+                                  </Box>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => navigator.clipboard?.writeText(variant.headline)}
+                                    aria-label={t('copywriter.copyToClipboard')}
+                                    sx={{ border: '1px solid', borderColor: 'divider' }}
+                                  >
+                                    <i className="tabler-copy" />
+                                  </IconButton>
+                                </Stack>
+                              </Card>
+                            ) : null}
+
+                            {variant.description ? (
+                              <Card sx={{ p: 1.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
+                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+                                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {t('copywriter.descriptions')}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mt: 0.25 }}>
+                                      {variant.description}
+                                    </Typography>
+                                  </Box>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => navigator.clipboard?.writeText(variant.description)}
+                                    aria-label={t('copywriter.copyToClipboard')}
+                                    sx={{ border: '1px solid', borderColor: 'divider' }}
+                                  >
+                                    <i className="tabler-copy" />
+                                  </IconButton>
+                                </Stack>
+                              </Card>
+                            ) : null}
                           </Stack>
-                        ))}
-                      </Stack>
-                    </Card>
+                        </Card>
+                      </Grid>
+                    ))}
                   </Grid>
-                  <Grid size={12}>
-                    <Card sx={{ p: 2, borderRadius: 2 }}>
-                      <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Typography fontWeight={700}>{t('copywriter.primaryText')}</Typography>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => navigator.clipboard?.writeText(copyOutput.primaryTexts.join('\n'))}
-                          startIcon={<i className="tabler-copy" />}
-                          sx={{ fontWeight: 700 }}
-                        >
-                          {t('copywriter.copyAll')}
-                        </Button>
-                      </Stack>
-                      <Stack spacing={0.75} sx={{ mt: 1 }}>
-                        {copyOutput.primaryTexts.map((text, index) => (
-                          <Stack key={`${text}-${index}`} direction="row" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body2" sx={{ pr: 1, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {formatIndexedCopy(index, text)}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={() => navigator.clipboard?.writeText(text)}
-                              aria-label={t('copywriter.copyToClipboard')}
-                              sx={{ border: '1px solid', borderColor: 'divider' }}
-                            >
-                              <i className="tabler-copy" />
-                            </IconButton>
-                          </Stack>
-                        ))}
-                      </Stack>
-                      {Array.isArray(copyOutput.keywordsUsed) && copyOutput.keywordsUsed.length > 0 && (
-                        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 2 }}>
-                          <Chip label={t('copywriter.keywordTitle')} size="small" />
-                          {copyOutput.keywordsUsed.map(k => (
-                            <Chip key={k} label={k} size="small" variant="outlined" />
-                          ))}
-                        </Stack>
-                      )}
-                    </Card>
-                  </Grid>
-                </Grid>
+
+                  {Array.isArray(copyOutput.keywordsUsed) && copyOutput.keywordsUsed.length > 0 ? (
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      <Chip label={t('copywriter.keywordTitle')} size="small" />
+                      {copyOutput.keywordsUsed.map(k => (
+                        <Chip key={k} label={k} size="small" variant="outlined" />
+                      ))}
+                    </Stack>
+                  ) : null}
+                </Stack>
               ) : (
                 <Box
                   sx={{
