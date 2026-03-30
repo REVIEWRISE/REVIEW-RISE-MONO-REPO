@@ -1,10 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { sessionRepository } from '@platform/db';
 
 interface DecodedUser {
     id: string;
+    userId: string;
     email: string;
     role?: string;
+    roles?: any;
+    sessionId?: string;
+    [key: string]: any;
 }
 
 declare global {
@@ -16,47 +21,59 @@ declare global {
     }
 }
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+/**
+ * DB Gatekeeper Middleware
+ * Validates JWT signature AND checks session still exists in the database.
+ * This enforces instant logout when a session is revoked.
+ */
+export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ message: 'Authorization header missing' });
+        return;
+    }
+
+    const token = authHeader.substring(7);
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+        console.error('JWT_SECRET not configured');
+        res.status(500).json({ message: 'Internal server error' });
+        return;
+    }
+
     try {
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader) {
-            return res.status(401).json({ message: 'Authorization header missing' });
-        }
-
-        const token = authHeader.split(' ')[1];
-
-        if (!token) {
-            return res.status(401).json({ message: 'Token missing' });
-        }
-
-        const secret = process.env.JWT_SECRET;
-
-        if (!secret) {
-            console.error('JWT_SECRET not configured');
-            return res.status(500).json({ message: 'Internal server error' });
-        }
-
         const decoded = jwt.verify(token, secret) as DecodedUser;
-        req.user = decoded;
 
+        // DB Gatekeeper: verify session still exists (not revoked)
+        if (decoded.sessionId) {
+            const session = await sessionRepository.findById(decoded.sessionId);
+
+            if (!session || (session as any).expires < new Date()) {
+                res.status(401).json({ message: 'Session revoked', messageCode: 'AUTH_SESSION_REVOKED' });
+                return;
+            }
+        }
+
+        req.user = { ...decoded, id: decoded.userId ?? decoded.id };
         next();
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
-        return res.status(401).json({ message: 'Invalid or expired token' });
+    } catch (error: any) {
+        res.status(401).json({ message: 'Invalid or expired token' });
     }
 };
 
 export const requireRole = (roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
         if (!req.user) {
-            return res.status(401).json({ message: 'Unauthorized' });
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
         }
 
         if (req.user.role && roles.includes(req.user.role)) {
             next();
         } else {
-            return res.status(403).json({ message: 'Forbidden: Insufficient permissions' });
+            res.status(403).json({ message: 'Forbidden: Insufficient permissions' });
         }
     };
 };

@@ -65,24 +65,8 @@ export const getServerUser = async (): Promise<User | null> => {
       return null
     }
 
-    // Use token claims as a safe fallback during the same request where middleware refreshed
-    // the token and set a new cookie on the response (not yet visible to server components).
-    if (claims?.userId && claims?.email) {
-      const roles = Array.isArray(claims.roles) ? claims.roles : (claims.role ? [claims.role] : [])
-
-      return {
-        id: claims.userId,
-        email: claims.email,
-        role: claims.role || roles[0],
-        roles,
-        permissions: Array.isArray(claims.permissions) ? claims.permissions : [],
-        firstName: claims.given_name,
-        lastName: claims.family_name,
-        avatar: claims.picture,
-        username: claims.preferred_username || claims.email,
-        locationId: claims.locationId
-      }
-    }
+    // We now rely on the backend /v1/auth/me for strict session validation
+    // instead of returning early with cached JWT claims.
 
     if (AUTH_SERVICE_URL) {
       try {

@@ -28,5 +28,8 @@ router.post('/carousels', validateRequest(CarouselRequestSchema), (req, res) => 
 router.post('/scripts', validateRequest(ScriptRequestSchema), (req, res) => contentStudioController.generateScript(req, res));
 router.post('/complete-post', (req, res) => contentStudioController.generateCompletePost(req, res));
 
+// Dashboard
+router.get('/dashboard', (req, res) => contentStudioController.getDashboardData(req, res));
+router.get('/generations', (req, res) => contentStudioController.listGenerations(req, res));
 
 export default router;

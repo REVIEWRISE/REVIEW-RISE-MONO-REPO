@@ -118,29 +118,31 @@ export const login = async (req: Request, res: Response) => {
         // Extract Default Location ID
         const defaultLocationId = user.userBusinessRoles?.[0]?.business?.locations?.[0]?.id;
 
-        // Generate Access Token (JWT)
-        const accessToken = jwt.sign(
-            { 
-                userId: user.id, 
-                email: user.email, 
-                roles: user.userRoles.map(ur => ur.role.name),
-                locationId: defaultLocationId // Attach locationId to token
-            },
-            JWT_SECRET,
-            { expiresIn: '15m' }
-        );
-
         // Generate Refresh Token (Session)
         const refreshToken = crypto.randomUUID();
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
-        await sessionRepository.createSession({
+        const session = await sessionRepository.createSession({
             sessionToken: refreshToken,
             userId: user.id,
             expires: expiresAt,
         });
 
+        // Generate Access Token (JWT) with sessionId included
+        const accessToken = jwt.sign(
+            {
+                userId: user.id,
+                email: user.email,
+                roles: user.userRoles.map(ur => ur.role.name),
+                locationId: defaultLocationId,
+                sessionId: session.id
+            },
+            JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        // Update last login
         const userResponse = {
             id: user.id,
             email: user.email,
@@ -330,11 +332,44 @@ export const me = async (req: Request, res: Response) => {
             return res.status(response.statusCode).json(response);
         }
         const token = authHeader.substring('Bearer '.length);
-        const payload = jwt.verify(token, JWT_SECRET) as any;
+        let payload: any;
+        try {
+            payload = jwt.verify(token, JWT_SECRET);
+        } catch (e: any) {
+            if (e.name === 'TokenExpiredError') {
+                payload = jwt.decode(token);
+            } else {
+                throw e;
+            }
+        }
+
+        const refreshToken = req.headers['x-refresh-token'] as string;
+        if (!refreshToken) {
+            // Strict enforce expiry if no refresh token to check
+            jwt.verify(token, JWT_SECRET);
+        } else {
+            const session = await sessionRepository.findSession(refreshToken);
+            if (!session) {
+                const response = createErrorResponse('Session revoked', SystemMessageCode.AUTH_INVALID_TOKEN, 401, undefined, req.id);
+                return res.status(response.statusCode).json(response);
+            }
+            if (session.expires < new Date()) {
+                const response = createErrorResponse('Session expired', SystemMessageCode.AUTH_TOKEN_EXPIRED, 401, undefined, req.id);
+                return res.status(response.statusCode).json(response);
+            }
+        }
+
         const roles = Array.isArray(payload.roles) ? payload.roles : [];
+
+        const dbUser = (await userRepository.findById(payload.userId)) as any;
+
         const user = {
             id: payload.userId,
             email: payload.email,
+            name: dbUser?.name,
+            image: dbUser?.image,
+            jobTitle: dbUser?.jobTitle,
+            twoFactorEnabled: dbUser?.twoFactorEnabled,
             role: roles[0] || 'user',
             locationId: payload.locationId // Return from token payload
         };
@@ -582,6 +617,60 @@ export const logout = async (req: Request, res: Response) => {
         // eslint-disable-next-line no-console
         console.error('Logout error:', error);
         const response = createErrorResponse('Internal server error', SystemMessageCode.INTERNAL_SERVER_ERROR, 500, error.message, req.id);
+        res.status(response.statusCode).json(response);
+    }
+};
+
+export const getUserSessions = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.substring('Bearer '.length);
+        const payload = jwt.verify(token!, JWT_SECRET) as any;
+
+        const userWithSessions = await userRepository.findWithSessions(payload.userId);
+
+        const sessions = userWithSessions?.sessions.map(s => ({
+            id: s.id,
+            expires: s.expires,
+            // Mocking device info since it's not in DB yet
+            device: 'Chrome on Windows',
+            location: 'Dubai, UAE',
+            isCurrent: false // Frontend will determine this
+        })) || [];
+
+        const response = createSuccessResponse({ sessions }, 'Sessions fetched successfully', 200, { requestId: req.id }, SystemMessageCode.SUCCESS);
+        res.status(response.statusCode).json(response);
+    } catch (error: any) {
+        const response = createErrorResponse('Failed to fetch sessions', SystemMessageCode.INTERNAL_SERVER_ERROR, 500, error.message, req.id);
+        res.status(response.statusCode).json(response);
+    }
+};
+
+export const revokeSession = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await sessionRepository.deleteSession(id);
+
+        const response = createSuccessResponse({}, 'Session revoked successfully', 200, { requestId: req.id }, SystemMessageCode.DELETE_SUCCESS);
+        res.status(response.statusCode).json(response);
+    } catch (error: any) {
+        const response = createErrorResponse('Failed to revoke session', SystemMessageCode.INTERNAL_SERVER_ERROR, 500, error.message, req.id);
+        res.status(response.statusCode).json(response);
+    }
+};
+
+export const setup2FA = async (req: Request, res: Response) => {
+    try {
+        // Simplified mock 2FA setup
+        const secret = crypto.randomBytes(20).toString('hex');
+
+        const response = createSuccessResponse({
+            secret,
+            qrCode: `otpauth://totp/ReviewRise:user?secret=${secret}&issuer=ReviewRise`
+        }, '2FA setup initiated', 200, { requestId: req.id }, SystemMessageCode.SUCCESS);
+        res.status(response.statusCode).json(response);
+    } catch (error: any) {
+        const response = createErrorResponse('Failed to setup 2FA', SystemMessageCode.INTERNAL_SERVER_ERROR, 500, error.message, req.id);
         res.status(response.statusCode).json(response);
     }
 };

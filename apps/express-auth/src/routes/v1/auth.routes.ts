@@ -9,7 +9,7 @@ import {
     verifyEmailLimiter,
     resendVerificationEmailLimiter,
 } from '../../middleware/rateLimiter';
-import { register, login, googleSignIn, refreshToken, forgotPassword, resetPassword, verifyEmail, resendVerificationEmail, me, logout } from '../../controllers/auth.controller';
+import { register, login, googleSignIn, refreshToken, forgotPassword, resetPassword, verifyEmail, resendVerificationEmail, me, logout, getUserSessions, revokeSession, setup2FA } from '../../controllers/auth.controller';
 import { validateRequest } from '@platform/middleware';
 import { LoginRequestSchema, RegisterRequestSchema, ForgotPasswordRequestSchema, ResetPasswordRequestSchema, RefreshTokenRequestSchema } from '@platform/contracts';
 
@@ -25,5 +25,12 @@ router.post('/verify-email', verifyEmailLimiter, verifyEmail);
 router.post('/resend-verification', resendVerificationEmailLimiter, resendVerificationEmail);
 router.post('/logout', loginAttemptLimiter, logout);
 router.get('/me', me);
+
+// Session Management
+router.get('/sessions', getUserSessions);
+router.delete('/sessions/:id', revokeSession);
+
+// 2FA Setup
+router.post('/2fa/setup', setup2FA);
 
 export default router;

@@ -56,10 +56,16 @@ const UserProfileSettings = ({ user }: UserProfileSettingsProps) => {
                                         minHeight: 48,
                                         borderRadius: 1,
                                         mb: 1,
+                                        color: 'text.secondary',
+                                        textTransform: 'none',
+                                        fontSize: '0.9375rem',
+                                        '&:hover': {
+                                            color: 'primary.main'
+                                        },
                                         '&.Mui-selected': {
-                                            backgroundColor: 'primary.light',
+                                            backgroundColor: 'primary.lighter',
                                             color: 'primary.main',
-                                            fontWeight: 500
+                                            fontWeight: 600
                                         }
                                     }
                                 }}
