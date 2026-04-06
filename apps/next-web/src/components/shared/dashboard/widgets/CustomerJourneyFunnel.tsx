@@ -4,12 +4,15 @@ import React from 'react'
 import { Card, Box, Typography, useTheme, Skeleton } from '@mui/material'
 
 export interface CustomerJourneyFunnelProps {
-    impressions: number
-    profileViews: number
-    websiteClicks: number
-    calls: number
-    directions: number
+    impressions?: number
+    profileViews?: number
+    websiteClicks?: number
+    calls?: number
+    directions?: number
     isLoading?: boolean
+    steps?: { icon: string; label: string; value: number; color: string }[]
+    title?: React.ReactNode
+    subtitle?: React.ReactNode
 }
 
 interface FunnelStepProps {
@@ -62,7 +65,15 @@ function FunnelStep({ icon, label, value, prevValue, color, isLast = false }: Fu
 }
 
 export default function CustomerJourneyFunnel({
-    impressions, profileViews, websiteClicks, calls, directions, isLoading = false
+    impressions = 0,
+    profileViews = 0,
+    websiteClicks = 0,
+    calls = 0,
+    directions = 0,
+    isLoading = false,
+    steps,
+    title,
+    subtitle
 }: CustomerJourneyFunnelProps) {
     const theme = useTheme()
 
@@ -82,34 +93,36 @@ export default function CustomerJourneyFunnel({
         )
     }
 
-    const steps = [
-        { icon: 'tabler-eye', label: 'Impressions', value: impressions, color: theme.palette.info.main },
-        { icon: 'tabler-user', label: 'Profile Views', value: profileViews, color: theme.palette.primary.main },
-        { icon: 'tabler-click', label: 'Website Clicks', value: websiteClicks, color: theme.palette.secondary.main },
-        { icon: 'tabler-phone', label: 'Calls', value: calls, color: theme.palette.success.main },
-        { icon: 'tabler-map-2', label: 'Directions', value: directions, color: theme.palette.warning.main },
-    ]
+    const computedSteps =
+        steps ??
+        [
+            { icon: 'tabler-eye', label: 'Impressions', value: impressions, color: theme.palette.info.main },
+            { icon: 'tabler-user', label: 'Profile Views', value: profileViews, color: theme.palette.primary.main },
+            { icon: 'tabler-click', label: 'Website Clicks', value: websiteClicks, color: theme.palette.secondary.main },
+            { icon: 'tabler-phone', label: 'Calls', value: calls, color: theme.palette.success.main },
+            { icon: 'tabler-map-2', label: 'Directions', value: directions, color: theme.palette.warning.main }
+        ]
 
     return (
         <Card sx={{ p: 3, borderRadius: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5, gap: 1 }}>
                 <i className="tabler-filter" style={{ color: theme.palette.primary.main, fontSize: '1.5rem' }} />
                 <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>Customer Journey</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Impressions to conversions</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>{title ?? 'Customer Journey'}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{subtitle ?? 'Impressions to conversions'}</Typography>
                 </Box>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'stretch', gap: 0, flexGrow: 1 }}>
-                {steps.map((step, idx) => (
+                {computedSteps.map((step, idx) => (
                     <FunnelStep
                         key={step.label}
                         icon={step.icon}
                         label={step.label}
                         value={step.value}
-                        prevValue={idx > 0 ? steps[idx - 1].value : undefined}
+                        prevValue={idx > 0 ? computedSteps[idx - 1].value : undefined}
                         color={step.color}
-                        isLast={idx === steps.length - 1}
+                        isLast={idx === computedSteps.length - 1}
                     />
                 ))}
             </Box>

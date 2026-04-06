@@ -43,6 +43,11 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
     icon: 'tabler-rocket',
     children: [
       {
+        label: 'Ads Dashboard',
+        href: '/admin/ad-rise/ads-dashboard',
+        icon: 'tabler-chart-pie-2'
+      },
+      {
         label: 'Blueprint Generator',
         href: '/admin/ad-rise/blueprint',
         icon: 'tabler-wand'
