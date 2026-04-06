@@ -161,6 +161,12 @@ const menuData: MenuItem[] = [
         allowedRoles: [ROLES.ADMIN]
       },
       {
+        title: 'navigation.ads-dashboard',
+        href: '/admin/ad-rise/ads-dashboard',
+        icon: 'tabler-chart-pie-2',
+        allowedRoles: [ROLES.ADMIN]
+      },
+      {
         title: 'navigation.ad-rise-configuration',
         href: '/admin/ad-rise/configuration',
         icon: 'tabler-settings',

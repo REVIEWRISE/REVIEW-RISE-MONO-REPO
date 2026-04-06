@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { createSuccessResponse } from '@platform/contracts';
 import blueprintRoutes from './routes/blueprint.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import adsDashboardRoutes from './routes/ads-dashboard.routes';
 import { requestIdMiddleware, errorHandler } from '@platform/middleware';
 
 dotenv.config();
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/v1/blueprint', blueprintRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/ads-dashboard', adsDashboardRoutes);
 
 app.get('/', (req, res) => {
     const response = createSuccessResponse(null, 'Express Ad Rise Service is running', 200, { requestId: req.id });

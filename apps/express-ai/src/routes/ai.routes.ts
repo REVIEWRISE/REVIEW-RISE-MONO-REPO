@@ -9,12 +9,15 @@ import {
     GenerateRecommendationsRequestSchema,
     GenerateVisibilityPlanRequestSchema,
     AnalyzeReviewRequestSchema,
+    AdsCopyRequestSchema,
+    AdsCopyResponseSchema,
     createSuccessResponse,
     createErrorResponse,
     SystemMessageCode
 } from '@platform/contracts';
 import { llmService } from '../services/llm.service';
 import { generateConcepts, generateCreativeImage, saveConcept, getLibrary } from '../controllers/creative-engine.controller';
+import { adCopywriterService } from '../services/ad-copywriter.service';
 
 const router = Router();
 
@@ -164,6 +167,17 @@ router.post('/creative-engine/concepts', generateConcepts);
 router.post('/creative-engine/image', generateCreativeImage);
 router.post('/creative-engine/save', saveConcept);
 router.get('/creative-engine/library', getLibrary);
+
+router.post('/ads-copywriter', validateRequest(AdsCopyRequestSchema), async (req, res) => {
+    try {
+        const result = await adCopywriterService.generateCopy(req.body);
+        const safeResult = AdsCopyResponseSchema.parse(result);
+        res.json(createSuccessResponse(safeResult, 'Ad copy generated', 200, {}, SystemMessageCode.SUCCESS));
+    } catch (error: any) {
+        console.error('Ad Copy Generation Error:', error);
+        res.status(500).json(createErrorResponse(error.message || 'Internal Server Error', SystemMessageCode.INTERNAL_SERVER_ERROR, 500));
+    }
+});
 
 router.post('/extract-offer', async (req, res) => {
     try {

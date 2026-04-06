@@ -55,6 +55,9 @@ export * from './admin/admin.schema';
 // Reviews Schemas
 export * from './reviews/reviews.schema';
 
+// Ads Dashboard Schemas
+export * from './ads/ads-dashboard.schema';
+
 // Re-export commonly used types from requests
 export type {
     ApiRequest,
@@ -83,4 +86,3 @@ export * from './ai/creative-engine.schema';
 
 // Constants
 export * from './constants/ad-constraints';
-
