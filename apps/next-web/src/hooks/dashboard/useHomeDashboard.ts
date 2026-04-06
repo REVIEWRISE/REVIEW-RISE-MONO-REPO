@@ -91,8 +91,8 @@ const fetchSeoSummary = async (locationId: string, dateFilter: string) => {
         { params: { locationId, dateFilter } }
     )
 
-    
-return res.data?.data ?? {}
+
+    return res.data?.data ?? {}
 }
 
 const fetchReviewsSummary = async (locationId: string, dateFilter: string) => {
@@ -101,8 +101,8 @@ const fetchReviewsSummary = async (locationId: string, dateFilter: string) => {
         { params: { locationId, dateFilter } }
     )
 
-    
-return res.data?.data ?? {}
+
+    return res.data?.data ?? {}
 }
 
 const fetchListingsSummary = async (locationId: string, dateFilter: string) => {
@@ -111,8 +111,8 @@ const fetchListingsSummary = async (locationId: string, dateFilter: string) => {
         { params: { locationId, dateFilter } }
     )
 
-    
-return res.data?.data ?? {}
+
+    return res.data?.data ?? {}
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────

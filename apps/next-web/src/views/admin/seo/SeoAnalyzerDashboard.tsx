@@ -1,10 +1,12 @@
 /* eslint-disable react/jsx-no-literals */
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 
 import { useSeoAnalyzer } from './hooks/useSeoAnalyzer'
+import { useAuth } from '@/contexts/AuthContext'
+import apiClient from '@/lib/apiClient'
 
 // Widgets
 import SeoTopBar from '@/components/shared/dashboard/widgets/seo/SeoTopBar'
@@ -20,12 +22,34 @@ import KeywordRankingsCard from '@/components/shared/dashboard/widgets/seo/Keywo
 
 
 export default function SeoAnalyzerDashboard() {
-    // Mock URLs for URL Manager
-    const urls = [
-        { id: 'url-1', url: 'https://www.google.com' },
-        { id: 'url-2', url: 'https://example.com/blog' },
-        { id: 'url-3', url: 'https://example.com/shop' },
-    ]
+    const { user } = useAuth()
+    const [urls, setUrls] = useState<{ id: string; url: string }[]>([
+        { id: 'url-1', url: 'https://www.google.com' }, // fallback while loading
+    ])
+    const [urlsLoaded, setUrlsLoaded] = useState(false)
+
+    // Fetch real business URLs from the user's businesses
+    useEffect(() => {
+        if (!user?.id) return
+        apiClient.get<any[]>(`/api/admin/users/${user.id}/businesses`)
+            .then(res => {
+                const biz = res.data
+                if (biz && biz.length > 0) {
+                    const realUrls = biz
+                        .filter((b: any) => b.website)
+                        .map((b: any) => ({
+                            id: b.id,
+                            url: b.website.startsWith('http') ? b.website : `https://${b.website}`
+                        }))
+                    if (realUrls.length > 0) {
+                        setUrls(realUrls)
+                        setSelectedUrlId(realUrls[0].id)
+                    }
+                }
+                setUrlsLoaded(true)
+            })
+            .catch(() => setUrlsLoaded(true))
+    }, [user?.id])
 
     const [selectedUrlId, setSelectedUrlId] = useState(urls[0].id)
 

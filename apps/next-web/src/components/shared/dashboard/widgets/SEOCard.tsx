@@ -2,6 +2,7 @@
 'use client'
 import React from 'react'
 import { Card, Box, Typography, Button, Chip, useTheme, Skeleton } from '@mui/material'
+import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 
 export interface SEOCardProps {
     score: number
@@ -9,9 +10,10 @@ export interface SEOCardProps {
     fixes: string[]
     onRunScan: () => void
     isLoading?: boolean
+    trendData?: { date: string, seo: number }[]
 }
 
-export default function SEOCard({ score, delta, fixes, onRunScan, isLoading = false }: SEOCardProps) {
+export default function SEOCard({ score, delta, fixes, onRunScan, isLoading = false, trendData = [] }: SEOCardProps) {
     const theme = useTheme()
     const isPositive = delta >= 0
 
@@ -41,7 +43,8 @@ export default function SEOCard({ score, delta, fixes, onRunScan, isLoading = fa
                 <i className="tabler-search" style={{ color: theme.palette.info.main, marginRight: 8, fontSize: '1.5rem' }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>{'SEO Score'}</Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
                 <Typography variant="h2" sx={{ fontWeight: 700, mr: 2 }}>{score}</Typography>
                 <Chip
                     label={`${isPositive ? '+' : ''}${delta} pts`}
@@ -50,6 +53,32 @@ export default function SEOCard({ score, delta, fixes, onRunScan, isLoading = fa
                     sx={{ fontWeight: 600 }}
                 />
             </Box>
+
+            {trendData && trendData.length > 0 && (
+                <Box sx={{ width: '100%', height: 40, mb: 3 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={trendData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+                            <defs>
+                                <linearGradient id="colorSeo" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={isPositive ? theme.palette.success.main : theme.palette.error.main} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={isPositive ? theme.palette.success.main : theme.palette.error.main} stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <Area
+                                type="monotone"
+                                dataKey="seo"
+                                stroke={isPositive ? theme.palette.success.main : theme.palette.error.main}
+                                strokeWidth={2}
+                                fillOpacity={1}
+                                fill="url(#colorSeo)"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </Box>
+            )}
+
+            {!trendData || trendData.length === 0 && <Box sx={{ mb: 3 }} />}
+
             <Typography variant="caption" sx={{ color: 'text.disabled', mb: 1.5, textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5 }}>{'Top 3 Fixes'}</Typography>
             <Box sx={{ flexGrow: 1, mb: 3 }}>
                 {fixes.map((fix, i) => (

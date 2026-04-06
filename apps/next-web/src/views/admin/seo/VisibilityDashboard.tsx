@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -31,6 +32,8 @@ const API_URL = SERVICES.seo.url;
 const VisibilityDashboard = () => {
   const t = useTranslation('dashboard');
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const locationId = searchParams.get('locationId');
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<VisibilityMetricDTO | null>(null);
@@ -40,12 +43,27 @@ const VisibilityDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch user businesses on mount
+  const [activeLocation, setActiveLocation] = useState<any>(null);
+
+  // Fetch user businesses (and/or specific location) on mount
   useEffect(() => {
     const fetchUserBusinesses = async () => {
       if (!user?.id) return;
 
       try {
+        let skipBusinessDropdown = false;
+        if (locationId) {
+          // Attempt to resolve the locked location explicitly
+          try {
+            const loc = await apiClient.get<any>(`/api/admin/locations/${locationId}`).then(r => r.data);
+            if (loc && loc.businessId) {
+              setActiveLocation(loc);
+              setBusinessId(loc.businessId);
+              skipBusinessDropdown = true;
+            }
+          } catch (e) { console.error('Failed to resolve context location'); }
+        }
+
         // Use apiClient (auto-unwraps data field)
         const responseData = await apiClient.get<any[]>(`/api/admin/users/${user.id}/businesses`)
           .then(res => res.data);
@@ -53,21 +71,22 @@ const VisibilityDashboard = () => {
         if (responseData && responseData.length > 0) {
           setBusinesses(responseData);
 
-          // Auto-select first business
-          setBusinessId(responseData[0].id);
-        } else {
+          if (!skipBusinessDropdown) {
+            setBusinessId(responseData[0].id);
+          }
+        } else if (!skipBusinessDropdown) {
           setError(t('seo.visibility.noBusinessUser'));
           setLoading(false);
         }
       } catch (err) {
-        console.error('Error fetching user businesses:', err);
+        console.error('Error fetching context:', err);
         setError(t('seo.visibility.loadFailed'));
         setLoading(false);
       }
     };
 
     fetchUserBusinesses();
-  }, [user?.id, t]);
+  }, [user?.id, t, locationId]);
 
   const fetchData = useCallback(async (id: string) => {
     setLoading(true);
@@ -79,9 +98,11 @@ const VisibilityDashboard = () => {
 
       thirtyDaysAgo.setDate(today.getDate() - 30);
 
+      const locationParam = locationId ? { locationId } : {};
+
       // 1. Fetch Latest Metric for Cards
       const metricsPromise = apiClient.get<VisibilityMetricDTO[]>(`${API_URL}/visibility/metrics`, {
-        params: { businessId: id, periodType: 'daily', limit: 1, offset: 0 }
+        params: { businessId: id, periodType: 'daily', limit: 1, offset: 0, ...locationParam }
       });
 
       // 2. Fetch Historical Metrics for Chart
@@ -91,13 +112,14 @@ const VisibilityDashboard = () => {
           periodType: 'daily',
           startDate: thirtyDaysAgo.toISOString(),
           endDate: today.toISOString(),
-          limit: 30
+          limit: 30,
+          ...locationParam
         }
       });
 
       // 3. Fetch Keywords
       const keywordsPromise = apiClient.get<KeywordDTO[]>(`${API_URL}/keywords`, {
-        params: { businessId: id, limit: 50 }
+        params: { businessId: id, limit: 50, ...locationParam }
       });
 
       // 4. Fetch Heatmap Data
@@ -105,7 +127,8 @@ const VisibilityDashboard = () => {
         params: {
           businessId: id,
           startDate: thirtyDaysAgo.toISOString(),
-          endDate: today.toISOString()
+          endDate: today.toISOString(),
+          ...locationParam
         }
       });
 
@@ -207,7 +230,11 @@ const VisibilityDashboard = () => {
           </Typography>
         </Box>
         <Stack direction="row" spacing={2} alignItems="center">
-          {businesses.length > 1 && (
+          {activeLocation ? (
+            <Typography variant="subtitle1" fontWeight="medium" color="text.secondary" sx={{ mr: 2 }}>
+              {activeLocation.business?.name} • {activeLocation.name}
+            </Typography>
+          ) : businesses.length > 1 ? (
             <FormControl sx={{ minWidth: 200 }} size="small">
               <Select
                 value={businessId || ''}
@@ -219,7 +246,7 @@ const VisibilityDashboard = () => {
                 ))}
               </Select>
             </FormControl>
-          )}
+          ) : null}
           {businessId && (
             <Button variant="outlined" onClick={handleRefresh}>
               {t('seo.visibility.refreshData')}

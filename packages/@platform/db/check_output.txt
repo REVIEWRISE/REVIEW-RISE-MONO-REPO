@@ -1,0 +1,67 @@
+
+=== BUSINESS + LOCATION TREE ===
+
+📦 Business: ACME Restaurant
+   ID:      a1dd8e07-694c-499f-a01a-2b991c283921
+   Website: https://acme-restaurant.com
+   Status:  active
+   Users:
+     - owner@example.com (John Owner)
+     - admin@example.com (Jane Admin)
+     - admin@example.com (Jane Admin)
+   Locations (2):
+     📍 ACME Downtown
+        ID:         11111111-1111-4111-8111-111111111111
+        Address:    123 Main Street, New York, NY 10001, US
+        Status:     active
+        Visibility: 0 records
+        Keywords:   0
+     📍 ACME Uptown
+        ID:         22222222-2222-4222-8222-222222222222
+        Address:    456 Park Avenue, New York, NY 10021, US
+        Status:     active
+        Visibility: 0 records
+        Keywords:   0
+   Total VisibilityMetrics: 7
+   Total Keywords: 0
+
+📦 Business: Tech Cafe
+   ID:      b2ee9f18-705d-500e-b12b-3c002d394032
+   Website: https://techcafe.com
+   Status:  active
+   Users:
+     - manager@example.com (Bob Manager)
+   Locations (1):
+     📍 Tech Cafe Main
+        ID:         33333333-3333-4333-8333-333333333333
+        Address:    789 Tech Boulevard, San Francisco, CA 94102, US
+        Status:     active
+        Visibility: 0 records
+        Keywords:   0
+   Total VisibilityMetrics: 0
+   Total Keywords: 0
+
+📦 Business: Test Business
+   ID:      d4f2e85a-1e52-4467-9d10-631742461880
+   Website: https://test-business.com
+   Status:  active
+   Users:
+     - owner@example.com (John Owner)
+     - admin@example.com (Jane Admin)
+     - manager@example.com (Bob Manager)
+     - viewer@example.com (Vince Viewer)
+   Locations (1):
+     📍 Main Location
+        ID:         290d1086-5526-43aa-bf42-c0fcb8438d43
+        Address:    123 Main St, New York, NY 10001
+        Status:     active
+        Visibility: 7 records
+        Keywords:   40
+   Total VisibilityMetrics: 7
+   Total Keywords: 40
+
+
+=== SEO SNAPSHOTS ===
+  URL: https://acme-restaurant.com | Score: 82 | Created: 2026-04-04
+  URL: https://test-business.com | Score: 82 | Created: 2026-04-04
+  URL: https://www.google.com/ | Score: 50 | Created: 2026-04-04

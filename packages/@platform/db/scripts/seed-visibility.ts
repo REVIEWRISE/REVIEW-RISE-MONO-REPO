@@ -4,9 +4,9 @@ import path from 'path';
 // Properly load env vars from root
 const envPath = path.resolve(__dirname, '../../../../.env');
 try {
-    dotenv.config({ path: envPath });
+  dotenv.config({ path: envPath });
 } catch (e) {
-    // Ignore missing .env in production
+  // Ignore missing .env in production
 }
 
 /**
@@ -17,49 +17,34 @@ try {
 async function seedVisibilityData() {
   // Dynamic import to ensure env vars are loaded first
   const { prisma } = await import('../src/client');
-  
+
   console.log('🌱 Seeding SERP visibility data...');
 
   try {
-    // Get the first business from the database (or create one if needed)
-    let business = await prisma.business.findFirst();
+    const acmeBusinessId = 'a1dd8e07-694c-499f-a01a-2b991c283921';
+    const acmeLocationId = '11111111-1111-4111-8111-111111111111';
+
+    // Get the primary ACME business from the database
+    let business = await prisma.business.findUnique({
+      where: { id: acmeBusinessId }
+    });
 
     if (!business) {
-      console.log('📦 Creating test business...');
-      business = await prisma.business.create({
-        data: {
-          name: 'Test Local Business',
-          slug: 'test-local-business',
-          description: 'A test business for SERP visibility tracking',
-          status: 'active',
-        },
-      });
-      console.log(`✓ Created business: ${business.name} (${business.id})`);
-    } else {
-      console.log(`✓ Using existing business: ${business.name} (${business.id})`);
+      console.warn('⚠️ ACME Restaurant business not found! Please run the main seed script first.');
+      return;
     }
+    console.log(`✓ Using business: ${business.name} (${business.id})`);
 
-    // Get or create a location
-    let location = await prisma.location.findFirst({
-      where: { businessId: business.id },
+    // Get the ACME Downtown location
+    let location = await prisma.location.findUnique({
+      where: { id: acmeLocationId }
     });
 
     if (!location) {
-      console.log('📍 Creating test location...');
-      location = await prisma.location.create({
-        data: {
-          name: 'Main Location',
-          address: '123 Main St, New York, NY 10001',
-          timezone: 'America/New_York',
-          businessId: business.id,
-          status: 'active',
-          tags: ['main', 'nyc'],
-        },
-      });
-      console.log(`✓ Created location: ${location.name} (${location.id})`);
-    } else {
-      console.log(`✓ Using existing location: ${location.name} (${location.id})`);
+      console.warn('⚠️ ACME Downtown location not found! Please run the main seed script first.');
+      return;
     }
+    console.log(`✓ Using location: ${location.name} (${location.id})`);
 
     // Define test keywords with realistic search volumes
     const keywordsData = [
@@ -74,7 +59,7 @@ async function seedVisibilityData() {
       { keyword: 'coffee roastery nyc', volume: 590, difficulty: 65 },
       { keyword: 'cafe with wifi nyc', volume: 1100, difficulty: 38 },
     ];
- 
+
     console.log('🔑 Creating keywords...');
     const keywords = [];
 
@@ -107,10 +92,10 @@ async function seedVisibilityData() {
 
       for (const keyword of keywords) {
         // Simulate rank fluctuations (better ranks for higher volume keywords)
-        const baseRank = keyword.searchVolume && keyword.searchVolume > 5000 
-          ? Math.floor(Math.random() * 5) + 1 
+        const baseRank = keyword.searchVolume && keyword.searchVolume > 5000
+          ? Math.floor(Math.random() * 5) + 1
           : Math.floor(Math.random() * 15) + 1;
-        
+
         // Add some variance
         const variance = Math.floor(Math.random() * 5) - 2;
         const rankPosition = Math.max(1, Math.min(100, baseRank + variance));
@@ -167,13 +152,47 @@ async function seedVisibilityData() {
 
     console.log('✓ Computed visibility metrics for last 7 days');
 
+    console.log('📸 Creating SEO Snapshot...');
+    const url = business.website || 'https://test-business.com';
+    await prisma.seoSnapshot.deleteMany({
+      where: { url }
+    });
+
+    await prisma.seoSnapshot.create({
+      data: {
+        url,
+        healthScore: 82,
+        categoryScores: {
+          common_seo: { score: 90, percentage: 90 },
+          server_security: { score: 75, percentage: 75 },
+          advanced_seo: { score: 85, percentage: 85 },
+          mobile: { score: 80, percentage: 80 }
+        },
+        recommendations: [
+          { priority: "high", category: "technical", issue: "Slow page load time", recommendation: "Optimize images and minify CSS/JS", impact: "Severity: High" },
+          { priority: "medium", category: "content", issue: "Missing H1 tag", recommendation: "Ensure each page has an H1 tag", impact: "Severity: Medium" },
+          { priority: "low", category: "onPage", issue: "Missing alt text on some images", recommendation: "Add alt attributes to all images", impact: "Severity: Low" }
+        ],
+        seoElements: {
+          title: { exists: true, length: 55, value: `${business.name} - Home` },
+          metaDescription: { exists: true, length: 150 },
+          headings: { h1Count: 0, h2Count: 5 },
+          images: { properlySized: false },
+          performance: { ttfb: 1.2 },
+          advanced: { schemaDetected: true, schemaTypes: ['LocalBusiness'], schemaHasLocalBusiness: true }
+        }
+      }
+    });
+    console.log('✓ Created SEO snapshot');
+
     console.log('\n✅ Seeding completed successfully!');
     console.log(`\n📊 Summary:`);
     console.log(`   - Business: ${business.name}`);
     console.log(`   - Location: ${location.name}`);
     console.log(`   - Keywords: ${keywords.length}`);
     console.log(`   - Rank records: ${totalRanks}`);
-    console.log(`   - Visibility metrics: 7 days\n`);
+    console.log(`   - Visibility metrics: 7 days`);
+    console.log(`   - SEO snapshots: 1\n`);
 
   } catch (error) {
     console.error('❌ Error seeding data:', error);

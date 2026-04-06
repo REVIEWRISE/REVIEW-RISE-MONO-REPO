@@ -70,6 +70,7 @@ export default function HomeDashboard() {
                         score={data.seoScore}
                         delta={data.weeklyDigest.seoChange}
                         fixes={data.seoFixes}
+                        trendData={data.trends}
                         onRunScan={() => console.log('Scan')}
                         isLoading={isLoading}
                     />
