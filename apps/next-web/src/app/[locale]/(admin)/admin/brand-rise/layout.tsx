@@ -61,23 +61,8 @@ const BrandingRiseLayout = ({ children }: { children: React.ReactNode }) => {
           <Typography variant="body1" color="text.secondary">{t('brandRise.subtitle')}</Typography>
         </Box>
 
-        {/* Controls: Company Dropdown & Date Range */}
+        {/* Controls: Date Range */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* Company Selector (Mock) */}
-          <Button
-            variant="outlined"
-            endIcon={<Icon icon="tabler-chevron-down" />}
-            sx={{
-              bgcolor: 'background.paper',
-              color: 'text.primary',
-              borderColor: 'divider',
-              textTransform: 'none',
-              minWidth: 160,
-              justifyContent: 'space-between'
-            }}
-          >
-            {t('accounts.accountDialog.fields.namePlaceholder')}
-          </Button>
 
           {/* Date Range Toggles */}
           <ButtonGroup variant="outlined" aria-label={t('overview.dateRange')} sx={{ bgcolor: 'background.paper' }}>
