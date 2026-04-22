@@ -14,11 +14,6 @@ import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { useTranslations } from 'next-intl';
 
-
-const Icon = ({ icon, fontSize, ...rest }: { icon: string; fontSize?: number;[key: string]: any }) => {
-  return <i className={icon} style={{ fontSize }} {...rest} />
-}
-
 const BrandingRiseLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();

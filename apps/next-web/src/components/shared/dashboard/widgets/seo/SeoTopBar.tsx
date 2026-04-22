@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-no-literals */
 'use client'
 import React, { useState } from 'react'
-import { Box, Typography, Button, FormControl, Select, MenuItem, ToggleButtonGroup, ToggleButton, CircularProgress, IconButton } from '@mui/material'
+import { Box, Typography, Button, FormControl, Select, MenuItem, ToggleButtonGroup, ToggleButton, CircularProgress, IconButton, Chip } from '@mui/material'
 
 export interface SeoTopBarProps {
     urls: { id: string; url: string }[]
@@ -78,5 +78,3 @@ export default function SeoTopBar({ urls, selectedUrlId, onUrlChange, isScanning
     )
 }
 
-// Just an inline import definition that missed above
-import { Chip } from '@mui/material'

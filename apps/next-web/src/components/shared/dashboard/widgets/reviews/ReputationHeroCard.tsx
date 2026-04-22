@@ -1,6 +1,7 @@
+/* eslint-disable react/jsx-no-literals */
+/* eslint-disable react/no-unescaped-entities */
 import React from 'react';
-import { Card, CardContent, Typography, Box, CircularProgress, Divider } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import { Card, Typography, Box, Divider } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 // Icons placeholder

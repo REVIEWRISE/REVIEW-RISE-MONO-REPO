@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-no-literals */
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable import/no-unresolved */
 'use client';
 
