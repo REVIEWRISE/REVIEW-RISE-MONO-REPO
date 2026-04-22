@@ -74,7 +74,8 @@ const SocialRiseOverviewPage = () => {
             if (!data) return [];
             if (Array.isArray(data)) return data;
             if (data.data && Array.isArray(data.data)) return data.data;
-            return [];
+            
+return [];
         };
 
         try {
@@ -106,16 +107,20 @@ const SocialRiseOverviewPage = () => {
             // Activity Chart (Last 14 days)
             const last14Days = [...Array(14)].map((_, i) => {
                 const d = new Date();
+
                 d.setDate(d.getDate() - (13 - i));
-                return d.toISOString().split('T')[0];
+                
+return d.toISOString().split('T')[0];
             });
 
             const activityMap = logs.reduce((acc, log) => {
                 const date = new Date(log.updatedAt).toISOString().split('T')[0];
+
                 if (!acc[date]) acc[date] = { completed: 0, failed: 0 };
                 if (log.status === 'completed') acc[date].completed++;
                 if (log.status === 'failed') acc[date].failed++;
-                return acc;
+                
+return acc;
             }, {} as Record<string, { completed: number; failed: number }>);
 
             const completedData = last14Days.map(date => activityMap[date]?.completed || 0);
@@ -124,31 +129,43 @@ const SocialRiseOverviewPage = () => {
             // Platform Distribution
             const platformCounts = posts.reduce((acc, post) => {
                 const ALL_SUPPORTED_PLATFORMS = ['INSTAGRAM', 'FACEBOOK', 'LINKEDIN', 'TWITTER', 'GOOGLE_BUSINESS'];
+
                 const normalizedPlatforms = (post.platforms || []).reduce((pAcc: string[], curr: string) => {
                     if (typeof curr === 'string' && (curr.toUpperCase() === 'ALL PLATFORMS' || curr.toUpperCase() === 'ALL_PLATFORMS')) {
                         return [...pAcc, ...ALL_SUPPORTED_PLATFORMS];
                     }
+
                     if (typeof curr === 'string' && curr.includes(',')) {
                         const split = curr.split(',').map(p => p.trim());
-                        return [...pAcc, ...split.reduce((spAcc: string[], p) => {
+
+                        
+return [...pAcc, ...split.reduce((spAcc: string[], p) => {
                             if (p.toUpperCase() === 'ALL PLATFORMS' || p.toUpperCase() === 'ALL_PLATFORMS') {
                                 return [...spAcc, ...ALL_SUPPORTED_PLATFORMS];
                             }
+
                             const normalized = p.toUpperCase().replace(/\s+/g, '_');
                             const finalPlatform = normalized === 'X' ? 'TWITTER' : normalized;
-                            return [...spAcc, finalPlatform];
+
+                            
+return [...spAcc, finalPlatform];
                         }, [])];
                     }
+
                     const normalized = curr.toUpperCase().replace(/\s+/g, '_');
                     const finalPlatform = normalized === 'X' ? 'TWITTER' : normalized;
-                    return [...pAcc, finalPlatform];
+
+                    
+return [...pAcc, finalPlatform];
                 }, []);
 
                 const uniquePlatforms = Array.from(new Set(normalizedPlatforms)) as string[];
+
                 uniquePlatforms.forEach((p) => {
                     acc[p] = (acc[p] || 0) + 1;
                 });
-                return acc;
+                
+return acc;
             }, {} as Record<string, number>);
 
             setChartData({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState , useEffect } from 'react'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -35,7 +35,6 @@ import { SystemMessageCode } from '@platform/contracts'
 import { useTranslation } from '@/hooks/useTranslation'
 import { changePassword, getUserSessions, revokeSession, setup2FA } from '@/app/actions/profile'
 import CustomTextField from '@core/components/mui/TextField'
-import { useEffect } from 'react'
 import { formatRelativeTime } from '@/utils/dateHelper'
 
 const SecurityTab = () => {
@@ -80,6 +79,7 @@ const SecurityTab = () => {
     const fetchSessions = async () => {
         setIsLoadingSessions(true)
         const result = await getUserSessions()
+
         setIsLoadingSessions(false)
 
         if (result.success) {
@@ -94,6 +94,7 @@ const SecurityTab = () => {
     const confirmRevokeSession = async () => {
         if (!sessionToRevoke) return;
         const result = await revokeSession(sessionToRevoke)
+
         if (result.success) {
             notify(SystemMessageCode.ITEM_DELETED)
             fetchSessions()
@@ -105,9 +106,11 @@ const SecurityTab = () => {
 
     const confirmRevokeAllSessions = async () => {
         const others = sessions.filter((_, idx) => idx > 0);
+
         for (const s of others) {
             await revokeSession(s.id);
         }
+
         notify(SystemMessageCode.ITEM_DELETED)
         fetchSessions()
         setIsRevokeAllDialogOpen(false)
@@ -116,6 +119,7 @@ const SecurityTab = () => {
     const handleStart2FA = async () => {
         setIsSettingUp2FA(true)
         const result = await setup2FA()
+
         setIsSettingUp2FA(false)
 
         if (result.success) {
@@ -132,6 +136,7 @@ const SecurityTab = () => {
         if (twoFaCode.length >= 6) {
             notify(SystemMessageCode.SUCCESS)
             setIs2FADialogOpen(false)
+
             // Backend enable implementation goes here
         } else {
             notify(SystemMessageCode.VALIDATION_ERROR)

@@ -20,11 +20,15 @@ export interface GenerationItem {
 export const StudioService = {
     getDashboardStats: async (businessId: string) => {
         const response = await apiClient.get<StudioDashboardStats>(`/api/v1/studio/dashboard?businessId=${businessId}`);
-        return response.data;
+
+        
+return response.data;
     },
 
     listGenerations: async (businessId: string, limit: number = 10) => {
         const response = await apiClient.get<GenerationItem[]>(`/api/v1/studio/generations?businessId=${businessId}&limit=${limit}`);
-        return response.data || [];
+
+        
+return response.data || [];
     }
 };

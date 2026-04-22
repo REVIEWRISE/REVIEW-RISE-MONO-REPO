@@ -118,6 +118,7 @@ apiClient.interceptors.response.use(
         // Broadcast to other tabs
         if (typeof BroadcastChannel !== 'undefined') {
           const channel = new BroadcastChannel('auth_channel')
+
           channel.postMessage({ type: 'LOGOUT' })
           channel.close()
         }
