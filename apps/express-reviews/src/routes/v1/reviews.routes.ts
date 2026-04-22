@@ -18,7 +18,7 @@ const LocationIdParamSchema = z.object({ locationId: z.string().uuid() });
 const ReviewIdParamSchema = z.object({ reviewId: z.string().uuid() });
 const SourceIdParamSchema = z.object({ id: z.string().uuid() });
 
-/**
+/*
  * @route GET /api/v1/reviews/location/:locationId
  * @desc List reviews by location with pagination and filters
  * @access Public (or as per auth policy)

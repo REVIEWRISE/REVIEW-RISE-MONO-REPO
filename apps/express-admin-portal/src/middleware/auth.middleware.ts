@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { sessionRepository } from '@platform/db';
 
 interface DecodedUser {
     userId: string;
     email: string;
     roles?: string[] | Record<string, string[]>;
+    sessionId?: string;
+    [key: string]: any;
 }
 
 declare global {
@@ -16,32 +19,42 @@ declare global {
     }
 }
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+/**
+ * DB Gatekeeper Middleware
+ * Validates JWT signature AND checks session still exists in the database.
+ * This enforces instant logout when a session is revoked.
+ */
+export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ success: false, message: 'Authorization header missing' });
+        return;
+    }
+
+    const token = authHeader.substring(7);
+    const secret = process.env.JWT_SECRET || 'super-secret-key-change-me';
+
     try {
-        const authHeader = req.headers.authorization;
+        const decoded = jwt.verify(token, secret) as DecodedUser;
 
-        if (!authHeader) {
-            return res.status(401).json({ message: 'Authorization header missing' });
+        // DB Gatekeeper: verify session still exists (not revoked)
+        if (decoded.sessionId) {
+            const session = await sessionRepository.findById(decoded.sessionId);
+
+            if (!session || (session as any).expires < new Date()) {
+                res.status(401).json({ success: false, message: 'Session revoked', messageCode: 'AUTH_SESSION_REVOKED' });
+                return;
+            }
         }
 
-        const token = authHeader.split(' ')[1];
-
-        if (!token) {
-            return res.status(401).json({ message: 'Token missing' });
+        req.user = decoded;
+        next();
+    } catch (error: any) {
+        if (error.name === 'TokenExpiredError') {
+            res.status(401).json({ success: false, message: 'Token expired' });
+        } else {
+            res.status(401).json({ success: false, message: 'Invalid or expired token' });
         }
-
-        const secret = process.env.JWT_SECRET || 'super-secret-key-change-me';
-        
-        try {
-            const decoded = jwt.verify(token, secret) as DecodedUser;
-            req.user = decoded;
-            next();
-        } catch (jwtError: any) {
-            console.error('[AuthMiddleware] JWT Verification failed:', jwtError.message);
-            return res.status(401).json({ message: 'Invalid or expired token' });
-        }
-    } catch (error) {
-        console.error('[AuthMiddleware] Unexpected error:', error);
-        return res.status(401).json({ message: 'Internal server error during authentication' });
     }
 };

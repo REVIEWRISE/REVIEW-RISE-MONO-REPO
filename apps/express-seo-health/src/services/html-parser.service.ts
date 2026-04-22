@@ -81,6 +81,10 @@ export interface ExtractedData {
         robotsTxtExists: boolean;
         sitemapExists: boolean;
         schemaDetected: boolean;
+        schemaTypes: string[];
+        schemaHasLocalBusiness: boolean;
+        schemaHasOrganization: boolean;
+        schemaHasFAQPage: boolean;
         custom404Exists: boolean;
         adsTxtExistsOrNotRelevant: boolean;
         spfRecordExists: boolean;
@@ -219,7 +223,50 @@ export async function extractSEOData(url: string, html: string, fetchResult: any
         sitemapDetected = sitemapRes.status === 200;
     } catch { /* ignore */ }
 
-    const schemaDetected = $('script[type="application/ld+json"]').length > 0;
+    const ldJsonScripts = $('script[type="application/ld+json"]');
+    const schemaDetected = ldJsonScripts.length > 0;
+    const schemaTypes: string[] = [];
+    let schemaHasLocalBusiness = false;
+    let schemaHasOrganization = false;
+    let schemaHasFAQPage = false;
+
+    ldJsonScripts.each((_, el) => {
+        try {
+            const content = $(el).html() || '';
+            const parsed = JSON.parse(content);
+            const items = Array.isArray(parsed) ? parsed : [parsed];
+
+            items.forEach(item => {
+                let typeStr = item?.['@type'];
+                if (typeof typeStr === 'string') {
+                    schemaTypes.push(typeStr);
+                    if (typeStr.includes('LocalBusiness')) schemaHasLocalBusiness = true;
+                    if (typeStr.includes('Organization')) schemaHasOrganization = true;
+                    if (typeStr.includes('FAQPage')) schemaHasFAQPage = true;
+                } else if (Array.isArray(typeStr)) {
+                    typeStr.forEach(t => {
+                        schemaTypes.push(t);
+                        if (t.includes('LocalBusiness')) schemaHasLocalBusiness = true;
+                        if (t.includes('Organization')) schemaHasOrganization = true;
+                        if (t.includes('FAQPage')) schemaHasFAQPage = true;
+                    });
+                }
+
+                // Also check if it's a graph structure
+                if (item?.['@graph'] && Array.isArray(item['@graph'])) {
+                    item['@graph'].forEach((gItem: any) => {
+                        let gTypeStr = gItem?.['@type'];
+                        if (typeof gTypeStr === 'string') {
+                            schemaTypes.push(gTypeStr);
+                            if (gTypeStr.includes('LocalBusiness')) schemaHasLocalBusiness = true;
+                            if (gTypeStr.includes('Organization')) schemaHasOrganization = true;
+                            if (gTypeStr.includes('FAQPage')) schemaHasFAQPage = true;
+                        }
+                    });
+                }
+            });
+        } catch { /* ignore invalid json */ }
+    });
 
     let adsTxtPresent = false;
     try {
@@ -279,6 +326,10 @@ export async function extractSEOData(url: string, html: string, fetchResult: any
             robotsTxtExists: validRobots,
             sitemapExists: sitemapDetected,
             schemaDetected: schemaDetected,
+            schemaTypes: Array.from(new Set(schemaTypes)),
+            schemaHasLocalBusiness,
+            schemaHasOrganization,
+            schemaHasFAQPage,
             custom404Exists: true, // Placeholder
             adsTxtExistsOrNotRelevant: adsTxtPresent || true, // Consider not relevant if not present
             spfRecordExists: hasSpf

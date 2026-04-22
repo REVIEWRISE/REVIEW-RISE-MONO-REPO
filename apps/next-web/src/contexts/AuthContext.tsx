@@ -90,6 +90,8 @@ const findFirstAllowedMenuPath = (items: MenuItem[], role: string | null): strin
   return null
 }
 
+import { useEffect } from 'react'
+
 export const AuthProvider = ({ children, user: initialUser }: ChildrenType & { user: User | null }) => {
   // States
   const [user, setUser] = useState<User | null>(initialUser)
@@ -99,14 +101,19 @@ export const AuthProvider = ({ children, user: initialUser }: ChildrenType & { u
   const router = useRouter()
   const locale = useLocale()
 
-  // No need for client-side initAuth since we pass initialUser from server
-
   const login = useCallback((userData: User) => {
     setUser(userData)
 
     const params = new URLSearchParams(window.location.search)
     const returnUrl = params.get('returnUrl')
     const role = userData.role || userData.roles?.[0] || null
+
+    // Broadcast login
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel('auth_channel')
+      channel.postMessage({ type: 'LOGIN' })
+      channel.close()
+    }
 
     if (returnUrl) {
       const match = matchMenu(menuData, returnUrl)
@@ -141,11 +148,45 @@ export const AuthProvider = ({ children, user: initialUser }: ChildrenType & { u
       console.error('Logout failed', error)
     }
 
+    // Broadcast logout
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel('auth_channel')
+      channel.postMessage({ type: 'LOGOUT' })
+      channel.close()
+    }
+
     setUser(null)
-    router.push('/login')
-  }, [router])
+    router.push(`/${locale}/login`)
+  }, [router, locale])
 
   const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout])
+
+  useEffect(() => {
+    if (!user || typeof window === 'undefined') return
+
+    const channel = new BroadcastChannel('auth_channel')
+    channel.onmessage = (event) => {
+      if (event.data?.type === 'LOGOUT' && window.location.pathname.indexOf('/login') === -1) {
+        router.push(`/${locale}/login?session_expired=true`)
+      } else if (event.data?.type === 'LOGIN') {
+        router.refresh()
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Trigger server components to re-validate the session via getServerUser()
+        router.refresh()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      channel.close()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [user, router, locale])
 
   return (
     <AuthContext.Provider value={value}>

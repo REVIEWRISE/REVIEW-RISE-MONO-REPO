@@ -364,36 +364,11 @@ async function main() {
 
     console.log(`✅ Created 3 sample users\n`);
 
-    // 5. Create Sample Business
-    console.log('🏢 Creating sample business...');
-    const business = await prisma.business.upsert({
-        where: { slug: 'test-business' },
-        update: {},
-        create: {
-            id: 'd4f2e85a-1e52-4467-9d10-631742461880',
-            name: 'Test Business',
-            slug: 'test-business',
-            description: 'A sample business for development',
-            status: 'active',
-        },
-    });
-
     // 4b. Assign System Roles to Users (CRITICAL for login)
     console.log('🔗 Assigning system roles (UserRole) to users...');
     await assignSystemRole(user1.id, 'Owner');
     await assignSystemRole(user2.id, 'Admin');
     await assignSystemRole(user3.id, 'Manager');
-
-    // 6. Assign Business-Specific Roles (UserBusinessRole)
-    console.log('🔗 Assigning business roles (UserBusinessRole)...');
-    // User 1 is Owner of the business
-    await assignRole(user1.id, business.id, ownerRole.id, null);
-    // User 2 is Admin of the business
-    await assignRole(user2.id, business.id, adminRole.id, null);
-    // User 3 is Manager of the business
-    await assignRole(user3.id, business.id, managerRole.id, null);
-
-    // Create a Viewer user for testing
     const viewerUser = await prisma.user.upsert({
         where: { email: 'viewer@example.com' },
         update: {
@@ -408,9 +383,7 @@ async function main() {
         },
     });
     await assignSystemRole(viewerUser.id, 'Viewer');
-    await assignRole(viewerUser.id, business.id, viewerRole.id, null);
 
-    console.log(`✅ Assigned roles and created sample business\n`);
     console.log(`✅ Assigned system roles to users\n`);
 
     // 5. Create Sample Businesses
@@ -446,6 +419,9 @@ async function main() {
     });
 
     console.log(`✅ Created 2 sample businesses\n`);
+
+    // Assign Viewer role to ACME Restaurant
+    await assignRole(viewerUser.id, business1.id, viewerRole.id, null);
 
     // Create Brand Profile for business1
     console.log('🎭 Creating brand profile for business1...');

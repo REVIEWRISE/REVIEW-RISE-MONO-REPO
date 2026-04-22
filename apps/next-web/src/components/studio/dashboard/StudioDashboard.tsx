@@ -10,20 +10,33 @@ import { useTranslations } from 'next-intl'
 import ToolCard from './ToolCard'
 import RecentGenerations from './RecentGenerations'
 import CreditUsage from './CreditUsage'
+import { useStudioDashboard } from '@/hooks/useStudioDashboard'
+import { useBusinessId } from '@/hooks/useBusinessId'
+import CircularProgress from '@mui/material/CircularProgress'
 
 export default function StudioDashboard() {
     const t = useTranslations('studio')
     const router = useRouter()
+    const { businessId } = useBusinessId()
+    const { stats, recentGenerations, loading } = useStudioDashboard(businessId)
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100%' }}>
+                <CircularProgress />
+            </Box>
+        )
+    }
 
     return (
         <Grid container spacing={4}>
             {/* Header / Hero */}
             <Grid size={12}>
-                <Paper 
-                    elevation={0} 
-                    sx={{ 
-                        p: { xs: 4, md: 6 }, 
-                        borderRadius: 4, 
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: { xs: 4, md: 6 },
+                        borderRadius: 4,
                         background: 'linear-gradient(120deg, #1A237E 0%, #311B92 40%, #D81B60 100%)', // Vibrant Nebula Gradient
                         boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
                         color: 'white',
@@ -40,9 +53,9 @@ export default function StudioDashboard() {
                     <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'radial-gradient(circle at 10% 20%, rgba(255,255,255,0.1) 0%, transparent 20%)', pointerEvents: 'none' }} />
 
                     <Box sx={{ position: 'relative', zIndex: 1, maxWidth: { xs: '100%', md: '60%' } }}>
-                        <Typography variant="h2" fontWeight="900" mb={2} sx={{ 
-                            background: '-webkit-linear-gradient(45deg, #FFFFFF 30%, #FF80AB 90%)', 
-                            WebkitBackgroundClip: 'text', 
+                        <Typography variant="h2" fontWeight="900" mb={2} sx={{
+                            background: '-webkit-linear-gradient(45deg, #FFFFFF 30%, #FF80AB 90%)',
+                            WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             fontSize: { xs: '2rem', md: '3rem' }
                         }}>
@@ -68,9 +81,9 @@ export default function StudioDashboard() {
                     </Box>
 
                     {/* Illustration / Icon */}
-                    <Box sx={{ 
-                        width: 240, 
-                        height: 240, 
+                    <Box sx={{
+                        width: 240,
+                        height: 240,
                         mt: { xs: 4, md: 0 },
                         position: 'relative',
                         display: 'flex',
@@ -89,10 +102,10 @@ export default function StudioDashboard() {
                                 '100%': { transform: 'scale(0.95)', opacity: 0.5 }
                             }
                         }} />
-                        <Box sx={{ 
-                            width: 140, 
-                            height: 140, 
-                            bgcolor: 'rgba(255,255,255,0.15)', 
+                        <Box sx={{
+                            width: 140,
+                            height: 140,
+                            bgcolor: 'rgba(255,255,255,0.15)',
                             backdropFilter: 'blur(20px)',
                             borderRadius: '40px',
                             display: 'flex',
@@ -115,51 +128,51 @@ export default function StudioDashboard() {
             </Grid>
 
             {/* Tools Grid */}
-            <Grid size={{sm: 12, md: 8}}>
+            <Grid size={{ sm: 12, md: 8 }}>
                 <Grid container spacing={3}>
-                    <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('magic.title') || 'Smart Create'}
                             description={t('magic.subtitle')}
                             icon={<i className="tabler-sparkles" style={{ fontSize: 24 }} />}
                             color="#E65100"
                             stats={[
                                 { label: t('magic.outputs'), value: '4-in-1' },
-                                { label: t('magic.generation'), value: '10s' }
+                                { label: t('magic.generation'), value: String(stats?.total || 0) }
                             ]}
                             isNew
                             onClick={() => router.push('/admin/studio/smart-create')}
                         />
                     </Grid>
-                    <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('captions.title')}
                             description={t('captions.subtitle')}
                             icon={<i className="tabler-wand" style={{ fontSize: 24 }} />}
                             color="#9C27B0"
                             stats={[
                                 { label: t('captions.variations'), value: '3-5' },
-                                { label: t('captions.generatedLabel', { count: '' }).replace('()', '').trim(), value: '1,247' }
+                                { label: t('captions.generatedLabel', { count: '' }).replace('()', '').trim(), value: String(stats?.captions || 0) }
                             ]}
                             isPopular
                             onClick={() => router.push('/admin/studio/captions')}
                         />
                     </Grid>
-                    <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('hashtags.title')}
                             description={t('hashtags.subtitle')}
                             icon={<i className="tabler-hash" style={{ fontSize: 24 }} />}
                             color="#2196F3"
                             stats={[
                                 { label: t('hashtags.title'), value: '20-30' },
-                                { label: t('captions.generatedLabel', { count: '' }).replace('()', '').trim(), value: '892' }
+                                { label: t('captions.generatedLabel', { count: '' }).replace('()', '').trim(), value: String(stats?.captions || 0) }
                             ]}
                             onClick={() => router.push('/admin/studio/hashtags')}
                         />
                     </Grid>
-                    <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('ideas.title')}
                             description={t('ideas.subtitle')}
                             icon={<i className="tabler-bulb" style={{ fontSize: 24 }} />}
@@ -171,8 +184,8 @@ export default function StudioDashboard() {
                             onClick={() => router.push('/admin/studio/ideas')}
                         />
                     </Grid>
-                     <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('planner.title')}
                             description={t('planner.subtitle')}
                             icon={<i className="tabler-calendar" style={{ fontSize: 24 }} />}
@@ -184,21 +197,21 @@ export default function StudioDashboard() {
                             onClick={() => router.push('/admin/studio/planner')}
                         />
                     </Grid>
-                     <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('images.title')}
                             description={t('images.subtitle')}
                             icon={<i className="tabler-photo" style={{ fontSize: 24 }} />}
                             color="#E91E63"
                             stats={[
                                 { label: t('captions.variations'), value: '3' },
-                                { label: t('captions.generatedLabel', { count: '' }).replace('()', '').trim(), value: '423' }
+                                { label: t('captions.generatedLabel', { count: '' }).replace('()', '').trim(), value: String(stats?.images || 0) }
                             ]}
                             onClick={() => router.push('/admin/studio/images')}
                         />
                     </Grid>
-                    <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('carousels.title')}
                             description={t('carousels.subtitle')}
                             icon={<i className="tabler-slideshow" style={{ fontSize: 24 }} />}
@@ -210,8 +223,8 @@ export default function StudioDashboard() {
                             onClick={() => router.push('/admin/studio/carousels')}
                         />
                     </Grid>
-                    <Grid size={{sm: 12, md: 6}}>
-                        <ToolCard 
+                    <Grid size={{ sm: 12, md: 6 }}>
+                        <ToolCard
                             title={t('scripts.title')}
                             description={t('scripts.subtitle')}
                             icon={<i className="tabler-movie" style={{ fontSize: 24 }} />}
@@ -227,10 +240,10 @@ export default function StudioDashboard() {
             </Grid>
 
             {/* Sidebar */}
-            <Grid size={{sm: 12, md: 4}}>
+            <Grid size={{ sm: 12, md: 4 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <CreditUsage />
-                    <RecentGenerations />
+                    <CreditUsage stats={stats} />
+                    <RecentGenerations generations={recentGenerations} />
                 </Box>
             </Grid>
         </Grid>

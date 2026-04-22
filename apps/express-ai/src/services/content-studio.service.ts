@@ -177,6 +177,44 @@ Return a JSON object: { "adaptedText": "Your adapted caption here" }`;
 
         return llmService.generateJSON(prompt);
     }
+
+    // Dashboard & Stats
+    async getDashboardStats(businessId: string) {
+        const [captions, images, scripts, carousels] = await Promise.all([
+            prisma.captionDraft.count({ where: { businessId } }),
+            prisma.imagePrompt.count({ where: { businessId } }),
+            prisma.scriptDraft.count({ where: { businessId } }),
+            prisma.carouselDraft.count({ where: { businessId } })
+        ]);
+
+        return {
+            captions,
+            images,
+            scripts,
+            carousels,
+            total: captions + images + scripts + carousels
+        };
+    }
+
+    async listRecentGenerations(businessId: string, limit: number = 10) {
+        // Fetch from all draft tables and merge
+        const [captions, images, scripts, carousels] = await Promise.all([
+            prisma.captionDraft.findMany({ where: { businessId }, take: limit, orderBy: { createdAt: 'desc' } }),
+            prisma.imagePrompt.findMany({ where: { businessId }, take: limit, orderBy: { createdAt: 'desc' }, include: { images: true } }),
+            prisma.scriptDraft.findMany({ where: { businessId }, take: limit, orderBy: { createdAt: 'desc' } }),
+            prisma.carouselDraft.findMany({ where: { businessId }, take: limit, orderBy: { createdAt: 'desc' } })
+        ]);
+
+        // Map to a common format
+        const merged = [
+            ...captions.map(c => ({ id: c.id, type: 'caption', title: c.platform, content: c.content, createdAt: c.createdAt })),
+            ...images.map(i => ({ id: i.id, type: 'image', title: i.style, content: i.prompt, imageUrl: i.images[0]?.url, createdAt: i.createdAt })),
+            ...scripts.map(s => ({ id: s.id, type: 'script', title: s.title || s.platform, content: s.hook, createdAt: s.createdAt })),
+            ...carousels.map(ca => ({ id: ca.id, type: 'carousel', title: ca.topic, content: JSON.stringify(ca.slides), createdAt: ca.createdAt }))
+        ];
+
+        return merged.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limit);
+    }
 }
 
 export const contentStudioService = new ContentStudioService();

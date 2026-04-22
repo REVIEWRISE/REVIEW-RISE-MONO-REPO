@@ -114,7 +114,21 @@ apiClient.interceptors.response.use(
 
     // Handle global errors (e.g., 401 Unauthorized)
     if (error.response && error.response.status === 401) {
-      // Could trigger logout or refresh token logic here
+      if (typeof window !== 'undefined') {
+        // Broadcast to other tabs
+        if (typeof BroadcastChannel !== 'undefined') {
+          const channel = new BroadcastChannel('auth_channel')
+          channel.postMessage({ type: 'LOGOUT' })
+          channel.close()
+        }
+
+        if (!window.location.pathname.includes('/login')) {
+          fetch('/api/auth/logout', { method: 'POST' }).catch(() => { })
+          setTimeout(() => {
+            window.location.href = '/login?session_expired=true'
+          }, 300)
+        }
+      }
     }
 
     return Promise.reject(error)

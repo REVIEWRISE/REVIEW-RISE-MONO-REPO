@@ -319,6 +319,33 @@ export const seoRules = {
           "recommendation": "Implement JSON-LD structured data (e.g., Organization, LocalBusiness)."
         },
         {
+          "id": "schema_local_business",
+          "severity": "MEDIUM",
+          "checks": [
+            { "field": "advanced.schemaHasLocalBusiness", "operator": "equals", "value": true }
+          ],
+          "message": "LocalBusiness structured data missing",
+          "recommendation": "Add LocalBusiness schema to improve local SEO representation."
+        },
+        {
+          "id": "schema_organization",
+          "severity": "LOW",
+          "checks": [
+            { "field": "advanced.schemaHasOrganization", "operator": "equals", "value": true }
+          ],
+          "message": "Organization structured data missing",
+          "recommendation": "Add Organization schema to clearly define your brand entity."
+        },
+        {
+          "id": "schema_faq",
+          "severity": "LOW",
+          "checks": [
+            { "field": "advanced.schemaHasFAQPage", "operator": "equals", "value": true }
+          ],
+          "message": "FAQPage structured data missing",
+          "recommendation": "Adding FAQPage schema can help you achieve rich snippets for user queries."
+        },
+        {
           "id": "custom_404",
           "severity": "MEDIUM",
           "checks": [

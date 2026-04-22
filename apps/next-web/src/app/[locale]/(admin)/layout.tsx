@@ -26,58 +26,65 @@ import { getServerUser } from '@/utils/serverAuth'
 import Onboarding from '@views/Onboarding'
 
 const Layout = async (props: ChildrenType) => {
-    const { children } = props
+  const { children } = props
 
-    // Vars
-    const direction = 'ltr'
-    const mode = await getMode()
-    const systemMode = await getSystemMode()
-    const user = await getServerUser()
+  // Vars
+  const direction = 'ltr'
+  const mode = await getMode()
+  const systemMode = await getSystemMode()
+  const user = await getServerUser()
 
-    let needsBusinessOnboarding = false
+  if (!user) {
+    const { redirect } = await import('next/navigation')
 
-    if (user?.id) {
-      const hasBusinessRole = await prisma.userBusinessRole.findFirst({
-        where: {
-          userId: user.id,
-          deletedAt: null
-        },
-        select: { id: true }
-      })
+    // We cannot delete cookies here; the login page handles cookie cleanup if necessary
+    redirect('/login')
+  }
 
-      needsBusinessOnboarding = !hasBusinessRole
-    }
+  let needsBusinessOnboarding = false
 
-    if (needsBusinessOnboarding) {
-      return (
-        <Providers direction={direction}>
-          <Onboarding modalOnly />
-        </Providers>
-      )
-    }
+  if (user?.id) {
+    const hasBusinessRole = await prisma.userBusinessRole.findFirst({
+      where: {
+        userId: user.id,
+        deletedAt: null
+      },
+      select: { id: true }
+    })
 
+    needsBusinessOnboarding = !hasBusinessRole
+  }
+
+  if (needsBusinessOnboarding) {
     return (
-        <Providers direction={direction}>
-            <LayoutWrapper
-                systemMode={systemMode}
-                verticalLayout={
-                    <VerticalLayout navigation={<Navigation mode={mode} />} navbar={<Navbar />} footer={<VerticalFooter />}>
-                        {children}
-                    </VerticalLayout>
-                }
-                horizontalLayout={
-                    <HorizontalLayout header={<Header />} footer={<HorizontalFooter />}>
-                        {children}
-                    </HorizontalLayout>
-                }
-            />
-            <ScrollToTop className='mui-fixed'>
-                <Button variant='contained' className='is-10 bs-10 rounded-full p-0 min-is-0 flex items-center justify-center'>
-                    <i className='tabler-arrow-up' />
-                </Button>
-            </ScrollToTop>
-        </Providers>
+      <Providers direction={direction}>
+        <Onboarding modalOnly />
+      </Providers>
     )
+  }
+
+  return (
+    <Providers direction={direction}>
+      <LayoutWrapper
+        systemMode={systemMode}
+        verticalLayout={
+          <VerticalLayout navigation={<Navigation mode={mode} />} navbar={<Navbar />} footer={<VerticalFooter />}>
+            {children}
+          </VerticalLayout>
+        }
+        horizontalLayout={
+          <HorizontalLayout header={<Header />} footer={<HorizontalFooter />}>
+            {children}
+          </HorizontalLayout>
+        }
+      />
+      <ScrollToTop className='mui-fixed'>
+        <Button variant='contained' className='is-10 bs-10 rounded-full p-0 min-is-0 flex items-center justify-center'>
+          <i className='tabler-arrow-up' />
+        </Button>
+      </ScrollToTop>
+    </Providers>
+  )
 }
 
 export default Layout

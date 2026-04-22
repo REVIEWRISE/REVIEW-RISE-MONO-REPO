@@ -219,12 +219,12 @@ export class ContentStudioController {
             const businessId = (req as any).user?.businessId;
 
             const result = await contentStudioService.generateCompletePost(
-                platform, 
-                topic, 
-                tone, 
-                goal, 
-                audience, 
-                language, 
+                platform,
+                topic,
+                tone,
+                goal,
+                audience,
+                language,
                 length,
                 businessId
             );
@@ -232,6 +232,42 @@ export class ContentStudioController {
         } catch (error) {
             console.error('Error generating complete post:', error);
             res.status(500).json({ error: 'Failed to generate complete post' });
+        }
+    }
+
+    // Dashboard Data
+    async getDashboardData(req: Request, res: Response) {
+        try {
+            const businessId = (req as any).user?.businessId || req.query.businessId as string;
+            if (!businessId) {
+                return res.status(400).json(createErrorResponse('businessId is required', SystemMessageCode.BAD_REQUEST, 400));
+            }
+
+            const stats = await contentStudioService.getDashboardStats(businessId);
+            const response = createSuccessResponse(stats, 'Dashboard data fetched successfully');
+            res.status(response.statusCode).json(response);
+        } catch (error: any) {
+            console.error('Error fetching studio dashboard data:', error);
+            const response = createErrorResponse('Failed to fetch dashboard data', SystemMessageCode.INTERNAL_SERVER_ERROR, 500, error.message);
+            res.status(response.statusCode).json(response);
+        }
+    }
+
+    async listGenerations(req: Request, res: Response) {
+        try {
+            const businessId = (req as any).user?.businessId || req.query.businessId as string;
+            if (!businessId) {
+                return res.status(400).json(createErrorResponse('businessId is required', SystemMessageCode.BAD_REQUEST, 400));
+            }
+
+            const limit = parseInt(req.query.limit as string) || 10;
+            const generations = await contentStudioService.listRecentGenerations(businessId, limit);
+            const response = createSuccessResponse(generations, 'Generations fetched successfully');
+            res.status(response.statusCode).json(response);
+        } catch (error: any) {
+            console.error('Error fetching generations:', error);
+            const response = createErrorResponse('Failed to fetch generations', SystemMessageCode.INTERNAL_SERVER_ERROR, 500, error.message);
+            res.status(response.statusCode).json(response);
         }
     }
 }
