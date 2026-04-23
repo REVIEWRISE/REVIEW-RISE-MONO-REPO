@@ -237,7 +237,7 @@ export async function extractSEOData(url: string, html: string, fetchResult: any
             const items = Array.isArray(parsed) ? parsed : [parsed];
 
             items.forEach(item => {
-                let typeStr = item?.['@type'];
+                const typeStr = item?.['@type'];
                 if (typeof typeStr === 'string') {
                     schemaTypes.push(typeStr);
                     if (typeStr.includes('LocalBusiness')) schemaHasLocalBusiness = true;
@@ -255,7 +255,7 @@ export async function extractSEOData(url: string, html: string, fetchResult: any
                 // Also check if it's a graph structure
                 if (item?.['@graph'] && Array.isArray(item['@graph'])) {
                     item['@graph'].forEach((gItem: any) => {
-                        let gTypeStr = gItem?.['@type'];
+                        const gTypeStr = gItem?.['@type'];
                         if (typeof gTypeStr === 'string') {
                             schemaTypes.push(gTypeStr);
                             if (gTypeStr.includes('LocalBusiness')) schemaHasLocalBusiness = true;
