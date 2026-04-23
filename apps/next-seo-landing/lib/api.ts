@@ -1,6 +1,22 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL || 'http://localhost:3011/api/v1';
+const getApiUrl = () => {
+  if (process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL) {
+    return process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL;
+  }
+  
+  // If we are on the client side in production, point to the main app's API
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return 'https://app.vyntrise.com/api/seo';
+    }
+  }
+  
+  // Local development fallback
+  return 'http://localhost:3011/api/v1';
+};
+
+const API_URL = getApiUrl();
 
 export interface Recommendation {
   priority: 'high' | 'medium' | 'low';
