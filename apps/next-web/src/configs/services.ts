@@ -42,13 +42,17 @@ export const SERVICES_CONFIG = {
     seo: {
         get url() {
             if (typeof window === 'undefined') {
-                // Server-side
-                return process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL || 'http://localhost:3011/api/v1';
+                // Server-side: prefer internal Docker URL, fall back to public domain
+                return (
+                    process.env.EXPRESS_SEO_HEALTH_URL ||
+                    process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL ||
+                    'http://localhost:3011/api/v1'
+                );
             }
 
             // Client-side
             if (isProduction()) {
-                return `${getClientBaseUrl()}/api/seo`;
+                return 'https://seo-analyzer.vyntrise.com';
             }
 
             return 'http://localhost:3011/api/v1';
