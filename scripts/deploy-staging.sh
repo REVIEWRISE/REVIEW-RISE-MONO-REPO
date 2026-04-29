@@ -200,7 +200,7 @@ if [ "$NEEDS_INIT" -eq 1 ]; then
     
     # Aggressive cleanup via Docker to avoid "Permission denied"
     log_info "Removing old/corrupted certificates using Docker..."
-    docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "sh -c 'rm -rf /etc/letsencrypt/live/seo-analyzer.vyntrise.com* && rm -rf /etc/letsencrypt/archive/seo-analyzer.vyntrise.com* && rm -rf /etc/letsencrypt/renewal/seo-analyzer.vyntrise.com*.conf && rm -rf /etc/letsencrypt/live/app.vyntrise.com* && rm -rf /etc/letsencrypt/archive/app.vyntrise.com* && rm -rf /etc/letsencrypt/renewal/app.vyntrise.com*.conf'" certbot || true
+    docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "sh -c 'rm -rf /etc/letsencrypt/live/seo-analyzer.vyntrise.com* && rm -rf /etc/letsencrypt/archive/seo-analyzer.vyntrise.com* && rm -rf /etc/letsencrypt/renewal/seo-analyzer.vyntrise.com*.conf && rm -rf /etc/letsencrypt/live/app.vyntrise.com* && rm -rf /etc/letsencrypt/archive/app.vyntrise.com* && rm -rf /etc/letsencrypt/renewal/app.vyntrise.com*.conf && rm -rf /etc/letsencrypt/live/crm.vyntrise.com* && rm -rf /etc/letsencrypt/archive/crm.vyntrise.com* && rm -rf /etc/letsencrypt/renewal/crm.vyntrise.com*.conf'" certbot || true
     
     # Fix permissions so init-ssl.sh can write to the directory (it runs as host user, but docker creates root-owned files)
     CURRENT_UID=$(id -u)
