@@ -13,7 +13,7 @@ fi
 
 set -e # Exit immediately if any command fails
 
-domains=(seo-analyzer.vyntrise.com app.vyntrise.com crm.vyntrise.com)
+domains=(vyntrise.com seo-analyzer.vyntrise.com app.vyntrise.com crm.vyntrise.com)
 rsa_key_size=4096
 data_path="./nginx/certbot"
 email="support@vyntrise.com" # Change this to your email
