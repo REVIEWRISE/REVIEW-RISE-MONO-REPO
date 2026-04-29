@@ -191,9 +191,13 @@ jobs:
             echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.production
             echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env.production
             
-            # Run deployment script
-            chmod +x ./scripts/deploy-staging.sh
-            ./scripts/deploy-staging.sh --seed
+            # Run deployment script (use bash directly if chmod fails due to permissions)
+            if ! chmod +x ./scripts/deploy-staging.sh 2>/dev/null; then
+                echo "chmod failed, running with bash directly..."
+                bash ./scripts/deploy-staging.sh --seed
+            else
+                ./scripts/deploy-staging.sh --seed
+            fi
           EOF
 
       - name: Verify deployment
