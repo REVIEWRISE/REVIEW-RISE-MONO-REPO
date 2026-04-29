@@ -112,6 +112,13 @@ docker compose -f "$COMPOSE_FILE" pull
 log_info "Images pulled successfully ✓"
 
 # ==============================================================================
+# Staging Reset — Wipe DB volume for a clean slate on every deploy
+# ==============================================================================
+log_info "Staging environment: wiping database volume for clean reset..."
+docker compose -f "$COMPOSE_FILE" down -v --remove-orphans || true
+log_info "Database volume wiped ✓"
+
+# ==============================================================================
 # Run Database Migrations
 # ==============================================================================
 # Migrations now run automatically via express-auth entrypoint script
