@@ -119,47 +119,55 @@ docker compose -f "$COMPOSE_FILE" down -v --remove-orphans || true
 log_info "Database volume wiped ✓"
 
 # ==============================================================================
-# Run Database Migrations
+# Start Services (postgres must be up before migrations/seed)
 # ==============================================================================
-# Migrations now run automatically via express-auth entrypoint script
-log_info "Database migrations will run automatically when express-auth starts ✓"
+log_info "Starting infrastructure services (postgres, redis)..."
+docker compose -f "$COMPOSE_FILE" up -d --remove-orphans postgres redis
+
+log_info "Waiting for postgres to be healthy..."
+ELAPSED=0
+until docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U "${POSTGRES_USER:-postgres}" > /dev/null 2>&1; do
+    sleep 2
+    ELAPSED=$((ELAPSED + 2))
+    if [ $ELAPSED -ge 60 ]; then
+        log_error "Postgres did not become ready in time!"
+        exit 1
+    fi
+done
+log_info "Postgres is ready ✓"
 
 # ==============================================================================
-# Schema Sync (db push) — MUST run before seeding
+# Run Migrations + Schema Sync
 # ==============================================================================
-# This ensures the DB schema matches the Prisma schema (catches any models
-# added after the last migration, e.g. LocationMetric, LocationCompetitor, MetricJob)
-log_info "Running schema sync (db push) to ensure database integrity..."
+# express-auth entrypoint runs `prisma migrate deploy` automatically.
+# We also run `db push` to catch any schema models not yet in a migration file.
+log_info "Running migrations and schema sync..."
 docker compose -f "$COMPOSE_FILE" run --rm \
+    -e DATABASE_URL="postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable" \
     express-auth \
-    sh -c "cd /app && npx prisma db push --accept-data-loss" || {
-    log_warn "Schema sync failed (check logs)"
+    sh -c "cd /app/packages/@platform/db && npx prisma migrate deploy && npx prisma db push --accept-data-loss" || {
+    log_error "Migration/schema sync failed!"
+    exit 1
 }
-log_info "Schema sync completed ✓"
+log_info "Migrations and schema sync completed ✓"
 
 # ==============================================================================
-# Seed Database (Optional - First Time Only)
+# Seed Database — always on staging
 # ==============================================================================
-# Check if --seed flag was passed
-if [[ "$*" == *"--seed"* ]]; then
-    log_info "Seeding database..."
-    
-    docker compose -f "$COMPOSE_FILE" run --rm \
-        express-auth \
-        sh -c "cd /app && pnpm --filter @platform/db run db:seed:all" || {
-        log_warn "Database seeding failed (non-fatal)"
-    }
-    
-    log_info "Database seeding completed ✓"
-else
-    log_info "Skipping database seeding (use --seed flag to seed)"
-fi
+log_info "Seeding database..."
+docker compose -f "$COMPOSE_FILE" run --rm \
+    -e DATABASE_URL="postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable" \
+    express-auth \
+    sh -c "cd /app && pnpm --filter @platform/db run db:seed:all" || {
+    log_warn "Database seeding failed (check logs above)"
+}
+log_info "Database seeding completed ✓"
 
 # ==============================================================================
 # SSL Certificate Check & Cleanup
 # ==============================================================================
-CERT_PATH="./nginx/certbot/conf/live/vyntrise.com/fullchain.pem"
-CORRUPTED_PATH="./nginx/certbot/conf/live/vyntrise.com-0001"
+CERT_PATH="./nginx/certbot/conf/live/seo-analyzer.vyntrise.com/fullchain.pem"
+CORRUPTED_PATH="./nginx/certbot/conf/live/seo-analyzer.vyntrise.com-0001"
 NEEDS_INIT=0
 
 log_info "Checking SSL certificate state using Docker (to avoid host permission issues)..."
@@ -173,9 +181,9 @@ fi
 
 # 2. Check strict validity using certbot container
 if [ "$NEEDS_INIT" -eq 0 ]; then
-    if docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "test -s /etc/letsencrypt/live/vyntrise.com/fullchain.pem" certbot > /dev/null 2>&1; then
+    if docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "test -s /etc/letsencrypt/live/seo-analyzer.vyntrise.com/fullchain.pem" certbot > /dev/null 2>&1; then
         # File exists and is not empty, check validity
-        if docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "openssl x509 -checkend 0 -noout -in /etc/letsencrypt/live/vyntrise.com/fullchain.pem" certbot > /dev/null 2>&1; then
+        if docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "openssl x509 -checkend 0 -noout -in /etc/letsencrypt/live/seo-analyzer.vyntrise.com/fullchain.pem" certbot > /dev/null 2>&1; then
             log_info "Valid SSL certificate verified inside container ✓"
         else
             log_warn "Certificate exists but appears invalid or expired (checked inside container)."
@@ -192,7 +200,7 @@ if [ "$NEEDS_INIT" -eq 1 ]; then
     
     # Aggressive cleanup via Docker to avoid "Permission denied"
     log_info "Removing old/corrupted certificates using Docker..."
-    docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "sh -c 'rm -rf /etc/letsencrypt/live/vyntrise.com* && rm -rf /etc/letsencrypt/archive/vyntrise.com* && rm -rf /etc/letsencrypt/renewal/vyntrise.com*.conf'" certbot || true
+    docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "sh -c 'rm -rf /etc/letsencrypt/live/seo-analyzer.vyntrise.com* && rm -rf /etc/letsencrypt/archive/seo-analyzer.vyntrise.com* && rm -rf /etc/letsencrypt/renewal/seo-analyzer.vyntrise.com*.conf && rm -rf /etc/letsencrypt/live/app.vyntrise.com* && rm -rf /etc/letsencrypt/archive/app.vyntrise.com* && rm -rf /etc/letsencrypt/renewal/app.vyntrise.com*.conf'" certbot || true
     
     # Fix permissions so init-ssl.sh can write to the directory (it runs as host user, but docker creates root-owned files)
     CURRENT_UID=$(id -u)
@@ -213,9 +221,9 @@ else
 fi
 
 # ==============================================================================
-# Start Services
+# Start All Remaining Services
 # ==============================================================================
-log_info "Starting services with Docker Compose..."
+log_info "Starting all services with Docker Compose..."
 
 docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 

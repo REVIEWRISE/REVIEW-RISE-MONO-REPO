@@ -20,7 +20,7 @@ const FooterContent = () => {
     >
       <p>
         <span className='text-textSecondary'>{t('common.copyright', { year: new Date().getFullYear() })}</span>
-        <Link href='https://vyntrise.com/' target='_blank' className='text-primary uppercase'>
+        <Link href='https://seo-analyzer.vyntrise.com/' target='_blank' className='text-primary uppercase'>
           {t('app.name')}
         </Link>
       </p>
