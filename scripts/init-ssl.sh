@@ -99,5 +99,29 @@ for domain in "${domains[@]}"; do
   echo
 done
 
+echo "### Creating symlinks for versioned certificates..."
+# Check if certificates were created with version suffixes and create symlinks
+for domain in "${domains[@]}"; do
+  # Find the actual certificate directory (may have -0001, -0002 suffix)
+  ACTUAL_CERT=$(docker compose -f docker-compose.prod.yml run --rm --entrypoint "sh -c 'ls -d /etc/letsencrypt/live/${domain}* 2>/dev/null | head -1'" certbot | tr -d '\r')
+  
+  if [ -n "$ACTUAL_CERT" ] && [ "$ACTUAL_CERT" != "/etc/letsencrypt/live/$domain" ]; then
+    CERT_BASENAME=$(basename "$ACTUAL_CERT")
+    echo "Found versioned certificate: $CERT_BASENAME for $domain"
+    
+    # Create symlink from base name to versioned name
+    docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+      sh -c 'cd /etc/letsencrypt/live && \
+             rm -f $domain && \
+             ln -sf $CERT_BASENAME $domain && \
+             ls -la $domain'" certbot
+    
+    echo "Created symlink: $domain -> $CERT_BASENAME"
+  else
+    echo "Certificate for $domain is at expected location"
+  fi
+done
+echo
+
 echo "### Reloading nginx ..."
 docker compose -f docker-compose.prod.yml up -d --force-recreate nginx
