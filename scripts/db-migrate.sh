@@ -20,6 +20,13 @@ cd "$DB_PKG"
 node "$PRISMA" migrate deploy
 echo "✓ Migrations complete"
 
+# ── Generate Prisma client ────────────────────────────────────────────────
+# The generated client (.prisma/client) must exist before seed scripts run.
+# In the db-migrate container the source is mounted but generate hasn't run.
+echo "Generating Prisma client..."
+node "$PRISMA" generate
+echo "✓ Prisma client generated"
+
 # ── Run seed ──────────────────────────────────────────────────────────────
 # Prefer pre-compiled JS (built by tsc -p tsconfig.scripts.json during CI)
 COMPILED_SEED="$DB_PKG/dist-scripts/seed-all.js"
