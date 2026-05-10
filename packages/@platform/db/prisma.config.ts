@@ -4,7 +4,6 @@ import { defineConfig } from '@prisma/config';
 // is already injected via environment variables so dotenv is not needed.
 if (process.env.NODE_ENV !== 'production') {
     try {
-        // Dynamic require so this file doesn't hard-depend on dotenv at runtime
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const dotenv = require('dotenv');
         dotenv.config({ path: '../../../.env' });
@@ -13,10 +12,9 @@ if (process.env.NODE_ENV !== 'production') {
     }
 }
 
-const url = process.env.DATABASE_URL;
-if (!url) {
-    throw new Error('DATABASE_URL environment variable is not set');
-}
+// During `prisma generate` (build time) DATABASE_URL is not required.
+// It is only required at migration/query time.
+const url = process.env.DATABASE_URL ?? 'postgresql://placeholder:placeholder@localhost:5432/placeholder';
 
 export default defineConfig({
     datasource: {
