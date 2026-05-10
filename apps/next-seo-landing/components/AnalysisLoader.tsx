@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Loader2, Zap, Smartphone, Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { motion } from 'framer-motion';
 
 interface AnalysisStep {
   id: string;
@@ -26,61 +27,63 @@ export default function AnalysisLoader() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) return 100;
-        return prev + 1; // Increment progress
-      });
-    }, 50); // Complete in ~5 seconds
-
+      setProgress((prev) => (prev >= 100 ? 100 : prev + 1));
+    }, 50);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    // Sync steps with progress
     const stepDuration = 100 / steps.length;
     const step = Math.floor(progress / stepDuration);
     setCurrentStep(Math.min(step, steps.length - 1));
   }, [progress, steps.length]);
 
+  const insights = [
+    { Icon: Zap, text: t('insightLoadTime') },
+    { Icon: Smartphone, text: t('insightMobile') },
+    { Icon: Shield, text: t('insightSecurity') },
+  ];
+
   return (
-    <div className="loader-container">
-      {/* Step Progress Container */}
+    <motion.div
+      className="loader-container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="progress-card">
-        {/* Animated App Icon */}
+        <div className="card-glow" />
         <div className="app-icon-wrapper">
           <div className="app-icon">
-            <Zap size={32} color="white" fill="white" />
+            <Zap size={28} color="white" fill="white" />
           </div>
-          <div className="ripple"></div>
+          <div className="ripple" />
         </div>
-
         <h3 className="progress-text">
-          {steps[currentStep].label} <span className="percentage">{progress}{'%'}</span>
+          {steps[currentStep].label}
+          <span className="percentage"> {progress}{'%'}</span>
         </h3>
-        
         <div className="progress-bar-bg">
-            <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+          <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
         </div>
-
         <div className="steps-list">
           {steps.map((step, index) => {
             const isCompleted = index < currentStep;
             const isCurrent = index === currentStep;
-
             return (
               <div key={step.id} className={`step-item ${isCurrent ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
                 <div className="step-icon">
                   {isCompleted ? (
-                    <CheckCircle2 size={20} className="text-green-500" />
+                    <CheckCircle2 size={18} color="#10b981" />
                   ) : isCurrent ? (
-                    <Loader2 size={20} className="animate-spin text-accent" />
+                    <Loader2 size={18} color="#3B82F6" style={{ animation: 'spin 1s linear infinite' }} />
                   ) : (
                     <div className="circle-placeholder" />
                   )}
                 </div>
                 <div className="step-content">
-                    <span className="step-label">{step.subtext}</span>
-                    {isCompleted && <span className="step-time">{'✓'} {t('completed')}</span>}
+                  <span className="step-label">{step.subtext}</span>
+                  {isCompleted && <span className="step-time">{'✓'} {t('completed')}</span>}
                 </div>
               </div>
             );
@@ -88,178 +91,207 @@ export default function AnalysisLoader() {
         </div>
       </div>
 
-      {/* Early Insights Card */}
-      <div className="insights-card">
+      <motion.div
+        className="insights-card"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div className="insights-header">
-           <Zap size={20} className="text-purple-400" />
-           <span>{t('earlyInsights')}</span>
+          <Zap size={16} color="#A78BFA" />
+          <span>{t('earlyInsights')}</span>
         </div>
-        
-        <div className="insight-item">
-            <div className="insight-icon bg-purple-500/20 text-purple-400">
-                <Zap size={16} />
+        {insights.map(({ Icon, text }, i) => (
+          <div key={i} className="insight-item">
+            <div className="insight-icon">
+              <Icon size={14} color="#A78BFA" />
             </div>
-            <span>{t('insightLoadTime')}</span>
-        </div>
-        
-        <div className="insight-item">
-            <div className="insight-icon bg-purple-500/20 text-purple-400">
-                <Smartphone size={16} />
-            </div>
-            <span>{t('insightMobile')}</span>
-        </div>
-        
-        <div className="insight-item">
-            <div className="insight-icon bg-purple-500/20 text-purple-400">
-                <Shield size={16} />
-            </div>
-            <span>{t('insightSecurity')}</span>
-        </div>
-      </div>
+            <span>{text}</span>
+          </div>
+        ))}
+      </motion.div>
 
       <style jsx>{`
         .loader-container {
-            max-width: 600px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+          max-width: 560px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
         }
         .progress-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
+          background: rgba(11, 16, 32, 0.8);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: 48px 40px;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+        }
+        :global([data-theme='light']) .progress-card {
+          background: rgba(255, 255, 255, 0.9);
+          border-color: rgba(15, 23, 42, 0.08);
+        }
+        .card-glow {
+          position: absolute;
+          top: -60px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 300px;
+          height: 200px;
+          background: radial-gradient(ellipse, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+          pointer-events: none;
         }
         .app-icon-wrapper {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+          position: relative;
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .app-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.5);
+          width: 64px;
+          height: 64px;
+          background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2;
+          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
         }
         .ripple {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            animation: ripple 2s infinite;
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          border: 2px solid rgba(59, 130, 246, 0.25);
+          animation: ripple 2s infinite;
         }
         @keyframes ripple {
-            0% { transform: scale(0.8); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
+          0% { transform: scale(0.8); opacity: 1; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         .progress-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 24px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 17px;
+          font-weight: 600;
+          color: var(--text-secondary);
+          margin-bottom: 20px;
+          letter-spacing: -0.01em;
         }
         .percentage {
-            color: var(--text-primary);
+          color: #3B82F6;
+          font-weight: 700;
         }
         .progress-bar-bg {
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 32px;
-            max-width: 200px;
-            margin-left: auto;
-            margin-right: auto;
+          height: 4px;
+          background: rgba(255, 255, 255, 0.06);
+          border-radius: 2px;
+          overflow: hidden;
+          margin-bottom: 36px;
+          max-width: 240px;
+          margin-left: auto;
+          margin-right: auto;
         }
         .progress-bar-fill {
-            height: 100%;
-            background: var(--accent);
-            border-radius: 3px;
-            transition: width 0.3s ease;
+          height: 100%;
+          background: linear-gradient(to right, #3B82F6, #8B5CF6);
+          border-radius: 2px;
+          transition: width 0.3s ease;
         }
         .steps-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            text-align: left;
-            max-width: 300px;
-            margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          text-align: left;
+          max-width: 320px;
+          margin: 0 auto;
         }
         .step-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            opacity: 0.5;
-            transition: opacity 0.3s;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          opacity: 0.35;
+          transition: opacity 0.3s ease;
         }
-        .step-item.active, .step-item.completed {
-            opacity: 1;
+        .step-item.active, .step-item.completed { opacity: 1; }
+        .step-icon {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
         }
         .step-content {
-            display: flex;
-            flex-direction: column;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
         }
         .step-label {
-            font-size: 14px;
-            font-weight: 500;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-secondary);
         }
         .step-time {
-            font-size: 12px;
-            color: #10b981;
+          font-size: 11px;
+          color: #10b981;
+          font-weight: 600;
         }
         .circle-placeholder {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
+          width: 18px;
+          height: 18px;
+          border: 1.5px solid rgba(255, 255, 255, 0.12);
+          border-radius: 50%;
         }
-        
         .insights-card {
-            background: rgba(168, 85, 247, 0.05);
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            border-radius: 16px;
-            padding: 24px;
+          background: rgba(139, 92, 246, 0.06);
+          border: 1px solid rgba(139, 92, 246, 0.18);
+          border-radius: 18px;
+          padding: 24px 28px;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
         }
         .insights-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
-            font-weight: 700;
-            color: #e9d5ff; /* Light purple text */
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 18px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          color: #C4B5FD;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
         }
         .insight-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: var(--text-secondary);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 12px;
+          font-size: 13px;
+          color: var(--text-secondary);
+          line-height: 1.5;
         }
+        .insight-item:last-child { margin-bottom: 0; }
         .insight-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+          width: 28px;
+          height: 28px;
+          background: rgba(139, 92, 246, 0.12);
+          border: 1px solid rgba(139, 92, 246, 0.2);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }

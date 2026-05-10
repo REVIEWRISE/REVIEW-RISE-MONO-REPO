@@ -9,43 +9,41 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-const defaultContext: ThemeContextType = {
+const ThemeContext = createContext<ThemeContextType>({
   theme: 'dark',
-  toggleTheme: () => {}
-};
-
-const ThemeContext = createContext<ThemeContextType>(defaultContext);
+  toggleTheme: () => { },
+});
 
 export function ThemeProvider({ children }: { children: ReactNode }): any {
-  const [theme, setTheme] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    // Only access localStorage on the client after mount
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
+  // Read the value the blocking script already set on <html> so React state
+  // matches the DOM from the very first render — no flash, no mismatch.
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof document !== 'undefined') {
+      const attr = document.documentElement.getAttribute('data-theme');
+      if (attr === 'light' || attr === 'dark') return attr;
     }
-  }, []);
+    return 'dark';
+  });
 
+  // Keep <html data-theme> and localStorage in sync whenever theme changes.
+  // Also add `theme-ready` to body on first mount so CSS transitions kick in
+  // only after the initial paint — prevents background color flash.
   useEffect(() => {
-    if (mounted) {
-      document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.classList.add('theme-ready');
+    try {
       localStorage.setItem('theme', theme);
-    }
-  }, [theme, mounted]);
+    } catch (_) { }
+  }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
+  const toggleTheme = () =>
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
 
-  // Render children immediately but with default theme
-  // This prevents hydration mismatch
-  return React.createElement(ThemeContext.Provider, { value: { theme, toggleTheme } }, children) as any;
+  return React.createElement(
+    ThemeContext.Provider,
+    { value: { theme, toggleTheme } },
+    children,
+  ) as any;
 }
 
 export function useTheme() {

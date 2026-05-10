@@ -12,15 +12,17 @@
       "switchToDark": "Switch to dark mode"
     },
     "header": {
-      "features": "Features"
+      "features": "Features",
+      "faq": "FAQ"
     },
     "hero": {
       "badge": "AI-Powered SEO Analysis",
-      "title": "Instant SEO Insights for Your Website",
-      "description": "Get a comprehensive SEO analysis in seconds. No signup required.",
-      "inputPlaceholder": "example.com",
-      "analyzeButton": "Analyze",
-      "featuresText": "Free • Instant Results • No Signup",
+      "titleLine1": "Know Exactly Why",
+      "titleLine2": "Your Site Isn't Ranking",
+      "description": "Paste your URL and get a full SEO health report in seconds — technical issues, content gaps, and AI-prioritized fixes. No signup, no fluff.",
+      "inputPlaceholder": "yourdomain.com",
+      "analyzeButton": "Analyze Free",
+      "featuresText": "Free forever · No account needed · Results in ~10s",
       "stats": {
         "sitesAnalyzed": "50K+",
         "sitesAnalyzedLabel": "Sites Analyzed",
@@ -28,58 +30,110 @@
         "rating": "Rating"
       }
     },
+    "trustBar": {
+      "label": "Trusted by teams at"
+    },
     "features": {
-      "title": "Everything you need",
-      "subtitle": "Professional SEO analysis tools at your fingertips",
+      "badge": "Features",
+      "title": "Everything your SEO needs",
+      "subtitle": "One scan surfaces every issue holding your site back — from broken tags to slow load times to missed keyword opportunities.",
       "items": {
         "instant": {
           "title": "Instant Analysis",
-          "description": "Get comprehensive SEO insights in seconds, not hours."
+          "description": "Full SEO scan completes in under 10 seconds. No waiting, no queues."
         },
         "actionable": {
-          "title": "Actionable Insights",
-          "description": "Receive clear, prioritized recommendations you can implement immediately."
+          "title": "Prioritized Fixes",
+          "description": "Issues ranked by impact so you fix what matters first, not last."
         },
         "ai": {
-          "title": "AI-Powered",
-          "description": "Leverage advanced AI to uncover opportunities your competitors miss."
+          "title": "AI Recommendations",
+          "description": "GPT-powered suggestions tailored to your specific page and niche."
         },
         "detailed": {
-          "title": "Detailed Reports",
-          "description": "Access in-depth analysis of meta tags, performance, and content quality."
+          "title": "80+ SEO Checks",
+          "description": "Meta tags, Core Web Vitals, mobile, schema, headings, links — all covered."
         },
         "secure": {
-          "title": "Secure & Private",
-          "description": "Your data is never stored or shared. Complete privacy guaranteed."
+          "title": "Zero Data Storage",
+          "description": "We analyze and discard. Your URL is never stored or shared."
         },
         "free": {
           "title": "Always Free",
-          "description": "No hidden fees, no credit card required. Professional SEO analysis for everyone."
+          "description": "Full analysis, no credit card, no trial expiry. Free means free."
         }
       }
     },
+    "preview": {
+      "badge": "Live Preview",
+      "title": "See what a real report looks like",
+      "subtitle": "This is an actual output from a scan — not a mockup. Every site gets this level of detail.",
+      "scoreLabel": "SEO Health Score",
+      "issuesLabel": "Issues Found",
+      "criticalLabel": "Critical",
+      "loadLabel": "Load Time",
+      "categories": {
+        "technical": "Technical SEO",
+        "content": "Content Quality",
+        "onPage": "On-Page SEO"
+      },
+      "sampleIssues": {
+        "i1": "Missing meta description on 3 pages",
+        "i2": "Images lack alt attributes (12 found)",
+        "i3": "Page speed score below 60 on mobile"
+      }
+    },
     "howItWorks": {
-      "title": "How it works",
-      "subtitle": "Three simple steps to optimize your website",
+      "badge": "Process",
+      "title": "From URL to action plan in seconds",
+      "subtitle": "No setup. No learning curve. Just paste and go.",
       "steps": {
         "step1": {
-          "title": "Enter URL",
-          "description": "Provide your website address to start the analysis."
+          "title": "Paste your URL",
+          "description": "Drop any page URL into the input — homepage, blog post, landing page, anything."
         },
         "step2": {
-          "title": "AI Scan",
-          "description": "Our AI analyzes 80+ SEO factors across your site."
+          "title": "AI scans 80+ factors",
+          "description": "We check technical health, content quality, on-page signals, and Core Web Vitals simultaneously."
         },
         "step3": {
-          "title": "Get Results",
-          "description": "Receive a detailed report with actionable fixes."
+          "title": "Get your action plan",
+          "description": "A prioritized report with specific fixes, impact estimates, and AI-written guidance for each issue."
+        }
+      }
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Questions we get a lot",
+      "subtitle": "If something's still unclear, the answer is probably in here.",
+      "items": {
+        "q1": {
+          "question": "Is this actually free?",
+          "answer": "Yes, completely. No credit card, no trial period, no hidden tier. You can analyze as many sites as you want at no cost."
+        },
+        "q2": {
+          "question": "How accurate is the SEO score?",
+          "answer": "Our scoring model is built on 80+ signals aligned with Google's publicly documented ranking factors. It won't predict your exact rank, but it reliably surfaces the issues that hold sites back."
+        },
+        "q3": {
+          "question": "Do you store my URL or site data?",
+          "answer": "No. We fetch, analyze, and discard. Nothing is stored after your session ends. We don't build profiles or sell data."
+        },
+        "q4": {
+          "question": "What does the AI actually analyze?",
+          "answer": "Title tags, meta descriptions, heading structure, image alt text, internal links, page speed, mobile responsiveness, HTTPS, schema markup, keyword usage, and content readability — among others."
+        },
+        "q5": {
+          "question": "Can I analyze competitor sites?",
+          "answer": "Yes. Any publicly accessible URL works. Many users run their own site alongside a competitor's to compare scores and spot gaps."
         }
       }
     },
     "cta": {
-      "title": "Ready to improve your SEO?",
-      "subtitle": "Join thousands of websites getting better rankings",
-      "button": "Get Started"
+      "title": "Your SEO score is one click away",
+      "subtitle": "Free, instant, no account needed. See exactly what's holding your site back.",
+      "button": "Analyze My Site",
+      "hint": "Takes about 10 seconds"
     },
     "loader": {
       "fetching": "Fetching website data...",
@@ -178,6 +232,7 @@
     },
     "footer": {
       "features": "Features",
+      "faq": "FAQ",
       "privacy": "Privacy",
       "terms": "Terms",
       "login": "Sign In",
