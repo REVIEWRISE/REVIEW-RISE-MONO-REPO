@@ -137,31 +137,14 @@ done
 log_info "Postgres is ready ✓"
 
 # ==============================================================================
-# Run Migrations + Schema Sync
+# Run Migrations + Seed via dedicated db-migrate service
 # ==============================================================================
-# express-auth entrypoint runs `prisma migrate deploy` automatically.
-# We also run `db push` to catch any schema models not yet in a migration file.
-log_info "Running migrations and schema sync..."
-docker compose -f "$COMPOSE_FILE" run --rm \
-    -e DATABASE_URL="postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable" \
-    express-auth \
-    sh -c "cd /app/packages/@platform/db && npx prisma migrate deploy && npx prisma db push --accept-data-loss" || {
-    log_error "Migration/schema sync failed!"
+log_info "Running database migrations and seed..."
+docker compose -f "$COMPOSE_FILE" run --rm db-migrate || {
+    log_error "Database migration/seed failed!"
     exit 1
 }
-log_info "Migrations and schema sync completed ✓"
-
-# ==============================================================================
-# Seed Database — always on staging
-# ==============================================================================
-log_info "Seeding database..."
-docker compose -f "$COMPOSE_FILE" run --rm \
-    -e DATABASE_URL="postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable" \
-    express-auth \
-    sh -c "cd /app && pnpm --filter @platform/db run db:seed:all" || {
-    log_warn "Database seeding failed (check logs above)"
-}
-log_info "Database seeding completed ✓"
+log_info "Migrations and seed completed ✓"
 
 # ==============================================================================
 # SSL Certificate Check & Cleanup
