@@ -525,20 +525,7 @@ services:
       - DATABASE_URL=postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable
     volumes:
       - .:/app
-    command: >
-      sh -c "
-        PRISMA=/app/node_modules/.pnpm/prisma@7.2.0_@types+react@19.2.6_react-dom@19.2.0_react@19.2.0__react@19.2.0_typescript@5.9.3/node_modules/prisma/build/index.js &&
-        echo 'Running migrations...' &&
-        node \$PRISMA migrate deploy &&
-        echo 'Migrations done. Running seed...' &&
-        TSX=$(find /app/node_modules/.pnpm -name 'tsx' -path '*/bin/*' 2>/dev/null | head -1) &&
-        if [ -z \"\$TSX\" ]; then
-          TSX=$(find /app/node_modules/.pnpm -path '*/tsx/dist/cli.mjs' 2>/dev/null | head -1) &&
-          node \$TSX scripts/seed-all.ts
-        else
-          \$TSX scripts/seed-all.ts
-        fi
-      "
+    command: ["sh", "/app/scripts/db-migrate.sh"]
     depends_on:
       postgres:
         condition: service_healthy
