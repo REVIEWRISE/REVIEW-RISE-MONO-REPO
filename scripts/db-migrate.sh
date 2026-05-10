@@ -16,7 +16,17 @@ echo "Prisma: $PRISMA"
 
 # Run migrations
 echo "Running prisma migrate deploy..."
-node "$PRISMA" migrate deploy
+# Temporarily move prisma.config.ts so prisma uses DATABASE_URL env var directly
+# (prisma.config.ts requires dotenv which isn't available in this container)
+CONFIG=/app/packages/@platform/db/prisma.config.ts
+CONFIG_BAK=/app/packages/@platform/db/prisma.config.ts.bak
+[ -f "$CONFIG" ] && mv "$CONFIG" "$CONFIG_BAK"
+
+node "$PRISMA" migrate deploy --schema=/app/packages/@platform/db/prisma/schema.prisma
+
+# Restore config
+[ -f "$CONFIG_BAK" ] && mv "$CONFIG_BAK" "$CONFIG"
+echo "Migrations complete."
 echo "Migrations complete."
 
 # Locate tsx binary
