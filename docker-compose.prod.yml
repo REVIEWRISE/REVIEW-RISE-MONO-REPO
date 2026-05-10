@@ -521,7 +521,7 @@ services:
       - reviewrise-network
     working_dir: /app
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DATABASE_URL=postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable
     volumes:
       - .:/app
@@ -530,7 +530,7 @@ services:
         corepack enable &&
         corepack prepare pnpm@9 --activate &&
         pnpm install --frozen-lockfile &&
-        pnpm --filter @platform/db run db:migrate:deploy &&
+        pnpm --filter @platform/db exec prisma migrate deploy &&
         pnpm --filter @platform/db run db:seed:all
       "
     depends_on:

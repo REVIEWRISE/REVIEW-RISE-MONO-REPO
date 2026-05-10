@@ -59,75 +59,78 @@ export default async function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} ${plusJakarta.variable}`}
     >
       <head>
-        {/* 
-          Page-load overlay — injected before first paint via blocking script.
-          Covers the distorted/unstyled frame, fades out once fonts + CSS are ready.
-          Uses only CSS animations, zero JS dependency after initial inject.
-        */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-(function(){
-  // 1. Set theme immediately (no flash)
-  try{
-    var t=localStorage.getItem('theme');
-    document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');
-  }catch(e){}
-
-  // 2. Inject full-page loading overlay
-  var overlay=document.createElement('div');
-  overlay.id='page-loader';
-  overlay.innerHTML=
-    '<div class="pl-inner">'+
-      '<svg width="36" height="36" viewBox="0 0 24 24" fill="none">'+
-        '<path d="M12 2L2 19.5h20L12 2z" fill="url(#plg)"/>'+
-        '<defs>'+
-          '<linearGradient id="plg" x1="0%" y1="0%" x2="100%" y2="100%">'+
-            '<stop offset="0%" stop-color="#3B82F6"/>'+
-            '<stop offset="100%" stop-color="#8B5CF6"/>'+
-          '</linearGradient>'+
-        '</defs>'+
-      '</svg>'+
-      '<div class="pl-bar"><div class="pl-fill"></div></div>'+
-    '</div>';
-
-  var style=document.createElement('style');
-  style.textContent=
-    '#page-loader{'+
-      'position:fixed;inset:0;z-index:99999;'+
-      'background:#05070D;'+
-      'display:flex;align-items:center;justify-content:center;'+
-      'transition:opacity 0.35s ease;'+
-    '}'+
-    '[data-theme="light"] #page-loader{background:#F8FAFF;}'+
-    '#page-loader.pl-done{opacity:0;pointer-events:none;}'+
-    '.pl-inner{display:flex;flex-direction:column;align-items:center;gap:24px;}'+
-    '.pl-inner svg{animation:pl-pulse 1.4s ease-in-out infinite;}'+
-    '@keyframes pl-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.92);}}'+
-    '.pl-bar{width:120px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;}'+
-    '[data-theme="light"] .pl-bar{background:rgba(15,23,42,0.08);}'+
-    '.pl-fill{height:100%;width:0;background:linear-gradient(90deg,#3B82F6,#8B5CF6);border-radius:2px;animation:pl-load 1.2s cubic-bezier(0.4,0,0.2,1) forwards;}'+
-    '@keyframes pl-load{0%{width:0;}60%{width:75%;}100%{width:100%;}}';
-
-  document.head.appendChild(style);
-  document.body.appendChild(overlay);
-
-  // 3. Remove overlay once page is interactive
-  function dismiss(){
-    overlay.classList.add('pl-done');
-    setTimeout(function(){overlay.remove();style.remove();},400);
-  }
-  if(document.readyState==='complete'){
-    setTimeout(dismiss,100);
-  } else {
-    window.addEventListener('load',function(){setTimeout(dismiss,100);},{once:true});
-  }
-})();
-            `.trim(),
-          }}
-        />
+        {/* Blocking script: sets data-theme before first paint — eliminates theme flash */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){}})();` }} />
       </head>
       <body suppressHydrationWarning>
+        {/* Page-load overlay — rendered server-side so it exists before any JS.
+            The inline script in <head> already set data-theme, so background
+            color matches immediately. This div covers the unstyled first paint
+            and fades out once the window load event fires. */}
+        <div
+          id="page-loader"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: 'var(--bg-primary, #05070D)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: '24px',
+            transition: 'opacity 0.35s ease',
+          }}
+        >
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 19.5h20L12 2z" fill="url(#plg)" />
+            <defs>
+              <linearGradient id="plg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3B82F6" />
+                <stop offset="100%" stopColor="#8B5CF6" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div style={{ width: '120px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+            <div id="pl-fill" style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#3B82F6,#8B5CF6)', borderRadius: '2px' }} />
+          </div>
+        </div>
+
+        {/* Dismiss script — runs immediately after the overlay element exists */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+(function(){
+  var bar=document.getElementById('pl-fill');
+  var loader=document.getElementById('page-loader');
+  if(!loader)return;
+
+  // Animate the progress bar
+  var start=null;
+  function animBar(ts){
+    if(!start)start=ts;
+    var p=Math.min((ts-start)/1200,1);
+    // ease-out cubic
+    var eased=1-Math.pow(1-p,3);
+    if(bar)bar.style.width=(eased*100)+'%';
+    if(p<1)requestAnimationFrame(animBar);
+  }
+  requestAnimationFrame(animBar);
+
+  // Dismiss once everything is loaded
+  function dismiss(){
+    loader.style.opacity='0';
+    loader.style.pointerEvents='none';
+    setTimeout(function(){loader.remove();},400);
+  }
+  if(document.readyState==='complete'){
+    setTimeout(dismiss,80);
+  } else {
+    window.addEventListener('load',function(){setTimeout(dismiss,80);},{once:true});
+  }
+})();
+        `.trim()
+        }} />
+
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             {children}
