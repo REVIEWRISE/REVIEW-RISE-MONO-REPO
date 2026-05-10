@@ -519,7 +519,7 @@ services:
     restart: "no"
     networks:
       - reviewrise-network
-    working_dir: /app
+    working_dir: /app/packages/@platform/db
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable
@@ -527,12 +527,12 @@ services:
       - .:/app
     command: >
       sh -c "
-        corepack enable &&
-        corepack prepare pnpm@9 --activate &&
-        pnpm install --frozen-lockfile --ignore-scripts &&
-        cd packages/@platform/db &&
-        node_modules/.bin/prisma migrate deploy &&
-        node_modules/.bin/tsx scripts/seed-all.ts
+        PRISMA_BIN=$(find /app/node_modules/.pnpm -path '*/prisma/build/index.js' | head -1) &&
+        TSX_BIN=$(find /app/node_modules/.pnpm -path '*/tsx/dist/cli.mjs' | head -1) &&
+        echo 'Prisma:' \$PRISMA_BIN &&
+        echo 'TSX:' \$TSX_BIN &&
+        node \$PRISMA_BIN migrate deploy &&
+        node \$TSX_BIN scripts/seed-all.ts
       "
     depends_on:
       postgres:
