@@ -529,9 +529,10 @@ services:
       sh -c "
         corepack enable &&
         corepack prepare pnpm@9 --activate &&
-        pnpm install --frozen-lockfile &&
-        pnpm --filter @platform/db exec prisma migrate deploy &&
-        pnpm --filter @platform/db run db:seed:all
+        pnpm install --frozen-lockfile --ignore-scripts &&
+        cd packages/@platform/db &&
+        node_modules/.bin/prisma migrate deploy &&
+        node_modules/.bin/tsx scripts/seed-all.ts
       "
     depends_on:
       postgres:
