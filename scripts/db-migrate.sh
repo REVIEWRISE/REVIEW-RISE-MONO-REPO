@@ -2,57 +2,49 @@
 set -e
 
 echo "=== DB Migrate & Seed ==="
-echo "DATABASE_URL: ${DATABASE_URL:0:40}..."
+echo "DATABASE_URL: ${DATABASE_URL:0:50}..."
 
-cd /app/packages/@platform/db
+DB_PKG=/app/packages/@platform/db
 
-# Locate prisma binary in pnpm store
+# ── Locate prisma binary in pnpm virtual store ────────────────────────────
 PRISMA=$(find /app/node_modules/.pnpm -path "*/prisma/build/index.js" 2>/dev/null | head -1)
 if [ -z "$PRISMA" ]; then
   echo "ERROR: prisma binary not found in pnpm store"
   exit 1
 fi
-echo "Prisma: $PRISMA"
+echo "Prisma binary: $PRISMA"
 
-# Run migrations
+# ── Run migrations ────────────────────────────────────────────────────────
 echo "Running prisma migrate deploy..."
-# Temporarily move prisma.config.ts so prisma uses DATABASE_URL env var directly
-# (prisma.config.ts requires dotenv which isn't available in this container)
-CONFIG=/app/packages/@platform/db/prisma.config.ts
-CONFIG_BAK=/app/packages/@platform/db/prisma.config.ts.bak
-[ -f "$CONFIG" ] && mv "$CONFIG" "$CONFIG_BAK"
+cd "$DB_PKG"
+node "$PRISMA" migrate deploy
+echo "✓ Migrations complete"
 
-node "$PRISMA" migrate deploy --schema=/app/packages/@platform/db/prisma/schema.prisma
+# ── Run seed ──────────────────────────────────────────────────────────────
+# Prefer pre-compiled JS (built by tsc -p tsconfig.scripts.json during CI)
+COMPILED_SEED="$DB_PKG/dist-scripts/seed-all.js"
 
-# Restore config
-[ -f "$CONFIG_BAK" ] && mv "$CONFIG_BAK" "$CONFIG"
-echo "Migrations complete."
-echo "Migrations complete."
-
-# Locate tsx binary
-TSX=$(find /app/node_modules/.pnpm -name "tsx" -path "*/bin/tsx" 2>/dev/null | head -1)
-if [ -z "$TSX" ]; then
-  # fallback: look for cli.mjs
-  TSX_MJS=$(find /app/node_modules/.pnpm -path "*/tsx/dist/cli.mjs" 2>/dev/null | head -1)
-  if [ -n "$TSX_MJS" ]; then
-    echo "TSX (mjs): $TSX_MJS"
-    echo "Running seed..."
-    node "$TSX_MJS" scripts/seed-all.ts
-  else
-    # Last resort: check if dist/scripts/seed-all.js exists (pre-compiled)
-    if [ -f "/app/packages/@platform/db/dist/scripts/seed-all.js" ]; then
-      echo "Running compiled seed..."
-      node /app/packages/@platform/db/dist/scripts/seed-all.js
-    else
-      echo "WARNING: tsx not found and no compiled seed. Installing tsx globally..."
-      npm install -g tsx
-      tsx scripts/seed-all.ts
-    fi
-  fi
+if [ -f "$COMPILED_SEED" ]; then
+  echo "Running compiled seed: $COMPILED_SEED"
+  node "$COMPILED_SEED"
 else
-  echo "TSX: $TSX"
-  echo "Running seed..."
-  "$TSX" scripts/seed-all.ts
+  # Fallback: find tsx in pnpm store
+  echo "Compiled seed not found, looking for tsx..."
+  TSX=$(find /app/node_modules/.pnpm -name "tsx" -path "*/bin/tsx" 2>/dev/null | head -1)
+  if [ -z "$TSX" ]; then
+    TSX_MJS=$(find /app/node_modules/.pnpm -path "*/tsx/dist/cli.mjs" 2>/dev/null | head -1)
+    if [ -n "$TSX_MJS" ]; then
+      echo "Running seed via tsx mjs: $TSX_MJS"
+      node "$TSX_MJS" "$DB_PKG/scripts/seed-all.ts"
+    else
+      echo "ERROR: No compiled seed and tsx not found. Run 'pnpm --filter @platform/db build:scripts' locally and commit dist-scripts/"
+      exit 1
+    fi
+  else
+    echo "Running seed via tsx: $TSX"
+    "$TSX" "$DB_PKG/scripts/seed-all.ts"
+  fi
 fi
 
+echo "✓ Seed complete"
 echo "=== Done ==="

@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "tsc --build",
+    "build:scripts": "esbuild scripts/seed-all.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-all.js --external:@prisma/client --external:bcryptjs --external:dotenv",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "tsx scripts/db-admin.ts prisma db push",
@@ -40,6 +41,7 @@
     "@types/pg": "^8.16.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^16.4.7",
+    "esbuild": "^0.28.0",
     "prisma": "^7.1.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
