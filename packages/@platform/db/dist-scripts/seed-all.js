@@ -397,13 +397,23 @@ try {
 function runScript(scriptRelPath) {
   return new Promise((resolve, reject) => {
     const isWin = process.platform === "win32";
-    const cmd = isWin ? "tsx.cmd" : "tsx";
-    const child = (0, import_child_process.spawn)(cmd, [scriptRelPath], {
+    const scriptName = import_path.default.basename(scriptRelPath, ".ts") + ".js";
+    const compiledPath = import_path.default.resolve(__dirname, "../dist-scripts", scriptName);
+    const fs = require("fs");
+    let cmd;
+    let args;
+    if (fs.existsSync(compiledPath)) {
+      cmd = "node";
+      args = [compiledPath];
+    } else {
+      cmd = isWin ? "tsx.cmd" : "tsx";
+      args = [scriptRelPath];
+    }
+    const child = (0, import_child_process.spawn)(cmd, args, {
       stdio: "inherit",
-      shell: true,
+      shell: false,
       env: process.env,
       cwd: import_path.default.resolve(__dirname, "../")
-      // run from package dir to avoid Windows space path issues
     });
     child.on("exit", (code) => {
       if (code === 0) resolve();
