@@ -82,15 +82,8 @@ export default async function RootLayout({
             transition: 'opacity 0.35s ease',
           }}
         >
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 19.5h20L12 2z" fill="url(#plg)" />
-            <defs>
-              <linearGradient id="plg" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3B82F6" />
-                <stop offset="100%" stopColor="#8B5CF6" />
-              </linearGradient>
-            </defs>
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="logo" width={48} height={48} style={{ borderRadius: '10px', objectFit: 'contain', animation: 'pl-pulse 1.4s ease-in-out infinite' }} />
           <div style={{ width: '120px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
             <div id="pl-fill" style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#3B82F6,#8B5CF6)', borderRadius: '2px' }} />
           </div>

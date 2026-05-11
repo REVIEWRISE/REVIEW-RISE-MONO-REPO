@@ -1,6 +1,5 @@
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
-import TrustBar from '@/components/TrustBar';
 import Features from '@/components/Features';
 import PreviewSection from '@/components/PreviewSection';
 import HowItWorks from '@/components/HowItWorks';
@@ -13,7 +12,6 @@ export default function Home() {
     <main>
       <Header />
       <Hero />
-      <TrustBar />
       <Features />
       <PreviewSection />
       <HowItWorks />

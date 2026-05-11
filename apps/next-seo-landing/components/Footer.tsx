@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
@@ -11,17 +12,7 @@ export default function Footer() {
       <div className="container">
         <div className="top">
           <div className="brand">
-            <div className="brand-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 19.5h20L12 2z" fill="url(#footerGrad)" />
-                <defs>
-                  <linearGradient id="footerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#3B82F6" />
-                    <stop offset="100%" stopColor="#8B5CF6" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
+            <Image src="/logo.png" alt={t('common.brandName')} width={28} height={28} style={{ borderRadius: '6px', objectFit: 'contain' }} />
             <span className="brand-name">{t('common.brandName')}</span>
           </div>
           <div className="links">

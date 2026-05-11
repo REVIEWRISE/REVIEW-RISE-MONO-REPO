@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import ThemeToggle from './ThemeToggle';
@@ -19,17 +20,7 @@ export default function Header() {
       <div className="container">
         {/* Logo */}
         <div className="logo">
-          <div className="logo-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 19.5h20L12 2z" fill="url(#logoGrad)" />
-              <defs>
-                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3B82F6" />
-                  <stop offset="100%" stopColor="#8B5CF6" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
+          <Image src="/logo.png" alt={t('common.brandName')} width={32} height={32} className="logo-img" />
           <span className="logo-text">{t('common.brandName')}</span>
         </div>
 
@@ -82,15 +73,11 @@ export default function Header() {
           gap: 10px;
           text-decoration: none;
         }
-        .logo-icon {
+        .logo-img {
           width: 32px;
           height: 32px;
-          background: rgba(59, 130, 246, 0.12);
-          border: 1px solid rgba(59, 130, 246, 0.2);
+          object-fit: contain;
           border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
         .logo-text {
           font-family: 'Space Grotesk', sans-serif;
