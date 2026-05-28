@@ -76,11 +76,17 @@ for domain in "${domains[@]}"; do
   staging_arg=""
   if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
+  # Request both bare and www domains for the main site
+  domain_args="-d $domain"
+  if [ "$domain" = "vyntrise.com" ]; then
+    domain_args="-d vyntrise.com -d www.vyntrise.com"
+  fi
+
   if ! docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
     certbot certonly --webroot -w /var/www/certbot \
       $staging_arg \
       $email_arg \
-      -d $domain \
+      $domain_args \
       --rsa-key-size $rsa_key_size \
       --agree-tos \
       --cert-name $domain \
