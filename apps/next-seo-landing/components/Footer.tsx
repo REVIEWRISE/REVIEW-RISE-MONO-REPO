@@ -16,10 +16,7 @@ export default function Footer() {
             <span className="brand-name">{t('common.brandName')}</span>
           </div>
           <div className="links">
-            <Link href="#features">{t('footer.features')}</Link>
-            <Link href="#how-it-works">{t('howItWorks.title')}</Link>
-            <Link href="#faq">{t('footer.faq')}</Link>
-            <Link href="https://app.reviewrise.com">{t('footer.login')}</Link>
+            <Link href="https://app.vyntrise.com/">{t('footer.login')}</Link>
           </div>
         </div>
         <div className="divider" />
@@ -27,10 +24,6 @@ export default function Footer() {
           <p className="copyright">
             {'©'} {new Date().getFullYear()} {t('common.brandName')}{'.'} {t('footer.rights')}
           </p>
-          <div className="legal">
-            <Link href="/privacy">{t('footer.privacy')}</Link>
-            <Link href="/terms">{t('footer.terms')}</Link>
-          </div>
         </div>
       </div>
 
@@ -56,16 +49,6 @@ export default function Footer() {
           display: flex;
           align-items: center;
           gap: 10px;
-        }
-        .brand-icon {
-          width: 32px;
-          height: 32px;
-          background: rgba(59, 130, 246, 0.12);
-          border: 1px solid rgba(59, 130, 246, 0.2);
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
         .brand-name {
           font-family: 'Space Grotesk', sans-serif;
@@ -100,18 +83,6 @@ export default function Footer() {
         .copyright {
           font-size: 13px;
           color: var(--text-muted);
-        }
-        .legal {
-          display: flex;
-          gap: 24px;
-        }
-        .legal :global(a) {
-          font-size: 13px;
-          color: var(--text-muted);
-          transition: color 0.2s ease;
-        }
-        .legal :global(a:hover) {
-          color: var(--text-secondary);
         }
         @media (max-width: 768px) {
           .container { padding: 0 20px; }

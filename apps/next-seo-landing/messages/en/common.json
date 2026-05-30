@@ -17,12 +17,30 @@
     },
     "hero": {
       "badge": "AI-Powered SEO Analysis",
-      "titleLine1": "Know Exactly Why",
-      "titleLine2": "Your Site Isn't Ranking",
-      "description": "Paste your URL and get a full SEO health report in seconds — technical issues, content gaps, and AI-prioritized fixes. No signup, no fluff.",
-      "inputPlaceholder": "yourdomain.com",
-      "analyzeButton": "Analyze Free",
-      "featuresText": "Free forever · No account needed · Results in ~10s",
+      "titleLine1": "Free SEO",
+      "titleLine2": "Checker",
+      "description": "Analyze your website's SEO instantly and get actionable insights in seconds.",
+      "inputPlaceholder": "https://example.com",
+      "analyzeButton": "Check SEO",
+      "featuresText": "No login required",
+      "cardTitle": "SEO Results",
+      "cardScore": "94",
+      "cardVerdict": "Excellent",
+      "cardSamples": "ACTIVE SAMPLES",
+      "cardScan1": "Scanning results for…",
+      "cardScan2": "Indexing 17 pages…",
+      "cardScan3": "Analyzing meta tags…",
+      "consoleTitle": "Vyntrise • SEO Console",
+      "liveActivity": "LIVE ACTIVITY",
+      "healthScoreLabel": "HEALTH SCORE",
+      "statsCrawled": "CRAWLED",
+      "statsIssues": "ISSUES",
+      "statsScoreLift": "SCORE LIFT",
+      "trafficBadge": "+12% Organic Traffic",
+      "trafficLive": "LIVE",
+      "cardErrors": "Errors",
+      "cardMisc": "Misc",
+      "cardScore2": "Score",
       "stats": {
         "sitesAnalyzed": "50K+",
         "sitesAnalyzedLabel": "Sites Analyzed",
@@ -35,34 +53,61 @@
     },
     "features": {
       "badge": "Features",
-      "title": "Everything your SEO needs",
-      "subtitle": "One scan surfaces every issue holding your site back — from broken tags to slow load times to missed keyword opportunities.",
+      "title": "Comprehensive Analysis",
+      "subtitle": "Everything you need to maximize your website and manage SEO.",
       "items": {
         "instant": {
-          "title": "Instant Analysis",
-          "description": "Full SEO scan completes in under 10 seconds. No waiting, no queues."
+          "title": "On-page SEO analysis",
+          "description": "Detailed breakdown of content structure, headings and keyword density."
         },
         "actionable": {
-          "title": "Prioritized Fixes",
-          "description": "Issues ranked by impact so you fix what matters first, not last."
+          "title": "Metatag validation",
+          "description": "Ensure titles and descriptions are optimized for search engine results."
         },
         "ai": {
-          "title": "AI Recommendations",
-          "description": "GPT-powered suggestions tailored to your specific page and niche."
+          "title": "Performance insights",
+          "description": "Get core Web Vitals, including LCP, FID and CLS accuracy."
         },
         "detailed": {
-          "title": "80+ SEO Checks",
-          "description": "Meta tags, Core Web Vitals, mobile, schema, headings, links — all covered."
+          "title": "Mobile-friendliness check",
+          "description": "Tests mobile responses and mobile viewport configurations."
         },
         "secure": {
-          "title": "Zero Data Storage",
-          "description": "We analyze and discard. Your URL is never stored or shared."
+          "title": "Keyword usage analysis",
+          "description": "Analyze primary and secondary keyword distribution across the page."
         },
         "free": {
-          "title": "Always Free",
-          "description": "Full analysis, no credit card, no trial expiry. Free means free."
+          "title": "Technical SEO issues",
+          "description": "Identifies broken links, canonical errors and indexing problems."
         }
       }
+    },
+    "deepInsights": {
+      "badge": "Insights",
+      "title": "Deep, Actionable Insights",
+      "description": "Our report doesn't just tell you what's wrong, it tells you how to fix it. Get a clear overview of your site's health and prioritize fixes based on impact.",
+      "bullet1": "What fixes to make",
+      "bullet2": "Estimated impact per fix",
+      "bullet3": "Exportable PDF reports",
+      "cardScore": "85",
+      "cardKeyResults": "KEY RESULTS",
+      "issue1": "Missing alt sign on 4 images",
+      "issue2": "Slow FCP (2.4s)",
+      "issue3": "Multiple H1 tags found",
+      "passedDetails": "Passed details",
+      "mobilePassed": "Mobile Supported"
+    },
+    "workflow": {
+      "badge": "Workflow",
+      "title": "Integrated Workflow",
+      "subtitle": "Seamlessly fits into your existing process — no extra tools required.",
+      "mockupTagline": "Your business deserves the same tools as the big guys."
+    },
+    "bottomCta": {
+      "title": "Free SEO Checker",
+      "description": "Analyze your website's SEO instantly and get actionable insights in seconds.",
+      "button": "Check SEO",
+      "hint": "No login required"
     },
     "preview": {
       "badge": "Live Preview",
@@ -85,20 +130,20 @@
     },
     "howItWorks": {
       "badge": "Process",
-      "title": "From URL to action plan in seconds",
-      "subtitle": "No setup. No learning curve. Just paste and go.",
+      "title": "How It Works",
+      "subtitle": "Three simple steps to a full SEO health report.",
       "steps": {
         "step1": {
-          "title": "Paste your URL",
-          "description": "Drop any page URL into the input — homepage, blog post, landing page, anything."
+          "title": "Enter URL",
+          "description": "Type any website URL you want to analyze."
         },
         "step2": {
-          "title": "AI scans 80+ factors",
-          "description": "We check technical health, content quality, on-page signals, and Core Web Vitals simultaneously."
+          "title": "Run analysis",
+          "description": "Our engine scans and analyzes the page instantly."
         },
         "step3": {
-          "title": "Get your action plan",
-          "description": "A prioritized report with specific fixes, impact estimates, and AI-written guidance for each issue."
+          "title": "Get recommendations",
+          "description": "Receive actionable results and improve your ranking."
         }
       }
     },
@@ -153,6 +198,10 @@
       "insightSecurity": "Security: HTTPS properly configured"
     },
     "results": {
+      "backToChecker": "Back to checker",
+      "analysisFailedTitle": "Analysis Failed",
+      "tryAnotherUrl": "Try another URL",
+      "noUrlProvided": "No URL provided.",
       "analysisFor": "Analysis for",
       "scannedAt": "Scanned {date}",
       "healthScore": "SEO Health Score",
@@ -233,10 +282,11 @@
     "footer": {
       "features": "Features",
       "faq": "FAQ",
-      "privacy": "Privacy",
-      "terms": "Terms",
-      "login": "Sign In",
-      "rights": "All rights reserved."
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookie": "Cookie Policy",
+      "login": "Login",
+      "rights": "Technical Experts in SEO"
     }
   }
 }

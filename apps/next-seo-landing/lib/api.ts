@@ -1,18 +1,19 @@
 import axios from 'axios';
 
 const getApiUrl = () => {
-  if (process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL) {
-    return process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL;
-  }
-  
-  // If we are on the client side in production, point to the main app's API
+  const envUrl =
+    process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL;
+
+  if (envUrl) return envUrl;
+
   if (typeof window !== 'undefined') {
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      return 'https://app.vyntrise.com/api/seo';
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return `${window.location.origin}/api/v1`;
     }
   }
-  
-  // Local development fallback
+
   return 'http://localhost:3011/api/v1';
 };
 
@@ -110,4 +111,3 @@ export async function analyzeSEO(url: string): Promise<SEOAnalysisResult> {
     throw new Error(errorMessage);
   }
 }
-

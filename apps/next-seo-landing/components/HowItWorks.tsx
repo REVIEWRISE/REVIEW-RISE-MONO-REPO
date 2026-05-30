@@ -7,9 +7,9 @@ export default function HowItWorks() {
   const t = useTranslations('landing.howItWorks');
 
   const steps = [
-    { number: '01', title: t('steps.step1.title'), description: t('steps.step1.description') },
-    { number: '02', title: t('steps.step2.title'), description: t('steps.step2.description') },
-    { number: '03', title: t('steps.step3.title'), description: t('steps.step3.description') },
+    { number: '1', title: t('steps.step1.title'), description: t('steps.step1.description') },
+    { number: '2', title: t('steps.step2.title'), description: t('steps.step2.description') },
+    { number: '3', title: t('steps.step3.title'), description: t('steps.step3.description') },
   ];
 
   return (
@@ -22,7 +22,6 @@ export default function HowItWorks() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="section-badge">{t('badge')}</div>
           <h2 className="title gradient-text">{t('title')}</h2>
           <p className="subtitle">{t('subtitle')}</p>
         </motion.div>
@@ -31,7 +30,7 @@ export default function HowItWorks() {
           {steps.map((step, index) => (
             <motion.div
               key={index}
-              className="step"
+              className={`step ${index === 2 ? 'step-highlight' : ''}`}
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
@@ -40,7 +39,7 @@ export default function HowItWorks() {
               {/* Connector line */}
               {index < steps.length - 1 && <div className="connector" />}
               <div className="step-number-wrap">
-                <div className="step-number">{step.number}</div>
+                <div className={`step-number ${index === 2 ? 'filled' : ''}`}>{step.number}</div>
               </div>
               <h3 className="step-title">{step.title}</h3>
               <p className="step-description">{step.description}</p>
@@ -52,9 +51,6 @@ export default function HowItWorks() {
       <style jsx>{`
         .how-it-works {
           padding: 140px 0;
-          background: var(--bg-secondary);
-          border-top: 1px solid var(--border-color);
-          border-bottom: 1px solid var(--border-color);
           position: relative;
           overflow: hidden;
         }
@@ -75,21 +71,6 @@ export default function HowItWorks() {
         .header {
           text-align: center;
           margin-bottom: 96px;
-        }
-        .section-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          background: rgba(59, 130, 246, 0.1);
-          border: 1px solid rgba(59, 130, 246, 0.2);
-          border-radius: 100px;
-          padding: 6px 16px;
-          font-size: 11px;
-          font-weight: 700;
-          color: #60A5FA;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          margin-bottom: 20px;
         }
         .title {
           font-family: 'Space Grotesk', sans-serif;
@@ -144,11 +125,19 @@ export default function HowItWorks() {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          background-color: var(--bg-secondary);
           border: 1px solid rgba(59, 130, 246, 0.2);
           border-radius: 20px;
           backdrop-filter: blur(12px);
           box-shadow: 0 0 32px rgba(59, 130, 246, 0.12);
+        }
+        .step-number.filled {
+          background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+          -webkit-background-clip: unset;
+          -webkit-text-fill-color: #fff;
+          background-clip: unset;
+          color: #fff;
+          border: none;
+          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.35);
         }
         .step-title {
           font-family: 'Space Grotesk', sans-serif;

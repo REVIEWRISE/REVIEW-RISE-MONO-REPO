@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import { defaultLocale } from '@platform/i18n';
 import { Space_Grotesk, Inter, Plus_Jakarta_Sans } from 'next/font/google';
 
 const spaceGrotesk = Space_Grotesk({
@@ -28,10 +29,69 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: "AdRise SEO - Discover Your Website's SEO Score in Seconds",
-  description: "Comprehensive SEO analysis powered by advanced AI algorithms. Get your SEO health score, technical analysis, and smart recommendations instantly.",
+const getSiteUrl = () => {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    try {
+      return new URL(siteUrl);
+    } catch { }
+  }
+  return new URL('https://seo-analyzer.vyntrise.com');
 };
+
+const withBasePath = (path: string) => {
+  const basePath = process.env.BASEPATH;
+  if (!basePath) return path;
+  if (path === '/') return basePath;
+  return `${basePath}${path}`;
+};
+
+export async function generateMetadata(
+  props: { params: Promise<{ locale: string }> }
+): Promise<Metadata> {
+  const { locale } = await props.params;
+
+  const canonicalPath = locale === defaultLocale ? '/' : `/${locale}`;
+  const title = 'Vyntrise SEO Checker';
+  const description =
+    'Free instant SEO checker. Analyze titles, meta descriptions, headings, images, internal links, performance, mobile friendliness, and more in seconds.';
+
+  return {
+    metadataBase: getSiteUrl(),
+    title: { default: title, template: `%s | Vyntrise` },
+    description,
+    alternates: {
+      canonical: withBasePath(canonicalPath),
+      languages: {
+        en: withBasePath('/'),
+        ar: withBasePath('/ar'),
+      },
+    },
+    openGraph: {
+      type: 'website',
+      title,
+      description,
+      url: withBasePath(canonicalPath),
+      siteName: 'Vyntrise',
+      locale: locale === 'ar' ? 'ar_AR' : 'en_US',
+      images: [{ url: '/logo.png', width: 512, height: 512, alt: 'Vyntrise' }],
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      images: ['/logo.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    icons: {
+      icon: '/logo.png',
+      apple: '/logo.png',
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -60,7 +120,7 @@ export default async function RootLayout({
     >
       <head>
         {/* Blocking script: sets data-theme before first paint — eliminates theme flash */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){}})();` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){}})();` }} />
       </head>
       <body suppressHydrationWarning>
         {/* Page-load overlay — rendered server-side so it exists before any JS.
@@ -69,11 +129,12 @@ export default async function RootLayout({
             and fades out once the window load event fires. */}
         <div
           id="page-loader"
+          suppressHydrationWarning
           style={{
             position: 'fixed',
             inset: 0,
             zIndex: 99999,
-            background: 'var(--bg-primary, #05070D)',
+            background: 'var(--bg-primary, #f8faff)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -85,7 +146,7 @@ export default async function RootLayout({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="logo" width={48} height={48} style={{ borderRadius: '10px', objectFit: 'contain', animation: 'pl-pulse 1.4s ease-in-out infinite' }} />
           <div style={{ width: '120px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div id="pl-fill" style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#3B82F6,#8B5CF6)', borderRadius: '2px' }} />
+            <div id="pl-fill" suppressHydrationWarning style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#3B82F6,#8B5CF6)', borderRadius: '2px' }} />
           </div>
         </div>
 
@@ -113,7 +174,7 @@ export default async function RootLayout({
   function dismiss(){
     loader.style.opacity='0';
     loader.style.pointerEvents='none';
-    setTimeout(function(){loader.remove();},400);
+    setTimeout(function(){loader.style.display='none';},400);
   }
   if(document.readyState==='complete'){
     setTimeout(dismiss,80);

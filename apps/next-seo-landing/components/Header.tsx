@@ -30,7 +30,7 @@ export default function Header() {
           <a href="#how-it-works" className="nav-link">{t('howItWorks.title')}</a>
           <a href="#faq" className="nav-link">{t('header.faq')}</a>
           <ThemeToggle />
-          <a href="https://app.reviewrise.com" className="nav-cta">
+          <a href="https://app.vyntrise.com/" className="nav-cta">
             {t('footer.login')}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M5 12h14M12 5l7 7-7 7" />

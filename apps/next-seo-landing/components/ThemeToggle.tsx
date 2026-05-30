@@ -3,10 +3,21 @@
 import { Sun, Moon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useState, useEffect } from 'react';
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   const t = useTranslations('landing.common');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid hydration mismatch by not rendering the dynamic icon/text until mounted
+  if (!mounted) {
+    return <button className="theme-toggle" aria-hidden="true" style={{ width: '36px', height: '36px' }} />;
+  }
 
   return (
     <button

@@ -6,7 +6,7 @@
   },
   "landing": {
     "common": {
-      "brandName": "ReviewRise",
+      "brandName": "Vyntrise",
       "toggleTheme": "تبديل المظهر",
       "switchToLight": "التبديل إلى الوضع الفاتح",
       "switchToDark": "التبديل إلى الوضع الداكن"
@@ -23,6 +23,14 @@
       "inputPlaceholder": "yourdomain.com",
       "analyzeButton": "تحليل مجاني",
       "featuresText": "مجاني للأبد · بدون حساب · نتائج في ~10 ثوانٍ",
+      "consoleTitle": "Vyntrise • SEO Console",
+      "liveActivity": "النشاط المباشر",
+      "healthScoreLabel": "مؤشر الصحة",
+      "statsCrawled": "تم الزحف",
+      "statsIssues": "مشاكل",
+      "statsScoreLift": "تحسين الدرجة",
+      "trafficBadge": "+12% زيارات عضوية",
+      "trafficLive": "مباشر",
       "stats": {
         "sitesAnalyzed": "50K+",
         "sitesAnalyzedLabel": "موقع تم تحليله",
@@ -153,6 +161,10 @@
       "insightSecurity": "الأمان: تم تكوين HTTPS بشكل صحيح"
     },
     "results": {
+      "backToChecker": "العودة للفاحص",
+      "analysisFailedTitle": "فشل التحليل",
+      "tryAnotherUrl": "جرّب رابطًا آخر",
+      "noUrlProvided": "لم يتم إدخال رابط.",
       "analysisFor": "تحليل لـ",
       "scannedAt": "تم الفحص في {date}",
       "healthScore": "درجة صحة SEO",

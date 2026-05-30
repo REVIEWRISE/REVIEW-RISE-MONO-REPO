@@ -1,10 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Zap, Target, Bot, BarChart3, Shield, Gift } from 'lucide-react';
+import { FileText, Code2, Activity, Smartphone, Key, Wrench } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const ICONS = [Zap, Target, Bot, BarChart3, Shield, Gift];
+const ICONS = [FileText, Code2, Activity, Smartphone, Key, Wrench];
 const ICON_COLORS = [
   { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.2)', color: '#60A5FA' },
   { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.2)', color: '#A78BFA' },
@@ -47,7 +47,6 @@ export default function Features() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="section-badge">{t('badge')}</div>
           <h2 className="section-title gradient-text-blue-violet">{t('title')}</h2>
           <p className="section-subtitle">{t('subtitle')}</p>
         </motion.div>
