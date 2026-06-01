@@ -13,17 +13,26 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'WebSite',
-            name: 'Vyntrise SEO Checker',
-            url: 'https://seo-analyzer.vyntrise.com',
-            potentialAction: {
-              '@type': 'SearchAction',
-              target: 'https://seo-analyzer.vyntrise.com/results?url={url}',
-              'query-input': 'required name=url',
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Vyntrise SEO Checker',
+              url: 'https://seo-analyzer.vyntrise.com',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://seo-analyzer.vyntrise.com/results?url={url}',
+                'query-input': 'required name=url',
+              },
             },
-          }),
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Vyntrise',
+              url: 'https://seo-analyzer.vyntrise.com',
+              logo: 'https://seo-analyzer.vyntrise.com/logo.png',
+            }
+          ]),
         }}
       />
       <Header />
