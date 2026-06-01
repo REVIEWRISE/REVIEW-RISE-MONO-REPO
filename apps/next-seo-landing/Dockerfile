@@ -37,6 +37,11 @@ COPY apps/next-seo-landing ./apps/next-seo-landing
 
 ENV NEXT_OUTPUT=standalone
 
+# Bake the production API URL into the client bundle.
+# .env files are excluded by .dockerignore so NEXT_PUBLIC_* vars MUST be
+# declared here — they are replaced at build time by Next.js, not runtime.
+ENV NEXT_PUBLIC_SEO_HEALTH_API_URL=https://app.vyntrise.com/api/seo
+
 RUN pnpm install --frozen-lockfile --offline
 RUN pnpm --filter "@platform/*" run build || true
 RUN pnpm --filter @apps/next-seo-landing run build
