@@ -98,10 +98,11 @@ export async function generateMetadata(
     },
     icons: {
       icon: [
+        { url: '/favicon.ico', type: 'image/x-icon' },
         { url: '/icon.svg', type: 'image/svg+xml' },
         { url: '/logo.png', type: 'image/png' },
       ],
-      shortcut: '/icon.svg',
+      shortcut: '/favicon.ico',
       apple: '/logo.png',
     },
   };
@@ -158,23 +159,20 @@ export default async function RootLayout({
             transition: 'opacity 0.35s ease',
           }}
         >
-          <div
+          <img
+            src="/logo.png"
+            alt="Vyntrise"
+            width={48}
+            height={48}
             style={{
               width: '48px',
               height: '48px',
               borderRadius: '14px',
-              display: 'grid',
-              placeItems: 'center',
-              color: '#fff',
-              fontWeight: 800,
-              fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif',
-              background: 'linear-gradient(135deg,#3B82F6,#8B5CF6)',
-              boxShadow: '0 16px 40px rgba(59,130,246,0.25)',
+              objectFit: 'contain',
+              boxShadow: '0 16px 40px rgba(59,130,246,0.18)',
               animation: 'pl-pulse 1.4s ease-in-out infinite',
             }}
-          >
-            V
-          </div>
+          />
           <div style={{ width: '120px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
             <div id="pl-fill" suppressHydrationWarning style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#3B82F6,#8B5CF6)', borderRadius: '2px' }} />
           </div>
