@@ -11,7 +11,7 @@ const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', 
 
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.09 } } };
 const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 1, y: 12 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as any } },
 };
 
@@ -129,8 +129,8 @@ export default function Hero() {
         <motion.div
           ref={cardRef}
           className="term-card"
-          initial={{ opacity: 0, y: 40, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
+          initial={{ y: 28, scale: 0.985 }}
+          animate={{ y: 0, scale: 1 }}
           transition={{ duration: 0.85, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           style={{
             rotateX,

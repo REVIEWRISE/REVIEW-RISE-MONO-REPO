@@ -21,6 +21,15 @@ export default function DeepInsights() {
           >
             <h2 className="title">{t('title')}</h2>
             <p className="description">{t('description')}</p>
+
+            <div className="long-copy">
+              <p>{t('p1')}</p>
+              <p>{t('p2')}</p>
+              <p>{t('p3')}</p>
+              <p>{t('p4')}</p>
+              <p>{t('p5')}</p>
+              <p>{t('p6')}</p>
+            </div>
             
             <ul className="bullet-list">
               <li>
@@ -165,6 +174,17 @@ export default function DeepInsights() {
           color: var(--text-secondary);
           line-height: 1.7;
           margin-bottom: 40px;
+        }
+        .long-copy {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          margin-bottom: 40px;
+        }
+        .long-copy :global(p) {
+          font-size: 15px;
+          color: var(--text-secondary);
+          line-height: 1.8;
         }
         .bullet-list {
           list-style: none;

@@ -46,8 +46,20 @@ export async function generateMetadata(
   const { locale } = await props.params;
 
   const canonicalPath = locale === defaultLocale ? '/' : `/${locale}`;
-  const title = 'Vyntrise SEO Checker | Free Site Analyze Page In Seconds';
-  const description = 'Analyze your site with our free instant SEO checker. Improve page performance, titles, meta descriptions, headings, images, and more in just seconds.';
+  const localized =
+    locale === 'ar'
+      ? {
+        title: 'مدقق SEO من Vyntrise | تحليل مجاني في ثوانٍ',
+        description:
+          'تحليل SEO مجاني في ثوانٍ. افحص الأداء والعناوين والوصف التعريفي والعناوين الفرعية والصور وغير ذلك بسهولة.',
+      }
+      : {
+        title: 'Vyntrise SEO Checker | Free Site Analyze Page In Seconds',
+        description:
+          'Free Site Analyze Page in Seconds. Analyze your site with our free instant SEO checker. Improve page performance, titles, meta descriptions, headings, images, and more in just seconds.',
+      };
+  const title = localized.title;
+  const description = localized.description;
 
   return {
     metadataBase: getSiteUrl(),
