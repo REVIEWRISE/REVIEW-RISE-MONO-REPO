@@ -52,14 +52,14 @@ export async function generateMetadata(
   const { locale } = await props.params;
 
   const canonicalPath = locale === defaultLocale ? '/' : `/${locale}`;
-  const title = 'Vyntrise SEO Checker';
-  const description =
-    'Free instant SEO checker. Analyze titles, meta descriptions, headings, images, internal links, performance, mobile friendliness, and more in seconds.';
+  const title = 'Vyntrise SEO Checker | Free Site Analyze Page In Seconds';
+  const description = 'Analyze your site with our free instant SEO checker. Improve page performance, titles, meta descriptions, headings, images, and more in just seconds.';
 
   return {
     metadataBase: getSiteUrl(),
     title: { default: title, template: `%s | Vyntrise` },
     description,
+    keywords: ['analyze', 'site', 'free', 'page', 'seconds', 'seo checker'],
     alternates: {
       canonical: withBasePath(canonicalPath),
       languages: {
@@ -77,7 +77,7 @@ export async function generateMetadata(
       images: [{ url: '/logo.png', width: 512, height: 512, alt: 'Vyntrise' }],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
       images: ['/logo.png'],
@@ -85,9 +85,14 @@ export async function generateMetadata(
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+      }
     },
     icons: {
       icon: '/logo.png',
+      shortcut: '/logo.png',
       apple: '/logo.png',
     },
   };
@@ -121,6 +126,16 @@ export default async function RootLayout({
       <head>
         {/* Blocking script: sets data-theme before first paint — eliminates theme flash */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){}})();` }} />
+        <link rel="preload" href="/logo.png" as="image" />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XYZ1234567"></script>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-XYZ1234567');
+          `
+        }} />
       </head>
       <body suppressHydrationWarning>
         {/* Page-load overlay — rendered server-side so it exists before any JS.

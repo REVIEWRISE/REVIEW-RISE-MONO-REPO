@@ -17,9 +17,9 @@
     },
     "hero": {
       "badge": "AI-Powered SEO Analysis",
-      "titleLine1": "Free SEO",
-      "titleLine2": "Checker",
-      "description": "Analyze your website's SEO instantly and get actionable insights in seconds.",
+      "titleLine1": "Free Site Analyze",
+      "titleLine2": "Page in Seconds",
+      "description": "Analyze your site with our free instant SEO checker. Improve page performance, titles, meta descriptions, headings, images, and more in just seconds.",
       "inputPlaceholder": "https://example.com",
       "analyzeButton": "Check SEO",
       "featuresText": "No login required",
