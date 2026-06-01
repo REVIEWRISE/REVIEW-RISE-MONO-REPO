@@ -6,7 +6,8 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { defaultLocale } from '@platform/i18n';
-import { Space_Grotesk, Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import { Space_Grotesk, Inter } from 'next/font/google';
+import Script from 'next/script';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -19,13 +20,6 @@ const inter = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-inter',
-  display: 'swap',
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-plus-jakarta',
   display: 'swap',
 });
 
@@ -91,8 +85,11 @@ export async function generateMetadata(
       }
     },
     icons: {
-      icon: '/logo.png',
-      shortcut: '/logo.png',
+      icon: [
+        { url: '/icon.svg', type: 'image/svg+xml' },
+        { url: '/logo.png', type: 'image/png' },
+      ],
+      shortcut: '/icon.svg',
       apple: '/logo.png',
     },
   };
@@ -121,21 +118,12 @@ export default async function RootLayout({
       lang={locale}
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
       suppressHydrationWarning
-      className={`${spaceGrotesk.variable} ${inter.variable} ${plusJakarta.variable}`}
+      className={`${spaceGrotesk.variable} ${inter.variable}`}
     >
       <head>
-        {/* Blocking script: sets data-theme before first paint — eliminates theme flash */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){}})();` }} />
-        <link rel="preload" href="/logo.png" as="image" />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XYZ1234567"></script>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-XYZ1234567');
-          `
-        }} />
+        <Script id="theme-init" strategy="beforeInteractive">{`(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){}})();`}</Script>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-XYZ1234567" strategy="afterInteractive" />
+        <Script id="gtag-init" strategy="afterInteractive">{`window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-XYZ1234567');`}</Script>
       </head>
       <body suppressHydrationWarning>
         {/* Page-load overlay — rendered server-side so it exists before any JS.
@@ -158,47 +146,29 @@ export default async function RootLayout({
             transition: 'opacity 0.35s ease',
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="logo" width={48} height={48} style={{ borderRadius: '10px', objectFit: 'contain', animation: 'pl-pulse 1.4s ease-in-out infinite' }} />
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '14px',
+              display: 'grid',
+              placeItems: 'center',
+              color: '#fff',
+              fontWeight: 800,
+              fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif',
+              background: 'linear-gradient(135deg,#3B82F6,#8B5CF6)',
+              boxShadow: '0 16px 40px rgba(59,130,246,0.25)',
+              animation: 'pl-pulse 1.4s ease-in-out infinite',
+            }}
+          >
+            V
+          </div>
           <div style={{ width: '120px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
             <div id="pl-fill" suppressHydrationWarning style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#3B82F6,#8B5CF6)', borderRadius: '2px' }} />
           </div>
         </div>
 
-        {/* Dismiss script — runs immediately after the overlay element exists */}
-        <script dangerouslySetInnerHTML={{
-          __html: `
-(function(){
-  var bar=document.getElementById('pl-fill');
-  var loader=document.getElementById('page-loader');
-  if(!loader)return;
-
-  // Animate the progress bar
-  var start=null;
-  function animBar(ts){
-    if(!start)start=ts;
-    var p=Math.min((ts-start)/1200,1);
-    // ease-out cubic
-    var eased=1-Math.pow(1-p,3);
-    if(bar)bar.style.width=(eased*100)+'%';
-    if(p<1)requestAnimationFrame(animBar);
-  }
-  requestAnimationFrame(animBar);
-
-  // Dismiss once everything is loaded
-  function dismiss(){
-    loader.style.opacity='0';
-    loader.style.pointerEvents='none';
-    setTimeout(function(){loader.style.display='none';},400);
-  }
-  if(document.readyState==='complete'){
-    setTimeout(dismiss,80);
-  } else {
-    window.addEventListener('load',function(){setTimeout(dismiss,80);},{once:true});
-  }
-})();
-        `.trim()
-        }} />
+        <Script id="page-loader-dismiss" strategy="afterInteractive">{`(function(){var bar=document.getElementById('pl-fill');var loader=document.getElementById('page-loader');if(!loader)return;var start=null;function animBar(ts){if(!start)start=ts;var p=Math.min((ts-start)/1200,1);var eased=1-Math.pow(1-p,3);if(bar)bar.style.width=(eased*100)+'%';if(p<1)requestAnimationFrame(animBar);}requestAnimationFrame(animBar);function dismiss(){loader.style.opacity='0';loader.style.pointerEvents='none';setTimeout(function(){loader.style.display='none';},400);}if(document.readyState==='complete'){setTimeout(dismiss,80);}else{window.addEventListener('load',function(){setTimeout(dismiss,80);},{once:true});}})();`}</Script>
 
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>

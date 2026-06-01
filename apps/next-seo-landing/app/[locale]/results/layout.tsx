@@ -12,7 +12,7 @@ export async function generateMetadata(
   props: { params: Promise<{ locale: string }> }
 ): Promise<Metadata> {
   const { locale } = await props.params;
-  const canonicalPath = locale === defaultLocale ? '/' : `/${locale}`;
+  const canonicalPath = locale === defaultLocale ? '/results' : `/${locale}/results`;
 
   return {
     title: 'SEO Results',

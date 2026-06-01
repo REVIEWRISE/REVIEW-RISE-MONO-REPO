@@ -279,6 +279,12 @@
       },
       "criticalIssuesFound": "Critical issues found that need your attention."
     },
+    "notFound": {
+      "title": "Page not found",
+      "description": "This page doesn’t exist or may have moved. Go back to the SEO checker or browse the FAQ.",
+      "goHome": "Go to home",
+      "goFaq": "Open FAQ"
+    },
     "footer": {
       "features": "Features",
       "faq": "FAQ",

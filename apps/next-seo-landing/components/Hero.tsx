@@ -427,6 +427,8 @@ export default function Hero() {
           background: rgba(0,0,0,0.18);
           box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
           padding: 12px 12px 10px;
+          height: 154px;
+          overflow: hidden;
           font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
           font-size: 12px;
           line-height: 1.65;

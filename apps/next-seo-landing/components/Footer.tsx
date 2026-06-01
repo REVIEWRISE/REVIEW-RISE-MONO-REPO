@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { Linkedin, Instagram, Facebook } from 'lucide-react';
 
 export default function Footer() {
   const t = useTranslations('landing');
@@ -24,6 +25,17 @@ export default function Footer() {
           <p className="copyright">
             {'©'} {new Date().getFullYear()} {t('common.brandName')}{'.'} {t('footer.rights')}
           </p>
+          <div className="socials">
+            <Link href="https://www.linkedin.com/company/vyntrise-technologies" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <Linkedin size={20} />
+            </Link>
+            <Link href="https://www.instagram.com/vyntrisellc" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <Instagram size={20} />
+            </Link>
+            <Link href="https://www.facebook.com/share/1cBw5oDbhj/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <Facebook size={20} />
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -84,6 +96,20 @@ export default function Footer() {
           font-size: 13px;
           color: var(--text-muted);
         }
+        .socials {
+          display: flex;
+          gap: 20px;
+          align-items: center;
+        }
+        .socials :global(a) {
+          color: var(--text-muted);
+          transition: color 0.2s ease, transform 0.2s ease;
+          display: flex;
+        }
+        .socials :global(a:hover) {
+          color: var(--text-primary);
+          transform: translateY(-2px);
+        }
         @media (max-width: 768px) {
           .container { padding: 0 20px; }
           .top {
@@ -93,9 +119,9 @@ export default function Footer() {
           }
           .links { flex-direction: column; gap: 16px; }
           .bottom {
-            flex-direction: column;
-            gap: 16px;
-            align-items: flex-start;
+            flex-direction: column-reverse;
+            gap: 24px;
+            align-items: center;
           }
         }
       `}</style>
