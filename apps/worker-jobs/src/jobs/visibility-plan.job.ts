@@ -22,7 +22,7 @@ export const visibilityPlanJob = async (jobId: string, payload: { businessId: st
         const topRecs = await repositories.brandRecommendation.getTopPriority(businessId, 5);
 
         // Call Express AI Service
-        const response = await axios.post(`${EXPRESS_AI_URL}/api/v1/ai/generate-visibility-plan`, {
+        const response = await axios.post(`${EXPRESS_AI_URL}/api/v1/generate-visibility-plan`, {
             context: {
                 brandDNA: brandDNA || {},
                 visibilityScore: latestScore?.visibilityScore || 0,

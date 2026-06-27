@@ -1207,6 +1207,7 @@
     "reviews": {
       "sentimentScore": "Sentiment Score",
       "positiveSentiment": "Positive sentiment",
+      "velocity": "Review Velocity",
       "volumeOverTime": "Review volume over time",
       "sentimentModel": "Sentiment model",
       "pendingAIReply": "Pending AI Replies",
