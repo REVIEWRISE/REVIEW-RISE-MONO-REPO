@@ -179,12 +179,6 @@ const LocationDetailsPage = () => {
                             <IntegrationsDashboard />
                         </TabPanel>
                         <TabPanel value='social' sx={{ p: 0 }}>
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="h4">{tr('connections.title')}</Typography>
-                                <Typography color="textSecondary">
-                                    {tr('connections.subtitle')}
-                                </Typography>
-                            </Box>
                             <SocialConnectionList businessId={location.businessId} locationId={id as string} />
                         </TabPanel>
                     </Box>

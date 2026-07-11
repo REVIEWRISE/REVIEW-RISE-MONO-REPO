@@ -52,10 +52,10 @@ export const SERVICES_CONFIG = {
 
             // Client-side
             if (isProduction()) {
-                return 'https://seo-analyzer.vyntrise.com';
+                return `${getClientBaseUrl()}/api/seo`;
             }
 
-            return 'http://localhost:3011/api/v1';
+            return '/api/seo';
         },
     },
     review: {
@@ -67,8 +67,7 @@ export const SERVICES_CONFIG = {
 
             // Client-side
             if (isProduction()) {
-                // Return /api so hooks can append /reviews/analytics/* → /api/reviews/analytics/*
-                return `${getClientBaseUrl()}/api`;
+                return `${getClientBaseUrl()}/api/reviews`;
             }
 
             return 'http://localhost:3006/api/v1';
