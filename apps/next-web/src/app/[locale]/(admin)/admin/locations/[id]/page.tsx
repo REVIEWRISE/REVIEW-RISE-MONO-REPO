@@ -64,7 +64,6 @@ const LocationDetailsPage = () => {
     const params = useParams()
     const router = useRouter()
     const t = useTranslations('dashboard')
-    const tr = useTranslations('social')
     const { id } = params
     const [location, setLocation] = useState<any>(null)
     const [loading, setLoading] = useState(true)
