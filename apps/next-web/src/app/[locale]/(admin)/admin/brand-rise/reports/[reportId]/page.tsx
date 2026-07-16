@@ -82,7 +82,6 @@ const PositioningMapChart = ({ data, t }: { data: any; t: any }) => {
 export default function ReportDetailPage() {
     const { notify } = useSystemMessages();
     const t = useTranslations('dashboard');
-    const tr = useTranslations('dashboard.brandRise.reports.detail');
     const theme = useTheme();
     const params = useParams();
     const reportId = params.reportId as string;
