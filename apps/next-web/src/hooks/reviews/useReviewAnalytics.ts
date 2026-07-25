@@ -48,11 +48,19 @@ interface ComparisonParams {
 
 const REVIEWS_API = SERVICES_CONFIG.review.url
 
-const toAnalyticsQuery = <T extends { businessId: string; locationId?: string }>(params: T) => {
+type AnalyticsQuery<T extends { businessId: string; locationId?: string }> = Omit<T, 'locationId'> & {
+  locationId?: string
+}
+
+const toAnalyticsQuery = <T extends { businessId: string; locationId?: string }>(
+  params: T
+): AnalyticsQuery<T> => {
   const scopedLocationId = resolveScopedLocationId(params.locationId)
   const { locationId: _locationId, ...rest } = params
 
-  return scopedLocationId ? { ...rest, locationId: scopedLocationId } : rest
+  return scopedLocationId
+    ? { ...rest, locationId: scopedLocationId }
+    : { ...rest }
 }
 
 export const useRatingTrend = (params: RatingTrendParams) => {
