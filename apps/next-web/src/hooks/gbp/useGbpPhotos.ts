@@ -31,6 +31,7 @@ const normalizePhotosResponse = (payload: unknown): GbpPhotosResult => {
 
     if (record.data && typeof record.data === 'object') {
         const nested = record.data as Record<string, unknown>;
+
         if (Array.isArray(nested.data)) {
             return {
                 data: nested.data as GbpPhotoDto[],

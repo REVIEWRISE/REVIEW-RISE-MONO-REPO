@@ -1,7 +1,8 @@
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 import React, { useState } from 'react';
-import { Card, Box, Typography, Avatar, Chip, Button, IconButton, useTheme, Rating, Divider, TextField } from '@mui/material';
+import { Card, Box, Typography, Avatar, Chip, Button, useTheme, Rating, TextField } from '@mui/material';
 
 // Placeholder icons
 const GoogleIcon = () => <Typography variant="caption" sx={{ fontWeight: 'bold' }}>G</Typography>;

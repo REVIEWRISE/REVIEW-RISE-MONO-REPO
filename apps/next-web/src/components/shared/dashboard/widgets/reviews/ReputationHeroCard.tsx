@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 import React from 'react'
 import { Card, Typography, Box, Skeleton, useTheme } from '@mui/material'

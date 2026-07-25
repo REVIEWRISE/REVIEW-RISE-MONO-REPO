@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 import React from 'react';
 import { Box, Typography, TextField, MenuItem, CircularProgress, Alert } from '@mui/material';

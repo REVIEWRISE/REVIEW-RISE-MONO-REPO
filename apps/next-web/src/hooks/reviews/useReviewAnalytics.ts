@@ -56,7 +56,9 @@ const toAnalyticsQuery = <T extends { businessId: string; locationId?: string }>
   params: T
 ): AnalyticsQuery<T> => {
   const scopedLocationId = resolveScopedLocationId(params.locationId)
-  const { locationId: _locationId, ...rest } = params
+  const { locationId, ...rest } = params
+
+  void locationId
 
   return scopedLocationId
     ? { ...rest, locationId: scopedLocationId }

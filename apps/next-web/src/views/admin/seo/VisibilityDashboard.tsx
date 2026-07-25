@@ -52,16 +52,20 @@ const VisibilityDashboard = () => {
 
       try {
         let skipBusinessDropdown = false;
+
         if (locationId) {
           // Attempt to resolve the locked location explicitly
           try {
             const loc = await apiClient.get<any>(`/api/admin/locations/${locationId}`).then(r => r.data);
+
             if (loc && loc.businessId) {
               setActiveLocation(loc);
               setBusinessId(loc.businessId);
               skipBusinessDropdown = true;
             }
-          } catch (e) { console.error('Failed to resolve context location'); }
+          } catch {
+            console.error('Failed to resolve context location');
+          }
         }
 
         // Use apiClient (auto-unwraps data field)

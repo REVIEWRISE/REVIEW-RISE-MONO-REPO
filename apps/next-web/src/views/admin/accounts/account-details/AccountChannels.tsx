@@ -292,6 +292,7 @@ const AccountChannels = ({
 
     try {
       setConnectingProvider('google')
+
       const res = await apiClient.get<{ url: string }>(
         `${REVIEWS_API}/auth/google/connect`,
         { params: { locationId: selectedLocationId } }
@@ -317,6 +318,7 @@ const AccountChannels = ({
 
     try {
       setConnectingProvider('facebook')
+
       const res = await apiClient.get<{ url: string }>(
         `${SERVICES_CONFIG.social.url}/facebook/auth-url`,
         { params: { businessId, locationId: selectedLocationId } }

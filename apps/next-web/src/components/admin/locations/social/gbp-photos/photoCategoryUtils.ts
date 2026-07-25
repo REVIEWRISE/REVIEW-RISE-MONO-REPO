@@ -34,6 +34,7 @@ export const matchesPhotoSearch = (
     getLabel: (category: string | null | undefined) => string
 ): boolean => {
     const query = search.trim().toLowerCase();
+
     if (!query) return true;
 
     const label = getLabel(photo.category ?? null).toLowerCase();

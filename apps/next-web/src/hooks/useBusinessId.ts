@@ -20,6 +20,7 @@ export const useBusinessId = () => {
           const response = await apiClient.get<any>(`${SERVICES.admin.url}/locations/${locationId}`, {
             headers: { 'x-skip-system-message': '1' }
           });
+
           const location = response.data?.data || response.data;
 
           if (location?.businessId) {

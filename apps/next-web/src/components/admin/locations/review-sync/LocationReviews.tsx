@@ -18,7 +18,6 @@ import {
     Card,
     CardContent,
     Chip,
-    CircularProgress,
     Divider,
     Grid,
     Rating,
@@ -64,7 +63,8 @@ const PlatformIcon = ({ platform }: { platform: string }) => {
 const getSentiment = (rating: number): { label: string; color: 'success' | 'info' | 'error' } => {
     if (rating >= 4) return { label: 'positive', color: 'success' };
     if (rating === 3) return { label: 'neutral', color: 'info' };
-    return { label: 'negative', color: 'error' };
+    
+return { label: 'negative', color: 'error' };
 };
 
 const formatReviewDate = (date: string) =>
@@ -118,6 +118,7 @@ const LocationReviews = () => {
 
     const goToSources = () => {
         const nextParams = new URLSearchParams(searchParams.toString());
+
         nextParams.set('tab', 'sources');
         router.replace(`?${nextParams.toString()}`);
     };

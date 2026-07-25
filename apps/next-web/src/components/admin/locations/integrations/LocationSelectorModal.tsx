@@ -244,6 +244,7 @@ export default function LocationSelectorModal({
                         >
                             {data?.locations?.map(loc => {
                                 const isSelected = selectedGbpName === loc.name
+
                                 const address =
                                     loc.storefrontAddress?.addressLines?.join(', ') ||
                                     t('selector.noAddress')
@@ -256,6 +257,7 @@ export default function LocationSelectorModal({
                                         onClick={() => !finishing && setSelectedGbpName(loc.name)}
                                         onKeyDown={event => {
                                             if (finishing) return
+
                                             if (event.key === 'Enter' || event.key === ' ') {
                                                 event.preventDefault()
                                                 setSelectedGbpName(loc.name)

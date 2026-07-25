@@ -27,6 +27,7 @@ const ConnectedSourceCard = ({ source, onDisconnect, onSync, onConfigure, syncin
     const isFacebook = platform === 'facebook';
     const Icon = isGoogle ? GoogleIcon : isFacebook ? FacebookIcon : StarIcon;
     const iconColor = isGoogle ? 'info' : isFacebook ? 'primary' : 'error';
+
     const name = isGoogle
         ? t('googleBusiness')
         : isFacebook

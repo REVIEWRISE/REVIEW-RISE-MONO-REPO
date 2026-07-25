@@ -73,6 +73,7 @@ export default function IntegrationsDashboard() {
             const res = await apiClient.post<{ results?: Array<{ status: string; reviewsSynced?: number; errorMessage?: string }>; totalSynced?: number }>(
                 `${REVIEWS_API_URL}/locations/${locationId}/sync`
             )
+
             const totalSynced = res.data?.totalSynced ?? 0
             const failed = res.data?.results?.filter((result) => result.status === 'failed') ?? []
 
@@ -85,6 +86,7 @@ export default function IntegrationsDashboard() {
             }
         } catch (error: unknown) {
             const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
+
             setSnackbarMsg(message || t('syncFailed'))
         } finally {
             setSyncing(false)

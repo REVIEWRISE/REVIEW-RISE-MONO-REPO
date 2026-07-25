@@ -23,10 +23,10 @@ import KeywordRankingsCard from '@/components/shared/dashboard/widgets/seo/Keywo
 
 export default function SeoAnalyzerDashboard() {
     const { user } = useAuth()
+
     const [urls, setUrls] = useState<{ id: string; url: string }[]>([
         { id: 'url-1', url: 'https://www.google.com' }, // fallback while loading
     ])
-    const [urlsLoaded, setUrlsLoaded] = useState(false)
 
     // Fetch real business URLs from the user's businesses
     useEffect(() => {
@@ -34,6 +34,7 @@ export default function SeoAnalyzerDashboard() {
         apiClient.get<any[]>(`/api/admin/users/${user.id}/businesses`)
             .then(res => {
                 const biz = res.data
+
                 if (biz && biz.length > 0) {
                     const realUrls = biz
                         .filter((b: any) => b.website)
@@ -41,14 +42,16 @@ export default function SeoAnalyzerDashboard() {
                             id: b.id,
                             url: b.website.startsWith('http') ? b.website : `https://${b.website}`
                         }))
+
                     if (realUrls.length > 0) {
                         setUrls(realUrls)
                         setSelectedUrlId(realUrls[0].id)
                     }
                 }
-                setUrlsLoaded(true)
             })
-            .catch(() => setUrlsLoaded(true))
+            .catch(() => {
+                // Keep fallback URL if businesses cannot be loaded
+            })
     }, [user?.id])
 
     const [selectedUrlId, setSelectedUrlId] = useState(urls[0].id)

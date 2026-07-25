@@ -94,11 +94,15 @@ export default function SnapshotHistory({ locationId, snapshots, selectedSnapsho
 
     const selectedSnapshotFields = useMemo(() => {
         const snap = selectedSnapshot?.snapshot as any
+
         if (!snap) return {}
+
         if (snap.fields) {
             return snap.fields as Record<string, unknown>
         }
-        return {
+
+        
+return {
             description: snap.description ?? null,
             category: snap.category ?? null,
             phone: snap.phone ?? null,

@@ -111,6 +111,7 @@ export const AuthProvider = ({ children, user: initialUser }: ChildrenType & { u
     // Broadcast login
     if (typeof BroadcastChannel !== 'undefined') {
       const channel = new BroadcastChannel('auth_channel')
+
       channel.postMessage({ type: 'LOGIN' })
       channel.close()
     }
@@ -151,6 +152,7 @@ export const AuthProvider = ({ children, user: initialUser }: ChildrenType & { u
     // Broadcast logout
     if (typeof BroadcastChannel !== 'undefined') {
       const channel = new BroadcastChannel('auth_channel')
+
       channel.postMessage({ type: 'LOGOUT' })
       channel.close()
     }
@@ -165,6 +167,7 @@ export const AuthProvider = ({ children, user: initialUser }: ChildrenType & { u
     if (!user || typeof window === 'undefined') return
 
     const channel = new BroadcastChannel('auth_channel')
+
     channel.onmessage = (event) => {
       if (event.data?.type === 'LOGOUT' && window.location.pathname.indexOf('/login') === -1) {
         router.push(`/${locale}/login?session_expired=true`)

@@ -21,10 +21,11 @@ import {
 } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
+import { SystemMessageSeverity } from '@platform/contracts';
 
 import { PhotosFilterToolbar } from './PhotosFilterToolbar';
 import { getCategoryColor, getCategoryLabelKey, matchesPhotoSearch, sortPhotos } from './photoCategoryUtils';
+import { useSystemMessages } from '@/shared/components/SystemMessageProvider';
 
 // Icons
 import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled';
@@ -78,6 +79,7 @@ const CategoryPill = ({ category }: { category: string | null | undefined }) => 
 export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
   const t = useTranslations('gbpRocket.photos');
   const theme = useTheme();
+  const { notify } = useSystemMessages();
   const [category, setCategory] = useState<string>('All');
   const [sort, setSort] = useState<'Newest' | 'Oldest'>('Newest');
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -101,7 +103,7 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
     const searched = rawPhotos.filter((photo) => matchesPhotoSearch(photo, search, getCategoryLabel));
 
     return sortPhotos(searched, sort);
-  }, [result?.data, search, sort, t]);
+  }, [result?.data, search, sort, t]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const total = result?.meta?.total ?? photos.length;
   const profileUrl = result?.meta?.profileUrl || 'https://business.google.com/locations';
@@ -492,11 +494,17 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                       { locationId, photoId: selectedPhoto.id },
                       {
                         onSuccess: () => {
-                          toast.success(t('deleteSuccess'));
+                          notify({
+                            messageCode: t('deleteSuccess'),
+                            severity: SystemMessageSeverity.SUCCESS,
+                          });
                           setSelectedPhoto(null);
                         },
                         onError: (deleteError) => {
-                          toast.error(extractApiErrorMessage(deleteError) || t('deleteError'));
+                          notify({
+                            messageCode: extractApiErrorMessage(deleteError) || t('deleteError'),
+                            severity: SystemMessageSeverity.ERROR,
+                          });
                         },
                       }
                     );

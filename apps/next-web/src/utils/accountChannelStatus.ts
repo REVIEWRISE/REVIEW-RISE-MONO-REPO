@@ -7,6 +7,7 @@ type LocationRecord = {
 /** Collect all locations tied to the account's business roles. */
 export const getAccountLocations = (account: any): LocationRecord[] => {
   const fromBusiness = account?.userBusinessRoles?.[0]?.business?.locations ?? []
+
   const fromRoles = (account?.userBusinessRoles ?? [])
     .map((role: any) => role.location)
     .filter(Boolean)

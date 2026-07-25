@@ -181,10 +181,12 @@ const ReviewSourcesDashboard = () => {
         try {
             setSyncingSourceId(source.id);
             setSnackbar({ open: true, message: t('syncStarted'), severity: 'info' });
+
             const res = await apiClient.post<{ results?: Array<{ status: string; reviewsSynced?: number; errorMessage?: string }>; totalSynced?: number }>(
                 `${REVIEWS_API_URL}/locations/${locationId}/sync`,
                 { platform: source.platform === 'gbp' ? 'google' : source.platform }
             );
+
             const totalSynced = res.data?.totalSynced ?? 0;
             const failed = res.data?.results?.filter((result) => result.status === 'failed') ?? [];
 
@@ -199,10 +201,12 @@ const ReviewSourcesDashboard = () => {
             } else {
                 setSnackbar({ open: true, message: t('syncNoReviewsFound'), severity: 'info' });
             }
+
             fetchData();
         } catch (error: unknown) {
             console.error('Source sync failed', error);
             const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+
             setSnackbar({ open: true, message: message || t('syncFailed'), severity: 'error' });
         } finally {
             setSyncingSourceId(null);
@@ -223,6 +227,7 @@ const ReviewSourcesDashboard = () => {
             const res = await apiClient.post<{ results?: Array<{ status: string; reviewsSynced?: number; errorMessage?: string }>; totalSynced?: number }>(
                 `${REVIEWS_API_URL}/locations/${locationId}/sync`
             );
+
             const totalSynced = res.data?.totalSynced ?? 0;
             const failed = res.data?.results?.filter((result) => result.status === 'failed') ?? [];
 
@@ -237,11 +242,13 @@ const ReviewSourcesDashboard = () => {
             } else {
                 setSnackbar({ open: true, message: t('syncNoReviewsFound'), severity: 'info' });
             }
+
             fetchData();
             checkGoogleStatus();
         } catch (error: unknown) {
             console.error('Sync failed', error);
             const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+
             setSnackbar({ open: true, message: message || t('syncFailed'), severity: 'error' });
         } finally {
             setSyncing(false);
