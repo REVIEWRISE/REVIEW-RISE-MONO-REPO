@@ -34,6 +34,7 @@
     "title": "مصادر المراجعة",
     "subtitle": "اتصل بمنصات المراجعة الخاصة بك وقم بإدارتها",
     "syncAllNow": "مزامنة الكل الآن",
+    "syncNow": "مزامنة الآن",
     "syncing": "جاري المزامنة...",
     "connectedSources": "المصادر المتصلة",
     "totalReviews": "إجمالي المراجعات",
@@ -73,6 +74,7 @@
     "failedToDisconnect": "فشل فصل المصدر",
     "syncStarted": "بدأت المزامنة...",
     "syncCompletedMsg": "اكتملت المزامنة بنجاح",
+    "syncNoReviewsFound": "اكتملت المزامنة — لم يتم العثور على مراجعات على Google بعد",
     "syncFailed": "فشلت المزامنة",
     "configurationComingSoon": "الإعدادات قريباً",
     "googleModal": {
@@ -85,6 +87,7 @@
       "step3Title": "بدء المزامنة",
       "step3Desc": "سنقوم فوراً بجلب مراجعاتك الحالية وإعداد مزامنة تلقائية يومية",
       "permissionsTitle": "الأذونات المطلوبة",
+      "howItWorks": "كيف يعمل",
       "permission1": "قراءة معلومات ملفك التجاري",
       "permission2": "الوصول إلى مراجعات العملاء وتقييماتهم",
       "permission3": "عرض تفاصيل موقع العمل",
@@ -132,6 +135,7 @@
     "googleConnectedDesc": "Google متصل. انقر فوق تمكين لبدء مزامنة المراجعات.",
     "googleNotConnectedDesc": "انتقل إلى علامة التبويب المكاملات لربط حساب Google الخاص بك.",
     "enableSync": "تمكين المزامنة",
-    "goToIntegrations": "الذهاب إلى المكاملات"
+    "goToIntegrations": "الذهاب إلى المكاملات",
+    "reviewSourcesTab": "مصادر المراجعة"
   }
 }

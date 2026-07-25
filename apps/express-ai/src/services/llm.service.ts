@@ -57,7 +57,9 @@ export class LLMService {
         // Default to OpenAI
         try {
             const openai = this.getOpenAI();
-            const modelName = exactOpenAIModel(options.model) || 'gpt-4-turbo-preview';
+            const modelName = exactOpenAIModel(options.model)
+                || process.env.OPENAI_MODEL
+                || 'gpt-4o';
             
             const completion = await openai.chat.completions.create({
                 messages: [{ role: 'user', content: prompt }],

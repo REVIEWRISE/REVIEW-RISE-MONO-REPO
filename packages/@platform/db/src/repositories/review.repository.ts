@@ -2,6 +2,10 @@ import { Prisma, Review } from '@prisma/client';
 import { prisma } from '../client';
 import { BaseRepository } from './base.repository';
 
+export const SYNCED_REVIEW_WHERE: Prisma.ReviewWhereInput = {
+    reviewSourceId: { not: null },
+};
+
 export class ReviewRepository extends BaseRepository<
     Review,
     typeof prisma.review,
@@ -14,9 +18,29 @@ export class ReviewRepository extends BaseRepository<
         super(prisma.review, 'Review');
     }
 
-    async findByBusinessId(businessId: string) {
+    /** Reviews imported from a connected platform — excludes seed/demo rows. */
+    private syncedOnlyWhere(): Prisma.ReviewWhereInput {
+        return SYNCED_REVIEW_WHERE;
+    }
+
+    private buildAnalyticsWhere(params: {
+        businessId: string;
+        locationId?: string;
+    }): Prisma.ReviewWhereInput {
+        return {
+            businessId: params.businessId,
+            ...(params.locationId && { locationId: params.locationId }),
+            ...this.syncedOnlyWhere(),
+        };
+    }
+
+    async findByBusinessId(businessId: string, locationId?: string, syncedOnly = false) {
         return this.delegate.findMany({
-            where: { businessId },
+            where: {
+                businessId,
+                ...(locationId && { locationId }),
+                ...(syncedOnly && this.syncedOnlyWhere()),
+            },
             orderBy: { publishedAt: 'desc' },
         });
     }
@@ -63,9 +87,14 @@ export class ReviewRepository extends BaseRepository<
         });
     }
 
-    async findByLocationId(locationId: string) {
+    async findByLocationId(locationId: string, options?: { syncedOnly?: boolean }) {
+        const syncedOnly = options?.syncedOnly ?? true;
+
         return this.delegate.findMany({
-            where: { locationId },
+            where: {
+                locationId,
+                ...(syncedOnly && this.syncedOnlyWhere()),
+            },
             orderBy: { publishedAt: 'desc' }
         });
     }
@@ -97,8 +126,7 @@ export class ReviewRepository extends BaseRepository<
 
         const reviews = await this.delegate.findMany({
             where: {
-                businessId: params.businessId,
-                ...(params.locationId && { locationId: params.locationId }),
+                ...this.buildAnalyticsWhere(params),
                 publishedAt: { gte: startDate }
             },
             select: { rating: true, publishedAt: true },
@@ -136,8 +164,7 @@ export class ReviewRepository extends BaseRepository<
 
         const reviews = await this.delegate.findMany({
             where: {
-                businessId: params.businessId,
-                ...(params.locationId && { locationId: params.locationId }),
+                ...this.buildAnalyticsWhere(params),
                 publishedAt: { gte: startDate }
             },
             select: { platform: true, publishedAt: true },
@@ -176,8 +203,7 @@ export class ReviewRepository extends BaseRepository<
 
         const reviews = await this.delegate.findMany({
             where: {
-                businessId: params.businessId,
-                ...(params.locationId && { locationId: params.locationId }),
+                ...this.buildAnalyticsWhere(params),
                 publishedAt: { gte: startDate },
                 sentiment: { not: null }
             },
@@ -225,10 +251,7 @@ export class ReviewRepository extends BaseRepository<
         limit?: number;
     }) {
         const reviews = await this.delegate.findMany({
-            where: {
-                businessId: params.businessId,
-                ...(params.locationId && { locationId: params.locationId })
-            },
+            where: this.buildAnalyticsWhere(params),
             select: { tags: true },
             take: 500, // Limit to recent 500 reviews for performance
             orderBy: { publishedAt: 'desc' }
@@ -258,11 +281,10 @@ export class ReviewRepository extends BaseRepository<
         locationId?: string;
         limit: number;
     }) {
+        const whereBase = this.buildAnalyticsWhere(params);
+
         const reviews = await this.delegate.findMany({
-            where: {
-                businessId: params.businessId,
-                ...(params.locationId && { locationId: params.locationId })
-            },
+            where: whereBase,
             select: {
                 id: true,
                 author: true,
@@ -280,8 +302,7 @@ export class ReviewRepository extends BaseRepository<
         // Count unreplied reviews
         const unrepliedCount = await this.delegate.count({
             where: {
-                businessId: params.businessId,
-                ...(params.locationId && { locationId: params.locationId }),
+                ...whereBase,
                 response: null
             }
         });
@@ -292,8 +313,7 @@ export class ReviewRepository extends BaseRepository<
 
         const recentRepliesCount = await this.delegate.count({
             where: {
-                businessId: params.businessId,
-                ...(params.locationId && { locationId: params.locationId }),
+                ...whereBase,
                 respondedAt: { gte: sevenDaysAgo }
             }
         });
@@ -321,10 +341,7 @@ export class ReviewRepository extends BaseRepository<
         const previousStartDate = new Date();
         previousStartDate.setDate(previousEndDate.getDate() - params.periodDays);
 
-        const whereBase = {
-            businessId: params.businessId,
-            ...(params.locationId && { locationId: params.locationId })
-        };
+        const whereBase = this.buildAnalyticsWhere(params);
 
         // Helper to get stats for a date range
         const getStatsForRange = async (start: Date, end: Date) => {

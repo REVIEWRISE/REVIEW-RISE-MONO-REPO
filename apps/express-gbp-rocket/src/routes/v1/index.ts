@@ -39,10 +39,13 @@ router.post('/locations/:locationId/competitors', gbpCompetitorsController.addCo
 router.put('/locations/:locationId/competitors/:competitorId', gbpCompetitorsController.updateCompetitor);
 router.delete('/locations/:locationId/competitors/:competitorId', gbpCompetitorsController.removeCompetitor);
 
+router.get('/photos/staging/:token', gbpPhotosController.serveStagingPhoto);
+
 router.get('/locations/:locationId/photos', gbpPhotosController.getPhotos);
 router.post('/locations/:locationId/photos/sync', gbpPhotosController.syncPhotos);
 router.post('/locations/:locationId/photos', upload.single('photo'), gbpPhotosController.uploadPhoto);
-router.delete('/locations/:locationId/photos/:photoId', gbpPhotosController.deletePhoto);
+router.get('/locations/:locationId/photos/proxy/*', gbpPhotosController.proxyPhoto);
+router.delete('/locations/:locationId/photos/*', gbpPhotosController.deletePhoto);
 
 router.use('/dashboard', dashboardRoutes);
 

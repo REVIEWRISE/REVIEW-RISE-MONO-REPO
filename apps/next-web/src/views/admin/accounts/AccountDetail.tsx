@@ -25,7 +25,7 @@ import CustomTabList from '@core/components/mui/TabList'
 
 import ConfirmationDialog from '@components/shared/dialog/confirmation-dialog'
 
-import { getCurrentAccount, deleteAccount, getAccounts } from '@/app/actions/account'
+import { getCurrentAccount, deleteAccount, getAccounts, getAccount, getAccountByBusinessId } from '@/app/actions/account'
 
 import AccountDialog from './AccountDialog'
 import UserDialog from './UserDialog'
@@ -43,12 +43,12 @@ const PLAN_COLOR_MAP: Record<string, 'primary' | 'warning' | 'success' | 'second
   enterprise: 'warning'
 }
 
-const AccountDetail = () => {
+const AccountDetail = ({ accountId, initialTab = 'overview' }: { accountId?: string; initialTab?: string }) => {
   const { notify } = useSystemMessages()
   const t = useTranslation('dashboard')
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('overview')
+  const [tab, setTab] = useState(initialTab)
   const [editOpen, setEditOpen] = useState(false)
 
   // Users List State
@@ -119,7 +119,18 @@ const AccountDetail = () => {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const res = await getCurrentAccount()
+
+    let res: any
+
+    if (accountId) {
+      res = await getAccount(accountId)
+
+      if (res?.error) {
+        res = await getAccountByBusinessId(accountId)
+      }
+    } else {
+      res = await getCurrentAccount()
+    }
 
     if (res && !('error' in res)) {
       setData(res)
@@ -128,7 +139,7 @@ const AccountDetail = () => {
     }
 
     setLoading(false)
-  }, [notify])
+  }, [accountId, notify])
 
   useEffect(() => {
     fetchData()
@@ -194,10 +205,11 @@ const AccountDetail = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  bgcolor: 'primary.light',
+                  bgcolor: 'common.white',
                   color: 'primary.main',
                   flexShrink: 0,
-                  border: theme => `2px solid ${theme.palette.primary.main}22`
+                  border: theme => `1px solid ${theme.palette.divider}`,
+                  boxShadow: theme => theme.shadows[1]
                 }}
               >
                 <i className='tabler-building-store' style={{ fontSize: '2rem' }} />
@@ -323,7 +335,7 @@ const AccountDetail = () => {
             </TabPanel>
 
             <TabPanel value='channels' sx={{ p: 0 }}>
-              <AccountChannels />
+              <AccountChannels data={data} onRefresh={fetchData} />
             </TabPanel>
 
             <TabPanel value='logs' sx={{ p: 0 }}>

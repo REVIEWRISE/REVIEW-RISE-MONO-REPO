@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-no-literals */
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'

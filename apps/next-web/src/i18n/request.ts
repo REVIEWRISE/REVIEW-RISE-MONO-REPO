@@ -1,6 +1,30 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { getRequestConfig } from 'next-intl/server'
 
 import { routing } from './routing'
+import enGbpRocket from '../../messages/en/gbp-rocket.json'
+import arGbpRocket from '../../messages/ar/gbp-rocket.json'
+
+const gbpRocketMessages = {
+  en: enGbpRocket,
+  ar: arGbpRocket,
+} as const
+
+function loadGbpRocketMessages(locale: string) {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      return JSON.parse(
+        readFileSync(join(process.cwd(), 'messages', locale, 'gbp-rocket.json'), 'utf8')
+      )
+    } catch {
+      // Fall back to bundled messages if the dev-time read fails.
+    }
+  }
+
+  return gbpRocketMessages[locale as keyof typeof gbpRocketMessages] ?? enGbpRocket
+}
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // This typically corresponds to the `[locale]` segment
@@ -31,7 +55,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       meta: adRiseMessages.meta,
       simulator: (await import(`../../messages/${locale}/simulator.json`)).default,
       'ad-rise': adRiseMessages,
-      gbpRocket: (await import(`../../messages/${locale}/gbp-rocket.json`)).default
+      gbpRocket: loadGbpRocketMessages(locale)
     }
   }
 })
