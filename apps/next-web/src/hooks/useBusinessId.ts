@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import { SERVICES } from '@/configs/services';
 import apiClient from '@/lib/apiClient';
+import { isValidLocationId } from '@/utils/locationId';
 import { useLocationFilter } from './useLocationFilter';
 
 export const useBusinessId = () => {
@@ -15,8 +16,10 @@ export const useBusinessId = () => {
 
       try {
         // If a specific location is selected, fetch it to get the business ID
-        if (locationId) {
-          const response = await apiClient.get<any>(`${SERVICES.admin.url}/locations/${locationId}`);
+        if (isValidLocationId(locationId)) {
+          const response = await apiClient.get<any>(`${SERVICES.admin.url}/locations/${locationId}`, {
+            headers: { 'x-skip-system-message': '1' }
+          });
           const location = response.data?.data || response.data;
 
           if (location?.businessId) {

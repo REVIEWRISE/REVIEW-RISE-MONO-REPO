@@ -1,5 +1,6 @@
 import { platformIntegrationRepository, Prisma, reviewReplyRepository, reviewRepository } from '@platform/db';
 import { googleReviewsService } from './google-reviews.service';
+import { resolveGbpLocationResourceName } from '../utils/gbp-location';
 import { tokenGuardService } from './token-guard.service';
 
 export interface ListReviewsParams {
@@ -31,14 +32,15 @@ export const listReviewsByLocation = async (params: ListReviewsParams) => {
 
     const where: Prisma.ReviewWhereInput = {
         locationId,
+        reviewSourceId: { not: null },
     };
 
     if (platform && platform !== 'all') {
-        where.platform = platform;
+        where.platform = platform === 'gbp' ? { in: ['gbp', 'google'] } : platform;
     }
 
     if (rating) {
-        where.rating = Number(rating);
+        where.rating = { gte: Number(rating) };
     }
 
     if (startDate || endDate) {
@@ -52,11 +54,17 @@ export const listReviewsByLocation = async (params: ListReviewsParams) => {
     }
 
     if (sentiment && sentiment !== 'all') {
-        where.sentiment = sentiment;
+        where.sentiment = { equals: sentiment, mode: 'insensitive' };
     }
 
     if (replyStatus && replyStatus !== 'all') {
-        (where as any).replyStatus = replyStatus;
+        if (replyStatus === 'unanswered' || replyStatus === 'none') {
+            where.response = null;
+        } else if (replyStatus === 'replied' || replyStatus === 'posted') {
+            where.response = { not: null };
+        } else {
+            (where as Prisma.ReviewWhereInput & { replyStatus?: string }).replyStatus = replyStatus;
+        }
     }
 
     const { items: reviews, total } = await reviewRepository.findPaginated({
@@ -126,19 +134,13 @@ export const postReviewReply = async (
             throw new Error(errorMsg);
         }
 
-        const gbpLocationName = integration.gbpLocationName;
-        if (!gbpLocationName) {
-            const errorMsg = 'Missing GBP locationName in integration';
-            await Promise.all([
-                reviewRepository.update(reviewId, { replyStatus: 'failed', replyError: errorMsg } as any),
-                reviewReplyRepository.update(replyRecord.id, { status: 'failed' })
-            ]);
-            throw new Error(errorMsg);
-        }
+        const reviewsLocationName = resolveGbpLocationResourceName(
+            integration.gbpLocationName,
+            integration.gbpAccountId
+        );
 
         // 3. Reconstruct the full review name
-        // externalId is the platform-specific reviewId
-        const reviewName = `${gbpLocationName}/reviews/${review.externalId}`;
+        const reviewName = `${reviewsLocationName}/reviews/${review.externalId}`;
 
         try {
 

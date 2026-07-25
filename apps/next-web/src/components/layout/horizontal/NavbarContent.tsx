@@ -2,7 +2,11 @@
 'use client'
 
 // Third-party Imports
+import { Suspense } from 'react'
 import classnames from 'classnames'
+
+// MUI Imports
+import Skeleton from '@mui/material/Skeleton'
 
 // Component Imports
 import ModeDropdown from '@components/layout/shared/ModeDropdown'
@@ -26,7 +30,9 @@ const NavbarContent = () => {
       <div className='flex items-center gap-4 flex-grow'>
         <NavToggle />
         <div className='hidden md:flex items-center gap-4'>
-          <LocationDropdown />
+          <Suspense fallback={<Skeleton variant="rounded" width={160} height={40} />}>
+            <LocationDropdown />
+          </Suspense>
         </div>
 
         <div className='flex-grow mx-4'>

@@ -83,8 +83,18 @@ return NextResponse.json(wrapped, { status: response.status });
     } catch (error) {
         console.error('Social Proxy error:', error);
 
+        const isConnectionRefused =
+            error instanceof Error &&
+            'cause' in error &&
+            error.cause &&
+            typeof error.cause === 'object' &&
+            'code' in error.cause &&
+            error.cause.code === 'ECONNREFUSED';
+
         const errorResponse = createErrorResponse(
-            'Proxy error',
+            isConnectionRefused
+                ? 'Social service is unavailable. Ensure express-social is running on port 3003.'
+                : 'Proxy error',
             ErrorCode.INTERNAL_SERVER_ERROR,
             500,
             String(error)

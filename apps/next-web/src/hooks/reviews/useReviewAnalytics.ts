@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useApiGet, useApiPost } from '@/hooks/useApi'
+import { SERVICES_CONFIG } from '@/configs/services'
+import { resolveScopedLocationId } from '@/utils/locationId'
 
 interface RatingTrendParams {
   businessId: string
@@ -33,72 +35,94 @@ interface SummaryParams {
   limit?: number
 }
 
+interface MetricsParams {
+  businessId: string
+  locationId?: string
+  period?: number
+}
+
 interface ComparisonParams {
   businessId: string
   locationId?: string
 }
 
-import { SERVICES_CONFIG } from '@/configs/services'
-
 const REVIEWS_API = SERVICES_CONFIG.review.url
 
+const toAnalyticsQuery = <T extends { businessId: string; locationId?: string }>(params: T) => {
+  const scopedLocationId = resolveScopedLocationId(params.locationId)
+  const { locationId: _locationId, ...rest } = params
+
+  return scopedLocationId ? { ...rest, locationId: scopedLocationId } : rest
+}
+
 export const useRatingTrend = (params: RatingTrendParams) => {
+  const query = toAnalyticsQuery(params)
+
   return useApiGet(
-    ['analytics', 'rating-trend', params.businessId, params.locationId || 'all', String(params.period)],
+    ['analytics', 'rating-trend', params.businessId, query.locationId || 'all', String(params.period)],
     `${REVIEWS_API}/reviews/analytics/rating-trend`,
-    params,
+    query,
     { enabled: !!params.businessId }
   )
 }
 
 export const useReviewVolume = (params: VolumeParams) => {
+  const query = toAnalyticsQuery(params)
+
   return useApiGet(
-    ['analytics', 'volume', params.businessId, params.locationId || 'all', String(params.period)],
+    ['analytics', 'volume', params.businessId, query.locationId || 'all', String(params.period)],
     `${REVIEWS_API}/reviews/analytics/volume`,
-    params,
+    query,
     { enabled: !!params.businessId }
   )
 }
 
 export const useSentimentHeatmap = (params: SentimentParams) => {
+  const query = toAnalyticsQuery(params)
+
   return useApiGet(
-    ['analytics', 'sentiment', params.businessId, params.locationId || 'all', String(params.period), params.groupBy || 'day'],
+    ['analytics', 'sentiment', params.businessId, query.locationId || 'all', String(params.period), params.groupBy || 'day'],
     `${REVIEWS_API}/reviews/analytics/sentiment`,
-    params,
+    query,
     { enabled: !!params.businessId }
   )
 }
 
 export const useTopKeywords = (params: KeywordsParams) => {
+  const query = toAnalyticsQuery(params)
+
   return useApiGet(
-    ['analytics', 'keywords', params.businessId, params.locationId || 'all', String(params.limit)],
+    ['analytics', 'keywords', params.businessId, query.locationId || 'all', String(params.limit)],
     `${REVIEWS_API}/reviews/analytics/keywords`,
-    params,
+    query,
     { enabled: !!params.businessId }
   )
 }
 
 export const useRecentSummary = (params: SummaryParams) => {
+  const query = toAnalyticsQuery(params)
+
   return useApiGet(
-    ['analytics', 'summary', params.businessId, params.locationId || 'all', String(params.limit)],
+    ['analytics', 'summary', params.businessId, query.locationId || 'all', String(params.limit)],
     `${REVIEWS_API}/reviews/analytics/summary`,
-    params,
+    query,
     { enabled: !!params.businessId }
   )
 }
 
 export const useCompetitorComparison = (params: ComparisonParams) => {
+  const query = toAnalyticsQuery(params)
+
   return useApiGet(
-    ['analytics', 'competitor-comparison', params.businessId, params.locationId || 'all'],
+    ['analytics', 'competitor-comparison', params.businessId, query.locationId || 'all'],
     `${REVIEWS_API}/reviews/analytics/competitor-comparison`,
-    params,
+    query,
     { enabled: !!params.businessId }
   )
 }
 
 export const useAddCompetitor = () => {
   const queryClient = useQueryClient()
-
 
   return useApiPost(
     `${REVIEWS_API}/reviews/analytics/competitors`,
@@ -110,23 +134,27 @@ export const useAddCompetitor = () => {
   )
 }
 
-export const useDashboardMetrics = (params: SummaryParams) => {
+export const useDashboardMetrics = (params: MetricsParams) => {
+  const query = toAnalyticsQuery(params)
+
   return useApiGet(
-    ['analytics', 'metrics', params.businessId, params.locationId || 'all', String(params.limit)],
+    ['analytics', 'metrics', params.businessId, query.locationId || 'all', String(params.period)],
     `${REVIEWS_API}/reviews/analytics/metrics`,
-    params,
+    query,
     { enabled: !!params.businessId }
   )
 }
 
 export const useReviewAnalytics = (businessId: string, locationId?: string, period = 30) => {
-  const trend = useRatingTrend({ businessId, locationId: locationId === 'all' ? undefined : locationId, period })
-  const volume = useReviewVolume({ businessId, locationId: locationId === 'all' ? undefined : locationId, period })
-  const sentiment = useSentimentHeatmap({ businessId, locationId: locationId === 'all' ? undefined : locationId, period })
-  const keywords = useTopKeywords({ businessId, locationId: locationId === 'all' ? undefined : locationId })
-  const summary = useRecentSummary({ businessId, locationId: locationId === 'all' ? undefined : locationId })
-  const comparison = useCompetitorComparison({ businessId, locationId: locationId === 'all' ? undefined : locationId })
-  const metrics = useDashboardMetrics({ businessId, locationId: locationId === 'all' ? undefined : locationId, limit: period })
+  const scopedLocationId = resolveScopedLocationId(locationId)
+
+  const trend = useRatingTrend({ businessId, locationId: scopedLocationId, period })
+  const volume = useReviewVolume({ businessId, locationId: scopedLocationId, period })
+  const sentiment = useSentimentHeatmap({ businessId, locationId: scopedLocationId, period })
+  const keywords = useTopKeywords({ businessId, locationId: scopedLocationId })
+  const summary = useRecentSummary({ businessId, locationId: scopedLocationId })
+  const comparison = useCompetitorComparison({ businessId, locationId: scopedLocationId })
+  const metrics = useDashboardMetrics({ businessId, locationId: scopedLocationId, period })
   const addCompetitor = useAddCompetitor()
 
   return {

@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+import Alert from '@mui/material/Alert'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Grid from '@mui/material/Grid'
@@ -22,6 +23,8 @@ import { SystemMessageCode } from '@platform/contracts'
 
 import { getReviews } from '@/app/actions/review'
 import { useLocationFilter } from '@/hooks/useLocationFilter'
+import { useBusinessId } from '@/hooks/useBusinessId'
+import { isValidLocationId } from '@/utils/locationId'
 import { Link } from '@/i18n/routing'
 import { useSystemMessages } from '@/shared/components/SystemMessageProvider'
 import { useTranslations } from 'next-intl'
@@ -34,11 +37,21 @@ import CustomTextField from '@core/components/mui/TextField'
 
 import { ITEMS_LISTING_TYPE } from '@/configs/listingConfig'
 
+const normalizeChannelKey = (platform: string) => {
+  const key = platform.toLowerCase()
+
+  if (key === 'gbp' || key === 'google') return 'gbp'
+
+  return key
+}
+
 const SmartReviewList = () => {
   const { notify } = useSystemMessages()
   const theme = useTheme()
   const t = useTranslations('dashboard')
   const { locationId } = useLocationFilter()
+  const { businessId, loading: businessLoading } = useBusinessId()
+  const scopedLocationId = isValidLocationId(locationId) ? locationId : undefined
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
@@ -55,6 +68,14 @@ const SmartReviewList = () => {
   })
 
   const fetchData = useCallback(async () => {
+    if (!businessId) {
+      setData([])
+      setTotal(0)
+      setLoading(false)
+
+      return
+    }
+
     setLoading(true)
 
     // Calculate start and end of the selected day
@@ -72,7 +93,8 @@ const SmartReviewList = () => {
     const res = await getReviews({
       page: page + 1,
       limit: rowsPerPage,
-      locationId: locationId || undefined,
+      businessId,
+      locationId: scopedLocationId,
       rating: filters.rating ? Number(filters.rating) : undefined,
       platform: filters.platform || undefined,
       sentiment: filters.sentiment || undefined,
@@ -86,19 +108,25 @@ const SmartReviewList = () => {
       setData(res.data)
       setTotal(res.meta.total)
     } else {
+      setData([])
+      setTotal(0)
       notify(SystemMessageCode.GENERIC_ERROR)
     }
 
     setLoading(false)
-  }, [page, rowsPerPage, filters, locationId, notify])
+  }, [page, rowsPerPage, filters, businessId, scopedLocationId, notify])
 
   useEffect(() => {
     setPage(0)
-  }, [locationId])
+  }, [scopedLocationId, businessId])
 
   useEffect(() => {
+    if (businessLoading) {
+      return
+    }
+
     fetchData()
-  }, [fetchData])
+  }, [fetchData, businessLoading])
 
   const handleFilterChange = (field: string, value: any) => {
     setFilters(prev => ({ ...prev, [field]: value }))
@@ -450,7 +478,9 @@ const SmartReviewList = () => {
                     return (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
                         <i className='tabler-world' style={{ fontSize: '1.2rem', color: theme.palette.primary.main }} />
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{t(`common.channel.${selected as string}`)}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {t(`common.channel.${normalizeChannelKey(selected as string)}`)}
+                        </Typography>
                       </Box>
                     )
                   }
@@ -540,10 +570,25 @@ const SmartReviewList = () => {
         </CardContent>
       </Card>
 
+      {!loading && !businessLoading && total === 0 && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          {scopedLocationId
+            ? t('reviews.smart.noSyncedReviewsLocation')
+            : t('reviews.smart.noSyncedReviews')}
+          {' '}
+          <Link
+            href={(scopedLocationId ? `/admin/locations/${scopedLocationId}?tab=integrations` : '/admin/locations') as any}
+            style={{ fontWeight: 600 }}
+          >
+            {t('reviews.smart.connectToSync')}
+          </Link>
+        </Alert>
+      )}
+
       <ItemsListing
         type={ITEMS_LISTING_TYPE.table.value}
         items={data}
-        isLoading={loading}
+        isLoading={loading || businessLoading}
         pagination={{
           page: page + 1,
           pageSize: rowsPerPage,
@@ -565,8 +610,8 @@ const SmartReviewList = () => {
           permission: { action: 'read', subject: 'review' }
         }}
         emptyStateConfig={{
-          title: t('reviews.smart.empty.title'),
-          description: t('reviews.smart.empty.description'),
+          title: scopedLocationId ? t('reviews.smart.noSyncedReviewsLocation') : t('reviews.smart.empty.title'),
+          description: t('reviews.smart.connectToSync'),
           icon: 'tabler-message-off'
         }}
       />

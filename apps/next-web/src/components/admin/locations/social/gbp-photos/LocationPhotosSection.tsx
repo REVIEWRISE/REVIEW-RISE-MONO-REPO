@@ -3,13 +3,14 @@
 import React from 'react';
 import { Box, Typography, Button, Stack, useTheme, alpha, CircularProgress , Menu, MenuItem, ListItemIcon } from '@mui/material';
 import { useTranslations } from 'next-intl';
+import toast from 'react-hot-toast';
 import SyncIcon from '@mui/icons-material/Sync';
 import CollectionsOutlinedIcon from '@mui/icons-material/CollectionsOutlined';
 import PhotoOutlinedIcon from '@mui/icons-material/PhotoOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import { useGbpPhotos, useSyncGbpPhotos, useUploadGbpPhoto } from '@/hooks/gbp/useGbpPhotos';
+import { useGbpPhotos, useSyncGbpPhotos, useUploadGbpPhoto, extractApiErrorMessage } from '@/hooks/gbp/useGbpPhotos';
 import { LocationPhotosGrid } from './LocationPhotosGrid';
 import { GbpPhotoCategory } from '@platform/contracts';
 import { PHOTO_CATEGORIES } from './PhotosFilterToolbar';
@@ -80,11 +81,28 @@ export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps
         fileInputRef.current?.click();
     };
 
+    const getUploadErrorMessage = (uploadError: unknown) => {
+        const apiMessage = extractApiErrorMessage(uploadError);
+        if (apiMessage?.includes('Cannot reach Google Business Profile API')) {
+            return t('uploadNetworkError');
+        }
+        if (apiMessage?.includes('GBP_PUBLIC_BASE_URL')) {
+            return t('uploadNeedsPublicUrl');
+        }
+        return apiMessage || t('uploadError');
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
 
-            uploadPhoto({ locationId, file, category: uploadCategory });
+            uploadPhoto(
+                { locationId, file, category: uploadCategory },
+                {
+                    onSuccess: () => toast.success(t('uploadSuccess')),
+                    onError: (uploadError) => toast.error(getUploadErrorMessage(uploadError)),
+                }
+            );
         }
 
         if (fileInputRef.current) {
@@ -141,7 +159,10 @@ export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps
                         variant="contained"
                         color="warning"
                         startIcon={isSyncing ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
-                        onClick={() => syncPhotos(locationId)}
+                        onClick={() => syncPhotos(locationId, {
+                            onSuccess: () => toast.success(t('syncSuccess')),
+                            onError: (syncError) => toast.error(extractApiErrorMessage(syncError) || t('syncError')),
+                        })}
                         disabled={isSyncing}
                         sx={{ fontWeight: 600, px: 3, textTransform: 'none', borderRadius: 1.5 }}
                     >
