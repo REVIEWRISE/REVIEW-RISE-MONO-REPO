@@ -67,8 +67,10 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/apps/next-web/public ./apps/next-web/public
 
 # Copy standalone output (this includes minimal node_modules)
-COPY --from=builder --chown=nextjs:nodejs /app/apps/next-web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/next-web/.next/static ./apps/next-web/.next/static
+COPY --from=builder /app/apps/next-web/.next/standalone ./
+COPY --from=builder /app/apps/next-web/.next/static ./apps/next-web/.next/static
+
+RUN chown -R nextjs:nodejs .
 
 USER nextjs
 

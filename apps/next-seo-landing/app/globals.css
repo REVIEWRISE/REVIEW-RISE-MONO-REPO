@@ -1,72 +1,108 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
-
+/* ── Vyntrise Design System ─────────────────────────────────────────────── */
 :root {
-  /* ReviewRise Brand Colors - Light theme */
-  --bg-primary: #ffffff;
-  --bg-secondary: #fafafa;
-  --bg-tertiary: #f4f4f5;
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --text-tertiary: #888888;
-  /* Primary: R:5 G:64 H:118 RGB(5, 64, 118) #054076 */
-  --brand-primary: #054076;
-  /* Secondary: R:285 G:255 H:255 RGB(285, 255, 255) */
-  --brand-secondary: rgba(285, 255, 255, 0.8);
-  /* Accent: R:249 G:256 H:48 RGB(249, 256, 48) CMYK 0, 37, 81, 2 */
-  --accent: #F9A030;
-  --accent-hover: #E68A00;
-  --border-color: #eaeaea;
-  --card-bg: #ffffff;
-  --shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  /* Backgrounds */
+  --bg-primary:    #05070D;
+  --bg-secondary:  #0B1020;
+  --bg-tertiary:   #111827;
+  --bg-card:       rgba(11, 16, 32, 0.7);
+
+  /* Text */
+  --text-primary:   #FFFFFF;
+  --text-secondary: #94A3B8;
+  --text-muted:     #64748B;
+
+  /* Brand accents */
+  --blue:   #3B82F6;
+  --violet: #8B5CF6;
+  --cyan:   #06B6D4;
+
+  /* Legacy compat (used by ResultsDisplay / ScoreGauge) */
+  --brand-primary: #3B82F6;
+  --accent:        #8B5CF6;
+  --accent-hover:  #7C3AED;
+
+  /* Borders */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+
+  /* Shadows / glows */
+  --shadow:    0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.6);
+  --glow-blue:   0 0 40px rgba(59, 130, 246, 0.25);
+  --glow-violet: 0 0 40px rgba(139, 92, 246, 0.25);
+  --glow-cyan:   0 0 40px rgba(6, 182, 212, 0.2);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #3B82F6, #8B5CF6);
+  --gradient-accent:  linear-gradient(135deg, #8B5CF6, #06B6D4);
+  --gradient-hero:    linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #06B6D4 100%);
 }
 
-[data-theme='dark'] {
-  /* ReviewRise Brand Colors - Dark theme */
-  --bg-primary: #000000;
-  --bg-secondary: #0a1929;
-  --bg-tertiary: #132f4c;
-  --text-primary: #ffffff;
-  --text-secondary: #888888;
-  --text-tertiary: #666666;
-  --brand-primary: #054076;
-  --brand-secondary: rgba(285, 255, 255, 0.1);
-  --accent: #F9A030;
-  --accent-hover: #FFB74D;
-  --border-color: #1e3a52;
-  --card-bg: #0a1929;
-  --shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+/* Light theme — keep dark as default, light is a soft override */
+[data-theme='light'] {
+  --bg-primary:    #F8FAFF;
+  --bg-secondary:  #EEF2FF;
+  --bg-tertiary:   #E0E7FF;
+  --bg-card:       rgba(255, 255, 255, 0.8);
+  --text-primary:  #0F172A;
+  --text-secondary:#475569;
+  --text-muted:    #94A3B8;
+  --border-color:  rgba(15, 23, 42, 0.08);
+  --border-hover:  rgba(15, 23, 42, 0.16);
+  --shadow:    0 4px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 48px rgba(15, 23, 42, 0.12);
+  --glow-blue:   0 0 40px rgba(59, 130, 246, 0.15);
+  --glow-violet: 0 0 40px rgba(139, 92, 246, 0.15);
 }
 
-* {
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
 
-html,
-body {
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  /* No transition on initial load — prevents background color flash */
+  line-height: 1.6;
 }
 
-/* ReviewRise brand geometric background pattern */
-[data-theme='dark'] body {
-  background-image:
-    radial-gradient(at 40% 20%, rgba(5, 64, 118, 0.2) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(249, 160, 48, 0.15) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(5, 64, 118, 0.15) 0px, transparent 50%);
-  background-color: var(--bg-primary);
+/* Re-enable transitions only after JS has run (ThemeProvider adds this class) */
+body.theme-ready {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode ambient background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59, 130, 246, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(139, 92, 246, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 100%, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+[data-theme='light'] body::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59, 130, 246, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(139, 92, 246, 0.05) 0%, transparent 60%);
 }
 
 a {
@@ -75,140 +111,233 @@ a {
   transition: color 0.2s ease;
 }
 
-a:hover {
-  color: var(--accent);
-}
-
 button {
   font-family: inherit;
   cursor: pointer;
   border: none;
   outline: none;
-  transition: all 0.2s ease;
 }
 
-/* ReviewRise Utility Classes */
+/* ── Typography ─────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space-grotesk), sans-serif;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* ── Utility classes ────────────────────────────────────────────────────── */
+
+/* Gradient text */
 .gradient-text {
-  background: linear-gradient(to right, var(--brand-primary), var(--accent));
+  background: var(--gradient-hero);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+.gradient-text-blue-violet {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass card */
 .glass-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: var(--shadow);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.brand-border {
+.glass-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-lg), var(--glow-blue);
+  transform: translateY(-4px);
+}
+
+/* Glow utilities */
+.glow-blue   { box-shadow: var(--glow-blue); }
+.glow-violet { box-shadow: var(--glow-violet); }
+.glow-cyan   { box-shadow: var(--glow-cyan); }
+
+/* Premium button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gradient-primary);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.45);
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 13px 27px;
+  border-radius: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
-.brand-border:hover {
-  border-color: var(--brand-primary);
+.btn-secondary:hover {
+  border-color: var(--blue);
+  background: rgba(59, 130, 246, 0.06);
+  transform: translateY(-1px);
 }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, color, border-color, transform, opacity;
-  transition-duration: 0.2s;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* Section spacing */
+.section {
+  padding: 140px 0;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.section-sm {
+  padding: 100px 0;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
 }
 
+.container-sm {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* Section header */
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 20px;
+}
+
+.section-subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* Divider line */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border-color), transparent);
+  margin: 0;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--blue); }
+
+/* ── Page loader ────────────────────────────────────────────────────────── */
+#page-loader svg {
+  animation: pl-pulse 1.4s ease-in-out infinite;
+}
+@keyframes pl-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(0.9); }
+}
+
+/* ── Animations ─────────────────────────────────────────────────────────── */
 @keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-
-  100% {
-    background-position: 1000px 0;
-  }
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.animate-slide-in {
-  animation: slideIn 0.5s ease-out;
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
 }
 
-/* ReviewRise Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-slow { animation: pulse 3s ease-in-out infinite; }
+.animate-glow { animation: glow-pulse 3s ease-in-out infinite; }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-hover);
-}
-
-/* ReviewRise geometric grid pattern */
-.grid-pattern {
-  background-image:
-    linear-gradient(var(--border-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
-  background-size: 50px 50px;
-  opacity: 0.3;
-}
-
-/* ReviewRise glow effect */
-.glow-effect {
-  box-shadow: 0 0 20px rgba(249, 160, 48, 0.3);
-}
-
-[data-theme='dark'] .glow-effect {
-  box-shadow: 0 0 30px rgba(249, 160, 48, 0.4);
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .section { padding: 80px 0; }
+  .section-sm { padding: 60px 0; }
+  .container, .container-sm { padding: 0 20px; }
+  .section-title { font-size: 32px; }
+  .section-subtitle { font-size: 16px; }
 }

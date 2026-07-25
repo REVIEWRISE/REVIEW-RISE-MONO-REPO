@@ -19,7 +19,22 @@ const nextConfig = {
   })(),
   basePath: process.env.BASEPATH,
   transpilePackages: ['@platform/utils', '@platform/contracts', '@platform/i18n', '@platform/db'],
-  serverExternalPackages: ['@prisma/client', '@prisma/client-runtime-utils']
+  serverExternalPackages: ['@prisma/client', '@prisma/client-runtime-utils'],
+  async headers() {
+    if (process.env.NODE_ENV !== 'production') return []
+
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+        ],
+      },
+    ]
+  }
 }
 
 export default withNextIntl(nextConfig)

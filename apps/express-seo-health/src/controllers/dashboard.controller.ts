@@ -10,10 +10,19 @@ export const getDashboardSummary = async (req: Request, res: Response): Promise<
         let businessId = inputBusinessId;
 
         // Resolve businessId if only locationId is provided
-        if (!businessId && inputLocationId && inputLocationId !== 'all') {
-            const location = await locationRepository.findById(inputLocationId);
-            if (location) {
-                businessId = location.businessId;
+        if (!businessId) {
+            if (inputLocationId && inputLocationId !== 'all') {
+                const location = await locationRepository.findById(inputLocationId);
+                if (location) {
+                    businessId = location.businessId;
+                }
+            } else if (inputLocationId === 'all') {
+                const firstBusiness = await businessRepository.findFirst({
+                    where: { deletedAt: null }
+                });
+                if (firstBusiness) {
+                    businessId = firstBusiness.id;
+                }
             }
         }
 

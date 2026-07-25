@@ -63,9 +63,7 @@ const VisibilityDashboard = () => {
               setBusinessId(loc.businessId);
               skipBusinessDropdown = true;
             }
-          } catch {
-            console.error('Failed to resolve context location');
-          }
+          } catch { console.error('Failed to resolve context location'); }
         }
 
         // Use apiClient (auto-unwraps data field)
@@ -175,7 +173,7 @@ const VisibilityDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, locationId]);
 
   // Fetch data when businessId changes
   useEffect(() => {

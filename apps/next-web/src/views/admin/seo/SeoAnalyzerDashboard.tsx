@@ -49,9 +49,7 @@ export default function SeoAnalyzerDashboard() {
                     }
                 }
             })
-            .catch(() => {
-                // Keep fallback URL if businesses cannot be loaded
-            })
+            .catch(() => {})
     }, [user?.id])
 
     const [selectedUrlId, setSelectedUrlId] = useState(urls[0].id)

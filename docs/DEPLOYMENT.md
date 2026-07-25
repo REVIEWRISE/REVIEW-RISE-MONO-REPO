@@ -22,8 +22,8 @@
 
 ### DNS Configuration
 Before deployment, configure DNS records:
-- `staging.reviewrise.com` → VPS IP address
-- `landing.reviewrise.com` → VPS IP address
+- `staging.vyntrise.com/` → VPS IP address
+- `landing.vyntrise.com/` → VPS IP address
 
 ---
 
@@ -109,11 +109,11 @@ apt install certbot -y
 
 # Generate certificates (Nginx must be stopped first)
 docker compose -f docker-compose.prod.yml down nginx || true
-certbot certonly --standalone -d staging.reviewrise.com -d landing.reviewrise.com
+certbot certonly --standalone -d staging.vyntrise.com/ -d landing.vyntrise.com/
 
 # Copy certificates to nginx/ssl directory
-cp /etc/letsencrypt/live/staging.reviewrise.com/fullchain.pem ./nginx/ssl/
-cp /etc/letsencrypt/live/staging.reviewrise.com/privkey.pem ./nginx/ssl/
+cp /etc/letsencrypt/live/staging.vyntrise.com//fullchain.pem ./nginx/ssl/
+cp /etc/letsencrypt/live/staging.vyntrise.com//privkey.pem ./nginx/ssl/
 chmod 644 ./nginx/ssl/*.pem
 
 # Update nginx/nginx.conf to uncomment SSL lines
@@ -142,7 +142,7 @@ docker compose -f docker-compose.prod.yml ps
 docker compose -f docker-compose.prod.yml logs -f
 
 # Test endpoints
-curl http://staging.reviewrise.com/health
+curl http://staging.vyntrise.com//health
 curl http://localhost/api/auth/health  # via internal network
 ```
 
@@ -173,7 +173,7 @@ Push to `develop` branch - GitHub Actions will automatically:
 - `VPS_HOST`: VPS IP or hostname
 - `VPS_USER`: SSH username (e.g., `deploy`)
 - `DEPLOY_PATH`: Repository path on VPS (e.g., `/opt/review-rise-monorepo`)
-- `STAGING_URL`: Full URL for health checks (e.g., `https://staging.reviewrise.com`)
+- `STAGING_URL`: Full URL for health checks (e.g., `https://staging.vyntrise.com/`)
 
 ---
 
@@ -453,4 +453,4 @@ docker system prune -a --volumes -f
 
 - Check service logs: `docker compose logs <service-name>`
 - Review health status: `docker compose ps`
-- Contact DevOps team: devops@reviewrise.com
+- Contact DevOps team: devops@vyntrise.com/

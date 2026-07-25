@@ -14,14 +14,14 @@ export default function ScoreGauge({ score, size = 200, showLabel = true }: Scor
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
-  
+
   // Color based on score
   const getColor = () => {
     if (score >= 75) return '#10b981'; // Green
     if (score >= 50) return '#f59e0b'; // Yellow
     return '#ef4444'; // Red
   };
-  
+
   const getStatus = () => {
     if (score >= 75) return t('verdicts.excellent');
     if (score >= 50) return t('verdicts.good');
@@ -40,7 +40,7 @@ export default function ScoreGauge({ score, size = 200, showLabel = true }: Scor
           stroke="var(--border-color)"
           strokeWidth={strokeWidth}
         />
-        
+
         {/* Progress circle */}
         <circle
           cx={size / 2}
@@ -55,7 +55,7 @@ export default function ScoreGauge({ score, size = 200, showLabel = true }: Scor
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
           className="progress-circle"
         />
-        
+
         {/* Score text */}
         <text
           x="50%"
@@ -76,7 +76,7 @@ export default function ScoreGauge({ score, size = 200, showLabel = true }: Scor
           {'/ 100'}
         </text>
       </svg>
-      
+
       {showLabel && (
         <div className="score-status" style={{ color: getColor() }}>
           {getStatus()}
@@ -97,16 +97,20 @@ export default function ScoreGauge({ score, size = 200, showLabel = true }: Scor
           transition: stroke-dashoffset 1s ease-in-out;
         }
         .score-text {
-          font-size: 48px;
-          font-weight: 800;
+          font-size: 44px;
+          font-weight: 700;
+          font-family: 'Space Grotesk', sans-serif;
         }
         .score-label {
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 600;
+          font-family: 'Space Grotesk', sans-serif;
         }
         .score-status {
-          font-size: 18px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 17px;
           font-weight: 700;
+          letter-spacing: -0.01em;
         }
       `}</style>
     </div>

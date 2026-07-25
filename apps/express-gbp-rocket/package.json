@@ -13,7 +13,6 @@
     "@platform/contracts": "workspace:*",
     "@platform/db": "workspace:*",
     "@platform/middleware": "workspace:*",
-    "@platform/utils": "workspace:*",
     "axios": "^1.7.2",
     "cors": "^2.8.5",
     "dayjs": "^1.11.19",

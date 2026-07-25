@@ -7,16 +7,6 @@
     "lastSynced": "Last synced {time} min ago",
     "syncPhotos": "Sync Photos",
     "syncing": "Syncing...",
-    "uploadPhoto": "Upload Photo",
-    "uploading": "Uploading...",
-    "uploadSuccess": "Photo uploaded to Google Business Profile",
-    "uploadError": "Failed to upload photo",
-    "uploadNeedsPublicUrl": "Photo upload needs GBP_PUBLIC_BASE_URL configured with a publicly reachable URL (use ngrok for local dev).",
-    "uploadNetworkError": "Cannot reach Google Business Profile API. Check your internet connection, VPN, or DNS settings and retry.",
-    "syncSuccess": "Photos synced from Google Business Profile",
-    "syncError": "Failed to sync photos",
-    "deleteSuccess": "Photo deleted from Google Business Profile",
-    "deleteError": "Failed to delete photo",
     "stats": {
       "total": "Total Photos",
       "cover": "Cover Photos",
@@ -42,7 +32,6 @@
       "food": "Food",
       "team": "Team",
       "additional": "Additional",
-      "uncategorized": "Uncategorized",
       "newest": "Newest",
       "oldest": "Oldest",
       "gridView": "Grid View",
@@ -52,8 +41,7 @@
       "noPhotosFound": "No photos found for this category.",
       "errorLoading": "Error loading photos:",
       "updatedDaysAgo": "Updated {days} days ago",
-      "loadMore": "Load More Photos",
-      "showingCategory": "Showing {count} of {total} {category} photos"
+      "loadMore": "Load More Photos"
     },
     "details": {
       "title": "Photo Details",
@@ -72,8 +60,7 @@
       "containsText": "Contains text overlay",
       "analyzeAgain": "Analyze Again",
       "viewOnGoogle": "View on Google",
-      "deletePhoto": "Delete Photo",
-      "deletePhotoConfirm": "Delete this photo from Google Business Profile? This action cannot be undone."
+      "deletePhoto": "Delete Photo"
     }
   },
   "audit": {
@@ -190,8 +177,6 @@
     "discoveryDesc": "Customers found your business through category or service searches (e.g., \"coffee near me\").",
     "directDesc": "Customers searched specifically for your business name or address.",
     "competitorBaseline": "Competitor Baseline",
-    "addCompetitor": "Add Competitor",
-    "cancel": "Cancel",
     "businessName": "Business Name",
     "estVisibility": "Est. Visibility",
     "photoCount": "Photo Count",

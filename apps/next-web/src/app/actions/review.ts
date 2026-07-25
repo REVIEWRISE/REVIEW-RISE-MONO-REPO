@@ -1,31 +1,10 @@
 /* eslint-disable import/no-unresolved */
 'use server'
 
-import { reviewRepository, brandProfileRepository, locationRepository, prisma, SYNCED_REVIEW_WHERE } from '@platform/db'
+import { reviewRepository, brandProfileRepository } from '@platform/db'
 import type { Prisma } from '@platform/db'
 
 import { SERVICES_CONFIG } from '@/configs/services'
-import { getServerUser } from '@/utils/serverAuth'
-
-const isGlobalAdmin = (user: { roles?: string[]; role?: string }) => {
-  const roles = Array.isArray(user?.roles) ? user.roles.map((role) => role?.toLowerCase()) : []
-  const role = String(user?.role || '').toLowerCase()
-
-  return roles.includes('admin') || role === 'admin'
-}
-
-const userHasBusinessAccess = async (userId: string, businessId: string, user: { roles?: string[]; role?: string }) => {
-  if (isGlobalAdmin(user)) {
-    return true
-  }
-
-  const membership = await prisma.userBusinessRole.findFirst({
-    where: { userId, businessId, deletedAt: null },
-    select: { id: true },
-  })
-
-  return !!membership
-}
 
 export async function getReviews(params: {
   page?: number
@@ -41,17 +20,6 @@ export async function getReviews(params: {
   search?: string
 }) {
   try {
-    const user = await getServerUser()
-
-    if (!user?.id) {
-      return {
-        success: false,
-        error: 'Unauthorized',
-        data: [],
-        meta: { total: 0, page: 1, limit: 10, pages: 0 },
-      }
-    }
-
     const {
       page = 1,
       limit = 10,
@@ -63,58 +31,19 @@ export async function getReviews(params: {
       endDate,
       sentiment,
       replyStatus,
-      search,
+      search
     } = params
 
-    if (!businessId) {
-      return {
-        success: false,
-        error: 'businessId is required',
-        data: [],
-        meta: { total: 0, page: 1, limit: 10, pages: 0 },
-      }
-    }
+    const where: Prisma.ReviewWhereInput = {}
 
-    const hasAccess = await userHasBusinessAccess(user.id, businessId, user)
-
-    if (!hasAccess) {
-      return {
-        success: false,
-        error: 'Forbidden',
-        data: [],
-        meta: { total: 0, page: 1, limit: 10, pages: 0 },
-      }
-    }
-
-    const where: Prisma.ReviewWhereInput = {
-      businessId,
-      ...SYNCED_REVIEW_WHERE,
-    }
-
-    if (locationId) {
-      const location = await locationRepository.findById(locationId)
-
-      if (!location || location.businessId !== businessId || location.deletedAt) {
-        return {
-          success: false,
-          error: 'Invalid location for business',
-          data: [],
-          meta: { total: 0, page: 1, limit: 10, pages: 0 },
-        }
-      }
-
-      where.locationId = locationId
-    }
-
-    if (platform && platform !== 'all') {
-      where.platform = platform === 'gbp' ? { in: ['gbp', 'google'] } : platform
-    }
-
+    if (locationId) where.locationId = locationId
+    if (businessId) where.businessId = businessId
+    if (platform && platform !== 'all') where.platform = platform
     if (rating) where.rating = Number(rating)
     if (sentiment && sentiment !== 'all') where.sentiment = sentiment
 
     if (replyStatus && replyStatus !== 'all') {
-      ;(where as Prisma.ReviewWhereInput & { replyStatus?: string }).replyStatus = replyStatus
+      ; (where as any).replyStatus = replyStatus
     }
 
     if (startDate || endDate) {
@@ -126,7 +55,7 @@ export async function getReviews(params: {
     if (search) {
       where.OR = [
         { content: { contains: search, mode: 'insensitive' } },
-        { author: { contains: search, mode: 'insensitive' } },
+        { author: { contains: search, mode: 'insensitive' } }
       ]
     }
 
@@ -134,7 +63,7 @@ export async function getReviews(params: {
       where,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { publishedAt: 'desc' },
+      orderBy: { publishedAt: 'desc' }
     })
 
     return {
@@ -144,8 +73,8 @@ export async function getReviews(params: {
         total: result.total,
         page,
         limit,
-        pages: Math.ceil(result.total / limit),
-      },
+        pages: Math.ceil(result.total / limit)
+      }
     }
   } catch (error: any) {
     console.error('getReviews error:', error)
@@ -154,7 +83,7 @@ export async function getReviews(params: {
       success: false,
       error: error.message,
       data: [],
-      meta: { total: 0, page: 1, limit: 10, pages: 0 },
+      meta: { total: 0, page: 1, limit: 10, pages: 0 }
     }
   }
 }
@@ -163,7 +92,7 @@ export async function getReviewById(id: string) {
   try {
     const review = await reviewRepository.findById(id)
 
-    if (!review || !review.reviewSourceId) {
+    if (!review) {
       return { success: false, error: 'Review not found' }
     }
 
@@ -179,7 +108,7 @@ export async function getReviewWithHistory(reviewId: string) {
   try {
     const review = await reviewRepository.findByIdWithReplies(reviewId)
 
-    if (!review || !review.reviewSourceId) throw new Error('Review not found')
+    if (!review) throw new Error('Review not found')
 
     return {
       success: true,

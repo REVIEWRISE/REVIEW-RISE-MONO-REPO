@@ -241,12 +241,8 @@ export const getCompetitorComparison = async (req: Request, res: Response) => {
             locationId as string | undefined
         );
 
-        // Get business's own stats for comparison (scoped to location when provided)
-        const businessReviews = await reviewRepository.findByBusinessId(
-            businessId,
-            locationId as string | undefined,
-            true
-        );
+        // Get business's own stats for comparison
+        const businessReviews = await reviewRepository.findByBusinessId(businessId);
         const totalReviews = businessReviews.length;
         const averageRating = totalReviews > 0
             ? businessReviews.reduce((acc, r) => acc + (r.rating || 0), 0) / totalReviews

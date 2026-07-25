@@ -76,7 +76,7 @@ Simply your VPS IP address or domain:
 
 **Examples:**
 - `123.45.67.89`
-- `staging.reviewrise.com`
+- `staging.vyntrise.com/`
 
 ---
 
@@ -105,8 +105,8 @@ The full URL where your app will be accessible.
 
 **Examples:**
 - `http://123.45.67.89` (if using IP)
-- `http://staging.reviewrise.com` (if using domain)
-- `https://staging.reviewrise.com` (if SSL configured)
+- `http://staging.vyntrise.com/` (if using domain)
+- `https://staging.vyntrise.com/` (if SSL configured)
 
 ---
 

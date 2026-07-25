@@ -25,7 +25,7 @@ import { alpha, useTheme } from '@mui/material/styles'
 import { useTranslations } from 'next-intl'
 
 import { SERVICES_CONFIG } from '@/configs/services'
-import { useGbpPhotos, useSyncGbpPhotos, getGbpPhotoProxyUrl } from '@/hooks/gbp/useGbpPhotos'
+import { useGbpPhotos, useSyncGbpPhotos } from '@/hooks/gbp/useGbpPhotos'
 import { useLocationFilter } from '@/hooks/useLocationFilter'
 import apiClient from '@/lib/apiClient'
 import type { GbpSnapshotItem, GbpSnapshotDetail } from './_components/SnapshotHistory'
@@ -817,7 +817,7 @@ const AdminGBPRocketPage = () => {
                               <ImageListItem key={photo.id}>
                                 <Box
                                   component='img'
-                                  src={getGbpPhotoProxyUrl(locationId || '', photo.id)}
+                                  src={photo.thumbnailUrl || photo.googleUrl}
                                   alt='GBP photo'
                                   sx={{ height: 130, width: '100%', objectFit: 'cover', borderRadius: 1.5 }}
                                 />

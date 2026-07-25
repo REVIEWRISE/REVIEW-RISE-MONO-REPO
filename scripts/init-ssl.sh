@@ -13,7 +13,7 @@ fi
 
 set -e # Exit immediately if any command fails
 
-domains=(vyntrise.com app.vyntrise.com)
+domains=(vyntrise.com seo-analyzer.vyntrise.com app.vyntrise.com crm.vyntrise.com)
 rsa_key_size=4096
 data_path="./nginx/certbot"
 email="support@vyntrise.com" # Change this to your email
@@ -39,67 +39,94 @@ if [ ! -e "$data_path/conf/options-ssl-nginx.conf" ] || [ ! -e "$data_path/conf/
   echo
 fi
 
-echo "### Creating dummy certificate for $domains ..."
-path="/etc/letsencrypt/live/$domains"
-mkdir -p "$data_path/conf/live/$domains"
-docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
-  openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 365\
-    -keyout '$path/privkey.pem' \
-    -out '$path/fullchain.pem' \
-    -subj '/CN=${domains[0]}'" certbot
-echo
-
+# Request a separate certificate for each domain
+for domain in "${domains[@]}"; do
+  echo "### Creating dummy certificate for $domain ..."
+  path="/etc/letsencrypt/live/$domain"
+  mkdir -p "$data_path/conf/live/$domain"
+  docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+    openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 365\
+      -keyout '$path/privkey.pem' \
+      -out '$path/fullchain.pem' \
+      -subj '/CN=$domain'" certbot
+  echo
+done
 
 echo "### Starting nginx ..."
 docker compose -f docker-compose.prod.yml up --force-recreate -d nginx
 echo
 
-echo "### Deleting dummy certificate for $domains ..."
-docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
-  rm -Rf /etc/letsencrypt/live/$domains && \
-  rm -Rf /etc/letsencrypt/archive/$domains && \
-  rm -Rf /etc/letsencrypt/renewal/$domains.conf" certbot
-echo
-
-
-echo "### Requesting Let's Encrypt certificate for $domains ..."
-#Join $domains to -d args
-domain_args=""
 for domain in "${domains[@]}"; do
-  domain_args="$domain_args -d $domain"
+  echo "### Deleting dummy certificate for $domain ..."
+  docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+    rm -Rf /etc/letsencrypt/live/$domain && \
+    rm -Rf /etc/letsencrypt/archive/$domain && \
+    rm -Rf /etc/letsencrypt/renewal/$domain.conf" certbot
+  echo
+
+  echo "### Requesting Let's Encrypt certificate for $domain ..."
+
+  # Select appropriate email arg
+  case "$email" in
+    "") email_arg="--register-unsafely-without-email" ;;
+    *) email_arg="--email $email" ;;
+  esac
+
+  # Enable staging mode if needed
+  staging_arg=""
+  if [ $staging != "0" ]; then staging_arg="--staging"; fi
+
+  # Request both bare and www domains for the main site
+  domain_args="-d $domain"
+  if [ "$domain" = "vyntrise.com" ]; then
+    domain_args="-d vyntrise.com -d www.vyntrise.com"
+  fi
+
+  if ! docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+    certbot certonly --webroot -w /var/www/certbot \
+      $staging_arg \
+      $email_arg \
+      $domain_args \
+      --rsa-key-size $rsa_key_size \
+      --agree-tos \
+      --cert-name $domain \
+      " certbot; then
+      echo
+      echo "### [ERROR] Let's Encrypt request failed for $domain!"
+      echo "### Fallback: Restoring dummy certificate..."
+      mkdir -p "$data_path/conf/live/$domain"
+      docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
+        openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 365\
+          -keyout '$path/privkey.pem' \
+          -out '$path/fullchain.pem' \
+          -subj '/CN=$domain'" certbot
+      echo "### Dummy certificate restored for $domain."
+  fi
+  echo
 done
 
-# Select appropriate email arg
-case "$email" in
-  "") email_arg="--register-unsafely-without-email" ;;
-  *) email_arg="--email $email" ;;
-esac
-
-# Enable staging mode if needed
-if [ $staging != "0" ]; then staging_arg="--staging"; fi
-
-if ! docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
-  certbot certonly --webroot -w /var/www/certbot \
-    $staging_arg \
-    $email_arg \
-    $domain_args \
-    --rsa-key-size $rsa_key_size \
-    --agree-tos \
-    --cert-name "${domains[0]}" \
-    " certbot; then
-    echo
-    echo "### [ERROR] Let's Encrypt request failed!"
-    echo "### Fallback: Restoring dummy certificate to ensure Nginx can start..."
+echo "### Creating symlinks for versioned certificates..."
+# Check if certificates were created with version suffixes and create symlinks
+for domain in "${domains[@]}"; do
+  # Find the actual certificate directory (may have -0001, -0002 suffix)
+  ACTUAL_CERT=$(docker compose -f docker-compose.prod.yml run --rm --entrypoint "sh -c 'ls -d /etc/letsencrypt/live/${domain}* 2>/dev/null | head -1'" certbot | tr -d '\r')
+  
+  if [ -n "$ACTUAL_CERT" ] && [ "$ACTUAL_CERT" != "/etc/letsencrypt/live/$domain" ]; then
+    CERT_BASENAME=$(basename "$ACTUAL_CERT")
+    echo "Found versioned certificate: $CERT_BASENAME for $domain"
     
-    path="/etc/letsencrypt/live/$domains"
-    mkdir -p "$data_path/conf/live/$domains"
+    # Create symlink from base name to versioned name
     docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
-      openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 365\
-        -keyout '$path/privkey.pem' \
-        -out '$path/fullchain.pem' \
-        -subj '/CN=${domains[0]}'" certbot
-    echo "### Dummy certificate restored."
-fi
+      sh -c 'cd /etc/letsencrypt/live && \
+             rm -f $domain && \
+             ln -sf $CERT_BASENAME $domain && \
+             ls -la $domain'" certbot
+    
+    echo "Created symlink: $domain -> $CERT_BASENAME"
+  else
+    echo "Certificate for $domain is at expected location"
+  fi
+done
 echo
 
 echo "### Reloading nginx ..."

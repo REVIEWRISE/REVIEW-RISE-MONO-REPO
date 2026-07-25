@@ -1,6 +1,6 @@
 'use client';
 
-import { getGbpPhotoProxyUrl, useGbpPhotos, useDeleteGbpPhoto, extractApiErrorMessage } from '@/hooks/gbp/useGbpPhotos';
+import { getGbpPhotoProxyUrl, useGbpPhotos, useDeleteGbpPhoto } from '@/hooks/gbp/useGbpPhotos';
 import {
   alpha,
   Box,
@@ -20,12 +20,10 @@ import {
   useTheme
 } from '@mui/material';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
-import { SystemMessageSeverity } from '@platform/contracts';
+import { useState } from 'react';
+import { GbpPhotoCategory } from '@platform/contracts';
 
-import { PhotosFilterToolbar } from './PhotosFilterToolbar';
-import { getCategoryColor, getCategoryLabelKey, matchesPhotoSearch, sortPhotos } from './photoCategoryUtils';
-import { useSystemMessages } from '@/shared/components/SystemMessageProvider';
+import { PhotosFilterToolbar, PHOTO_CATEGORIES } from './PhotosFilterToolbar';
 
 // Icons
 import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled';
@@ -51,11 +49,38 @@ const MOCK_DATA = {
   engagement: '88'
 };
 
-const CategoryPill = ({ category }: { category: string | null | undefined }) => {
+const getCategoryColor = (category: string | undefined, theme: any) => {
+  switch (category) {
+    case GbpPhotoCategory.INTERIOR: return theme.palette.info.main;
+    case GbpPhotoCategory.COVER: return theme.palette.secondary.main;
+    case GbpPhotoCategory.FOOD_AND_DRINK: return theme.palette.warning.main;
+    case GbpPhotoCategory.TEAMS: return theme.palette.success.main;
+    case GbpPhotoCategory.EXTERIOR: return theme.palette.error.main;
+    case GbpPhotoCategory.PROFILE: return theme.palette.primary.main;
+    case GbpPhotoCategory.LOGO: return theme.palette.info.dark;
+    case GbpPhotoCategory.PRODUCT: return theme.palette.success.light;
+    case GbpPhotoCategory.AT_WORK: return theme.palette.secondary.light;
+    case GbpPhotoCategory.MENU: return theme.palette.warning.dark;
+    case GbpPhotoCategory.COMMON_AREA: return theme.palette.secondary.dark;
+    case GbpPhotoCategory.ROOMS: return theme.palette.info.light;
+    case GbpPhotoCategory.ADDITIONAL: return theme.palette.grey[700];
+    default: return theme.palette.primary.main;
+  }
+};
+
+const CategoryPill = ({ category }: { category: string }) => {
   const t = useTranslations('gbpRocket.photos');
   const theme = useTheme();
   const color = getCategoryColor(category, theme);
-  const labelKey = getCategoryLabelKey(category);
+
+  const getCategoryLabel = (cat: string) => {
+    if (!cat) return 'PHOTO';
+
+    const config = PHOTO_CATEGORIES.find(c => c.value === cat);
+
+    
+return config ? t(`filter.${config.labelKey}`) : cat;
+  };
 
   return (
     <Box
@@ -71,7 +96,7 @@ const CategoryPill = ({ category }: { category: string | null | undefined }) => 
         textTransform: 'uppercase'
       }}
     >
-      {t(`filter.${labelKey}`)}
+      {getCategoryLabel(category)}
     </Box>
   );
 };
@@ -79,35 +104,17 @@ const CategoryPill = ({ category }: { category: string | null | undefined }) => 
 export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
   const t = useTranslations('gbpRocket.photos');
   const theme = useTheme();
-  const { notify } = useSystemMessages();
   const [category, setCategory] = useState<string>('All');
-  const [sort, setSort] = useState<'Newest' | 'Oldest'>('Newest');
+  const [sort, setSort] = useState<string>('Newest');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [search, setSearch] = useState('');
-  const [take, setTake] = useState(12);
 
   const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
 
   const { data: result, isLoading, isError, error } = useGbpPhotos(locationId, {
-    category: category === 'All' ? undefined : category,
-    skip: 0,
-    take,
+    category: category === 'All' ? undefined : category
   });
 
   const { mutate: deletePhoto, isPending: isDeleting } = useDeleteGbpPhoto();
-
-  const getCategoryLabel = (value: string | null | undefined) => t(`filter.${getCategoryLabelKey(value)}`);
-
-  const photos = useMemo(() => {
-    const rawPhotos = result?.data || [];
-    const searched = rawPhotos.filter((photo) => matchesPhotoSearch(photo, search, getCategoryLabel));
-
-    return sortPhotos(searched, sort);
-  }, [result?.data, search, sort, t]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const total = result?.meta?.total ?? photos.length;
-  const profileUrl = result?.meta?.profileUrl || 'https://business.google.com/locations';
-  const hasMore = photos.length < total;
 
   if (isLoading) {
     return <Box p={4} display="flex" justifyContent="center"><CircularProgress /></Box>;
@@ -117,87 +124,31 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
     return <Typography color="error">{t('grid.errorLoading')} {(error as Error).message}</Typography>;
   }
 
+  const photos = result?.data || [];
+
   return (
     <Box>
       {/* Filter Toolbar */}
       <PhotosFilterToolbar
         category={category}
-        onCategoryChange={(value) => {
-          setCategory(value);
-          setTake(12);
-        }}
+        onCategoryChange={setCategory}
         sort={sort}
-        onSortChange={(value) => setSort(value as 'Newest' | 'Oldest')}
+        onSortChange={setSort}
         view={view}
         onViewChange={setView}
-        search={search}
-        onSearchChange={setSearch}
       />
 
-      {category !== 'All' && (
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {t('grid.showingCategory', { category: getCategoryLabel(category), count: photos.length, total })}
-        </Typography>
-      )}
-
-      {/* Grid / List */}
+      {/* Grid */}
       {photos.length === 0 ? (
         <Box textAlign="center" p={4} bgcolor="background.paper" borderRadius={2} border="1px dashed" borderColor="divider">
           <Typography color="text.secondary">{t('grid.noPhotosFound')}</Typography>
         </Box>
-      ) : view === 'list' ? (
-        <Stack spacing={2}>
-          {photos.map((photo: any) => {
-            const daysAgo = photo.updateTime
-              ? Math.max(1, Math.floor((new Date().getTime() - new Date(photo.updateTime).getTime()) / (1000 * 3600 * 24)))
-              : photo.createTime
-                ? Math.max(1, Math.floor((new Date().getTime() - new Date(photo.createTime).getTime()) / (1000 * 3600 * 24)))
-                : 1;
-
-            return (
-              <Card
-                key={photo.id}
-                onClick={() => setSelectedPhoto(photo)}
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  cursor: 'pointer',
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  '&:hover': { borderColor: 'primary.main' },
-                }}
-              >
-                <Box sx={{ width: { xs: '100%', sm: 180 }, height: { xs: 180, sm: 120 }, flexShrink: 0, bgcolor: 'action.hover' }}>
-                  <CardMedia
-                    component="img"
-                    loading="lazy"
-                    image={getGbpPhotoProxyUrl(locationId, photo.id)}
-                    alt={getCategoryLabel(photo.category)}
-                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                </Box>
-                <CardContent sx={{ flex: 1 }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center" mb={1}>
-                    <CategoryPill category={photo.category} />
-                    <Typography variant="body2" fontWeight={600}>{getCategoryLabel(photo.category)}</Typography>
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('grid.updatedDaysAgo', { days: daysAgo })}
-                  </Typography>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </Stack>
       ) : (
         <Grid container spacing={3}>
           {photos.map((photo: any) => {
             const daysAgo = photo.updateTime
               ? Math.max(1, Math.floor((new Date().getTime() - new Date(photo.updateTime).getTime()) / (1000 * 3600 * 24)))
-              : photo.createTime
-                ? Math.max(1, Math.floor((new Date().getTime() - new Date(photo.createTime).getTime()) / (1000 * 3600 * 24)))
-                : 1;
+              : 1;
 
             return (
               <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={photo.id}>
@@ -218,7 +169,7 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                   }}
                   onClick={() => setSelectedPhoto(photo)}
                 >
-                  <Box position="relative" sx={{ paddingTop: '75%', bgcolor: 'action.hover' }}>
+                  <Box position="relative" sx={{ paddingTop: '75%', bgcolor: '#000' }}>
                     <CardMedia
                       component="img"
                       loading="lazy"
@@ -250,14 +201,9 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                   </Box>
 
                   <CardContent sx={{ p: '16px !important', bgcolor: 'background.paper' }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                      <Typography variant="body2" fontWeight={600}>
-                        {getCategoryLabel(photo.category)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('grid.updatedDaysAgo', { days: daysAgo })}
-                      </Typography>
-                    </Stack>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('grid.updatedDaysAgo', { days: daysAgo })}
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -267,14 +213,9 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
       )}
 
       {/* Load More Button */}
-      {hasMore && (
+      {photos.length > 0 && (
         <Box textAlign="center" mt={6}>
-          <Button
-            variant="outlined"
-            color="inherit"
-            sx={{ px: 4, py: 1, borderRadius: 2 }}
-            onClick={() => setTake((current) => current + 12)}
-          >
+          <Button variant="outlined" color="inherit" sx={{ px: 4, py: 1, borderRadius: 2 }}>
             {t('grid.loadMore')}
           </Button>
         </Box>
@@ -286,13 +227,7 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
         open={!!selectedPhoto}
         onClose={() => setSelectedPhoto(null)}
         PaperProps={{
-          sx: {
-            width: { xs: '100%', sm: 450 },
-            bgcolor: 'background.paper',
-            color: 'text.primary',
-            borderLeft: '1px solid',
-            borderColor: 'divider',
-          },
+          sx: { width: { xs: '100%', sm: 450 }, bgcolor: '#111424', color: '#fff' }
         }}
       >
         {selectedPhoto && (
@@ -323,12 +258,10 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                 sx={{
                   width: '100%',
                   paddingTop: '60%',
-                  bgcolor: 'action.hover',
+                  bgcolor: '#000',
                   borderRadius: 2,
                   position: 'relative',
-                  overflow: 'hidden',
-                  border: '1px solid',
-                  borderColor: 'divider',
+                  overflow: 'hidden'
                 }}
               >
                 <CardMedia
@@ -343,7 +276,7 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
-                    bgcolor: 'background.default',
+                    bgcolor: '#1a1d2d'
                   }}
                 />
               </Box>
@@ -390,9 +323,8 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                 variant="outlined"
                 color="info"
                 startIcon={<LinkIcon />}
-                href={profileUrl}
+                href={selectedPhoto.googleUrl}
                 target="_blank"
-                rel="noopener noreferrer"
                 sx={{ mt: 2, mb: 4, borderRadius: 1.5, textTransform: 'none', py: 1 }}
               >
                 {t('details.viewOnGbp')}
@@ -406,18 +338,8 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
               </Box>
 
               <Stack direction="row" spacing={2} mb={3}>
-                <Box
-                  sx={{
-                    flex: 1,
-                    bgcolor: alpha(theme.palette.success.main, 0.08),
-                    border: '1px solid',
-                    borderColor: alpha(theme.palette.success.main, 0.2),
-                    borderRadius: 2,
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                  }}
-                >
+                {/* Score Base */}
+                <Box sx={{ flex: 1, bgcolor: '#ffffff', color: '#000', borderRadius: 2, p: 2, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                     <Typography variant="h3" fontWeight={700} color="success.main">{MOCK_DATA.score}</Typography>
                     <StarIcon sx={{ color: 'warning.main', fontSize: 20 }} />
@@ -425,18 +347,8 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                   <Box sx={{ width: '100%', height: 4, bgcolor: 'success.main', borderRadius: 2 }} />
                 </Box>
 
-                <Box
-                  sx={{
-                    flex: 1,
-                    bgcolor: alpha(theme.palette.success.main, 0.08),
-                    border: '1px solid',
-                    borderColor: alpha(theme.palette.success.main, 0.2),
-                    borderRadius: 2,
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                  }}
-                >
+                {/* Score Engagement */}
+                <Box sx={{ flex: 1, bgcolor: '#ffffff', color: '#000', borderRadius: 2, p: 2, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                     <Typography variant="h3" fontWeight={700} color="success.main">{MOCK_DATA.engagement}</Typography>
                     <AccessTimeFilledIcon sx={{ color: 'success.main', fontSize: 20 }} />
@@ -471,44 +383,14 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                 <Button fullWidth variant="contained" color="secondary" sx={{ py: 1.5, borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}>
                   <AutoAwesomeIcon sx={{ fontSize: 18, mr: 1 }} /> {t('details.analyzeAgain')}
                 </Button>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="warning"
-                  startIcon={<LinkIcon />}
-                  href={selectedPhoto.googleUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  disabled={!selectedPhoto.googleUrl}
-                  sx={{ py: 1.5, borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}
-                >
+                <Button fullWidth variant="contained" color="warning" sx={{ py: 1.5, borderRadius: 1.5, textTransform: 'none', fontWeight: 600 }}>
                   {t('details.viewOnGoogle')}
                 </Button>
                 <Button
                   fullWidth
                   variant="contained"
                   disabled={isDeleting}
-                  onClick={() => {
-                    if (!window.confirm(t('details.deletePhotoConfirm'))) return;
-                    deletePhoto(
-                      { locationId, photoId: selectedPhoto.id },
-                      {
-                        onSuccess: () => {
-                          notify({
-                            messageCode: t('deleteSuccess'),
-                            severity: SystemMessageSeverity.SUCCESS,
-                          });
-                          setSelectedPhoto(null);
-                        },
-                        onError: (deleteError) => {
-                          notify({
-                            messageCode: extractApiErrorMessage(deleteError) || t('deleteError'),
-                            severity: SystemMessageSeverity.ERROR,
-                          });
-                        },
-                      }
-                    );
-                  }}
+                  onClick={() => deletePhoto({ locationId, photoId: selectedPhoto.id }, { onSuccess: () => setSelectedPhoto(null) })}
                   sx={{ py: 1.5, borderRadius: 1.5, textTransform: 'none', fontWeight: 600, bgcolor: alpha(theme.palette.error.main, 0.2), color: 'error.main', '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.3) } }}
                 >
                   {isDeleting ? <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} /> : <DeleteOutlineIcon sx={{ mr: 1, fontSize: 18 }} />} {t('details.deletePhoto')}

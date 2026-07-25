@@ -1,0 +1,22 @@
+# Vyntrise SEO Checker
+
+> Free Site Analyze Page In Seconds.
+
+Vyntrise SEO Checker is a powerful, instant, and free SEO analysis tool designed to help website owners, marketers, and developers optimize their web properties. 
+
+## Features
+- **Instant Analysis**: Get comprehensive SEO reports in seconds without waiting.
+- **Deep Insights**: Analyzes On-Page SEO, Technical Performance, Mobile Usability, Security, and more.
+- **AI-Powered Recommendations**: Provides strategic, actionable advice to improve your search rankings.
+- **Detailed Scoring**: Breaks down your health score across multiple key categories.
+- **Free to Use**: Unlimited free scans to continually monitor your website's health.
+
+## Target Audience
+- Web Developers
+- SEO Specialists
+- Digital Marketers
+- Business Owners
+
+## Links
+- **Website**: [https://seo-analyzer.vyntrise.com](https://seo-analyzer.vyntrise.com)
+- **Brand**: Vyntrise

@@ -4,7 +4,7 @@ services:
     image: postgres:15-alpine
     container_name: review-rise-postgres
     ports:
-      - "5432:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password

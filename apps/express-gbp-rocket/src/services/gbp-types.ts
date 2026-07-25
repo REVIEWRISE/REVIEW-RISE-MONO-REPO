@@ -41,38 +41,6 @@ export type SnapshotDetail = SnapshotListItem & {
     snapshot: any;
 };
 
-const DAYS_ORDER = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-const DAY_LABELS: Record<string, string> = {
-    MONDAY: 'Monday',
-    TUESDAY: 'Tuesday',
-    WEDNESDAY: 'Wednesday',
-    THURSDAY: 'Thursday',
-    FRIDAY: 'Friday',
-    SATURDAY: 'Saturday',
-    SUNDAY: 'Sunday'
-};
-
-const formatHoursMinutes = (hours: number, minutes: number): string => {
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 === 0 ? 12 : hours % 12;
-    const displayMinutes = String(minutes).padStart(2, '0');
-    return `${displayHours}:${displayMinutes} ${ampm}`;
-};
-
-const formatTime = (time: any): string => {
-    if (!time) return '';
-    if (typeof time === 'string') {
-        const parts = time.split(':');
-        const hours = parseInt(parts[0], 10);
-        const minutes = parseInt(parts[1] || '0', 10);
-        return formatHoursMinutes(hours, minutes);
-    }
-    if (typeof time === 'object' && typeof time.hours === 'number') {
-        return formatHoursMinutes(time.hours, time.minutes || 0);
-    }
-    return '';
-};
-
 export const normalizeGbpProfile = (raw: any): NormalizedGbpProfile => {
     const address = raw?.storefrontAddress || {};
     const addressLines = Array.isArray(address?.addressLines) ? address.addressLines.filter(Boolean) : [];
@@ -92,35 +60,9 @@ export const normalizeGbpProfile = (raw: any): NormalizedGbpProfile => {
         closeTime: period?.closeTime || null
     }));
 
-    let weekdayDescriptions = Array.isArray(raw?.regularHours?.weekdayDescriptions)
+    const weekdayDescriptions = Array.isArray(raw?.regularHours?.weekdayDescriptions)
         ? raw.regularHours.weekdayDescriptions
         : [];
-
-    if (weekdayDescriptions.length === 0 && normalizedPeriods.length > 0) {
-        const periodsByDay: Record<string, typeof normalizedPeriods> = {};
-        for (const p of normalizedPeriods) {
-            if (p.openDay) {
-                if (!periodsByDay[p.openDay]) {
-                    periodsByDay[p.openDay] = [];
-                }
-                periodsByDay[p.openDay].push(p);
-            }
-        }
-
-        weekdayDescriptions = DAYS_ORDER.map(day => {
-            const dayLabel = DAY_LABELS[day];
-            const dayPeriods = periodsByDay[day];
-            if (!dayPeriods || dayPeriods.length === 0) {
-                return `${dayLabel}: Closed`;
-            }
-            const timeStrings = dayPeriods.map((p: (typeof normalizedPeriods)[number]) => {
-                const open = formatTime(p.openTime);
-                const close = formatTime(p.closeTime);
-                return `${open} – ${close}`;
-            });
-            return `${dayLabel}: ${timeStrings.join(', ')}`;
-        });
-    }
 
     return {
         source: 'google_business_profile',

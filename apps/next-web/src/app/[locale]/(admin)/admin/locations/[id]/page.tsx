@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
-
-import { useRouter as useI18nRouter } from '@/i18n/routing'
+import { useParams, useRouter } from 'next/navigation'
 
 // MUI Imports
 import TabContext from '@mui/lab/TabContext'
@@ -65,10 +63,7 @@ const getInitials = (string: string) =>
 const LocationDetailsPage = () => {
     const params = useParams()
     const router = useRouter()
-    const i18nRouter = useI18nRouter()
-    const searchParams = useSearchParams()
     const t = useTranslations('dashboard')
-    const tr = useTranslations('social')
     const { id } = params
     const [location, setLocation] = useState<any>(null)
     const [loading, setLoading] = useState(true)
@@ -76,12 +71,6 @@ const LocationDetailsPage = () => {
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
         setTab(newValue)
-        const params = new URLSearchParams(searchParams.toString())
-
-        params.set('tab', newValue)
-        params.delete('pending_google')
-        params.delete('google_error')
-        router.replace(`?${params.toString()}`, { scroll: false })
     }
 
     const fetchLocation = useCallback(async () => {
@@ -105,24 +94,6 @@ const LocationDetailsPage = () => {
         fetchLocation()
     }, [fetchLocation])
 
-    useEffect(() => {
-        const tabParam = searchParams.get('tab')
-        const pendingGoogle = searchParams.get('pending_google')
-        const googleError = searchParams.get('google_error')
-        const allowedTabs = ['overview', 'reviews', 'sources', 'integrations', 'social']
-
-        // After OAuth, land on Integrations so the GBP location picker can open
-        if (pendingGoogle || googleError) {
-            setTab('integrations')
-
-            return
-        }
-
-        if (tabParam && allowedTabs.includes(tabParam)) {
-            setTab(tabParam)
-        }
-    }, [searchParams])
-
     if (loading) {
         return (
             <Grid container spacing={6}>
@@ -144,16 +115,7 @@ const LocationDetailsPage = () => {
                 <Box sx={{ mb: 2 }}>
                     <Button
                         startIcon={<ArrowBackIcon />}
-                        onClick={() => {
-                            if (location.businessId) {
-                                i18nRouter.push({
-                                    pathname: '/admin/accounts/[id]',
-                                    params: { id: location.businessId },
-                                })
-                            } else {
-                                i18nRouter.push('/admin/accounts')
-                            }
-                        }}
+                        onClick={() => router.push(location.businessId ? `/admin/accounts/${location.businessId}` : '/admin/accounts')}
                         sx={{ pl: 0 }}
                     >
                         {t('locations.detail.backToAccount')}
@@ -216,12 +178,6 @@ const LocationDetailsPage = () => {
                             <IntegrationsDashboard />
                         </TabPanel>
                         <TabPanel value='social' sx={{ p: 0 }}>
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="h4">{tr('connections.title')}</Typography>
-                                <Typography color="textSecondary">
-                                    {tr('connections.subtitle')}
-                                </Typography>
-                            </Box>
                             <SocialConnectionList businessId={location.businessId} locationId={id as string} />
                         </TabPanel>
                     </Box>

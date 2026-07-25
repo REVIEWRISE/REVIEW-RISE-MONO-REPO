@@ -112,103 +112,77 @@ docker compose -f "$COMPOSE_FILE" pull
 log_info "Images pulled successfully ✓"
 
 # ==============================================================================
-# Run Database Migrations
+# Staging Reset — Wipe DB volume for a clean slate on every deploy
 # ==============================================================================
-# Migrations now run automatically via express-auth entrypoint script
-log_info "Database migrations will run automatically when express-auth starts ✓"
+log_info "Staging environment: wiping database volume for clean reset..."
+docker compose -f "$COMPOSE_FILE" down -v --remove-orphans || true
+log_info "Database volume wiped ✓"
 
 # ==============================================================================
-# Schema Sync (db push) — MUST run before seeding
+# Start Services (postgres must be up before migrations/seed)
 # ==============================================================================
-# This ensures the DB schema matches the Prisma schema (catches any models
-# added after the last migration, e.g. LocationMetric, LocationCompetitor, MetricJob)
-log_info "Running schema sync (db push) to ensure database integrity..."
-docker compose -f "$COMPOSE_FILE" run --rm \
-    express-auth \
-    sh -c "cd /app && npx prisma db push --accept-data-loss" || {
-    log_warn "Schema sync failed (check logs)"
+log_info "Starting infrastructure services (postgres, redis)..."
+docker compose -f "$COMPOSE_FILE" up -d --remove-orphans postgres redis
+
+log_info "Waiting for postgres to be healthy..."
+ELAPSED=0
+until docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U "${POSTGRES_USER:-postgres}" > /dev/null 2>&1; do
+    sleep 2
+    ELAPSED=$((ELAPSED + 2))
+    if [ $ELAPSED -ge 60 ]; then
+        log_error "Postgres did not become ready in time!"
+        exit 1
+    fi
+done
+log_info "Postgres is ready ✓"
+
+# ==============================================================================
+# Run Migrations + Seed via dedicated db-migrate service
+# ==============================================================================
+log_info "Running database migrations and seed..."
+docker compose -f "$COMPOSE_FILE" run --rm db-migrate || {
+    log_error "Database migration/seed failed!"
+    exit 1
 }
-log_info "Schema sync completed ✓"
-
-# ==============================================================================
-# Seed Database (Optional - First Time Only)
-# ==============================================================================
-# Check if --seed flag was passed
-if [[ "$*" == *"--seed"* ]]; then
-    log_info "Seeding database..."
-    
-    docker compose -f "$COMPOSE_FILE" run --rm \
-        express-auth \
-        sh -c "cd /app && pnpm --filter @platform/db run db:seed:all" || {
-        log_warn "Database seeding failed (non-fatal)"
-    }
-    
-    log_info "Database seeding completed ✓"
-else
-    log_info "Skipping database seeding (use --seed flag to seed)"
-fi
+log_info "Migrations and seed completed ✓"
 
 # ==============================================================================
 # SSL Certificate Check & Cleanup
 # ==============================================================================
 CERT_PATH="./nginx/certbot/conf/live/vyntrise.com/fullchain.pem"
-CORRUPTED_PATH="./nginx/certbot/conf/live/vyntrise.com-0001"
 NEEDS_INIT=0
 
-log_info "Checking SSL certificate state using Docker (to avoid host permission issues)..."
-ls -R ./nginx/certbot/conf || log_warn "Certbot conf dir not found or empty"
+log_info "Checking SSL certificate state..."
 
-# 1. Check for -0001 corruption
-if [ -d "$CORRUPTED_PATH" ]; then
-    log_warn "Detected corrupted SSL directory ($CORRUPTED_PATH)."
-    NEEDS_INIT=1
-fi
-
-# 2. Check strict validity using certbot container
-if [ "$NEEDS_INIT" -eq 0 ]; then
-    if docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "test -s /etc/letsencrypt/live/vyntrise.com/fullchain.pem" certbot > /dev/null 2>&1; then
-        # File exists and is not empty, check validity
-        if docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "openssl x509 -checkend 0 -noout -in /etc/letsencrypt/live/vyntrise.com/fullchain.pem" certbot > /dev/null 2>&1; then
-            log_info "Valid SSL certificate verified inside container ✓"
-        else
-            log_warn "Certificate exists but appears invalid or expired (checked inside container)."
-            NEEDS_INIT=1
-        fi
-    else
-        log_warn "Certificate file not found or empty (checked inside container)."
+# Check if any of the required certs are missing
+for domain in vyntrise.com seo-analyzer.vyntrise.com app.vyntrise.com crm.vyntrise.com; do
+    if ! docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "test -s /etc/letsencrypt/live/$domain/fullchain.pem" certbot > /dev/null 2>&1; then
+        log_warn "Certificate for $domain not found"
         NEEDS_INIT=1
+        break
     fi
-fi
+done
 
 if [ "$NEEDS_INIT" -eq 1 ]; then
     log_info "Running automatic SSL initialization..."
     
-    # Aggressive cleanup via Docker to avoid "Permission denied"
-    log_info "Removing old/corrupted certificates using Docker..."
-    docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "sh -c 'rm -rf /etc/letsencrypt/live/vyntrise.com* && rm -rf /etc/letsencrypt/archive/vyntrise.com* && rm -rf /etc/letsencrypt/renewal/vyntrise.com*.conf'" certbot || true
-    
-    # Fix permissions so init-ssl.sh can write to the directory (it runs as host user, but docker creates root-owned files)
-    CURRENT_UID=$(id -u)
-    CURRENT_GID=$(id -g)
-    log_info "Fixing permissions for ./nginx/certbot to $CURRENT_UID:$CURRENT_GID..."
-    # We use the certbot container to chown the mounted volumes
-    docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "chown -R $CURRENT_UID:$CURRENT_GID /etc/letsencrypt /var/www/certbot" certbot || true
-
     # Run init-ssl.sh in non-interactive mode
-    chmod +x ./scripts/init-ssl.sh
-    ./scripts/init-ssl.sh --non-interactive || {
-        log_error "SSL initialization failed!"
-        exit 1
-    }
+    if [ -x ./scripts/init-ssl.sh ]; then
+        bash ./scripts/init-ssl.sh --non-interactive || {
+            log_warn "SSL initialization failed, but continuing (nginx will use dummy certs)"
+        }
+    else
+        log_warn "init-ssl.sh not found or not executable, skipping SSL init"
+    fi
     log_info "SSL initialization completed ✓"
 else
-    log_info "Valid SSL certificate found ✓"
+    log_info "All SSL certificates found ✓"
 fi
 
 # ==============================================================================
-# Start Services
+# Start All Remaining Services
 # ==============================================================================
-log_info "Starting services with Docker Compose..."
+log_info "Starting all services with Docker Compose..."
 
 docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 

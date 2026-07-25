@@ -34,7 +34,6 @@
     "title": "Review Sources",
     "subtitle": "Connect and manage your review platforms",
     "syncAllNow": "Sync All Now",
-    "syncNow": "Sync Now",
     "syncing": "Syncing...",
     "connectedSources": "Connected Sources",
     "totalReviews": "Total Reviews",
@@ -74,7 +73,6 @@
     "failedToDisconnect": "Failed to disconnect source",
     "syncStarted": "Sync started...",
     "syncCompletedMsg": "Sync completed successfully",
-    "syncNoReviewsFound": "Sync completed — no reviews found on Google yet",
     "syncFailed": "Sync failed",
     "configurationComingSoon": "Configuration coming soon",
     "googleModal": {
@@ -87,7 +85,6 @@
       "step3Title": "Start Syncing",
       "step3Desc": "We'll immediately fetch your existing reviews and set up daily automatic syncs",
       "permissionsTitle": "Required Permissions",
-      "howItWorks": "How it works",
       "permission1": "Read your business profile information",
       "permission2": "Access customer reviews and ratings",
       "permission3": "View business location details",
@@ -135,7 +132,6 @@
     "googleConnectedDesc": "Google is connected. Click Enable to start syncing reviews.",
     "googleNotConnectedDesc": "Go to the Integrations tab to connect your Google account.",
     "enableSync": "Enable Sync",
-    "goToIntegrations": "Go to Integrations",
-    "reviewSourcesTab": "Review Sources"
+    "goToIntegrations": "Go to Integrations"
   }
 }
