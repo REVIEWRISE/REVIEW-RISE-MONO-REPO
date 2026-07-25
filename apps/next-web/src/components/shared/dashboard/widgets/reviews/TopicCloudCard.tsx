@@ -1,52 +1,42 @@
-'use client'
 /* eslint-disable react/jsx-no-literals */
+/* eslint-disable react/no-unescaped-entities */
+import React from 'react';
+import { Card, Typography, Box, useTheme, Chip } from '@mui/material';
 
-import React from 'react'
-import { Card, Typography, Box, Skeleton, useTheme, Chip } from '@mui/material'
-
-import { useLocationFilter } from '@/hooks/useLocationFilter'
-import { useReviewsInbox } from '@/views/admin/reviews/hooks/useReviewsInbox'
+const MOCK_TOPICS = [
+    { text: 'Great Service', sentiment: 'Positive', count: 42 },
+    { text: 'Professional', sentiment: 'Positive', count: 38 },
+    { text: 'Fast Response', sentiment: 'Positive', count: 25 },
+    { text: 'Quality Work', sentiment: 'Positive', count: 21 },
+    { text: 'Fair Pricing', sentiment: 'Positive', count: 18 },
+    { text: 'Friendly Staff', sentiment: 'Positive', count: 15 },
+    { text: 'Reliable', sentiment: 'Positive', count: 12 },
+    { text: 'Excellent', sentiment: 'Positive', count: 10 },
+    { text: 'Long Wait', sentiment: 'Negative', count: 5 },
+    { text: 'Unresponsive', sentiment: 'Negative', count: 3 },
+];
 
 export default function TopicCloudCard() {
-    const theme = useTheme()
-    const { locationId } = useLocationFilter()
-    const { keywords, keywordsLoading, hasValidLocation } = useReviewsInbox(locationId)
-
-    if (!hasValidLocation) {
-        return null
-    }
-
-    if (keywordsLoading) {
-        return (
-            <Card sx={{ p: 3, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
-                <Skeleton variant="rounded" height={120} />
-            </Card>
-        )
-    }
+    const theme = useTheme();
 
     return (
         <Card sx={{ p: 3, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Top Topics</Typography>
-            {keywords.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                    No topics from synced reviews yet. Tags appear after sentiment analysis runs on imported reviews.
-                </Typography>
-            ) : (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {keywords.map((topic) => (
-                        <Chip
-                            key={topic.keyword}
-                            label={`${topic.keyword} (${topic.count})`}
-                            size="small"
-                            sx={{
-                                fontWeight: 600,
-                                bgcolor: 'primary.light',
-                                color: 'primary.dark',
-                            }}
-                        />
-                    ))}
-                </Box>
-            )}
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {MOCK_TOPICS.map((topic, index) => (
+                    <Chip
+                        key={index}
+                        label={topic.text}
+                        size="small"
+                        sx={{
+                            fontWeight: 600,
+                            bgcolor: topic.sentiment === 'Positive' ? 'success.light' : 'error.light',
+                            color: topic.sentiment === 'Positive' ? 'success.dark' : 'error.dark',
+                            opacity: 0.8 + (topic.count / 50) * 0.2 // Make more frequent topics slightly more opaque
+                        }}
+                    />
+                ))}
+            </Box>
         </Card>
-    )
+    );
 }

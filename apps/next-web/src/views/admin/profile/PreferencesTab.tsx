@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-no-literals */
 /* eslint-disable react/no-unescaped-entities */
 'use client'
-/* eslint-disable react/jsx-no-literals */
 
 // MUI Imports
 import Card from '@mui/material/Card'

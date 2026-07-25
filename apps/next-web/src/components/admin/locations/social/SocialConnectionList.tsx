@@ -85,7 +85,7 @@ export const SocialConnectionList = ({ businessId, locationId }: SocialConnectio
                 params: { businessId, locationId }
             });
 
-            setConnections(res.data?.connections ?? []);
+            setConnections(res.data.connections);
         } catch (err) {
             console.error(err);
         } finally {

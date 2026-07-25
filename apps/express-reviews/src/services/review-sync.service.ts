@@ -1,6 +1,5 @@
 import { googleReviewsService } from './google-reviews.service';
 import { tokenGuardService } from './token-guard.service';
-import { resolveGbpLocationResourceName } from '../utils/gbp-location';
 import { 
     reviewRepository, 
     reviewSourceRepository, 
@@ -11,13 +10,12 @@ import {
 import { ReviewSource } from '@prisma/client';
 
 export class ReviewSyncService {
-    async syncReviewsForLocation(locationId: string, platform?: string) {
+    async syncReviewsForLocation(locationId: string) {
         const sources = await reviewSourceRepository.findByLocationId(locationId);
         
         const results = [];
         for (const source of sources) {
             if (source.status !== 'active') continue;
-            if (platform && source.platform !== platform && !(platform === 'gbp' && source.platform === 'google')) continue;
             if (source.platform === 'google') {
                 results.push(this.syncGoogleReviews(source));
             }
@@ -50,25 +48,13 @@ export class ReviewSyncService {
                 throw new Error('No GBP locationName found on the PlatformIntegration. User may need to reconnect.');
             }
 
-            const reviewsLocationName = resolveGbpLocationResourceName(
-                integration.gbpLocationName,
-                integration.gbpAccountId
-            );
-
             const location = await locationRepository.findById(source.locationId);
             if (!location) throw new Error('Location not found');
 
-            let pageToken: string | undefined;
-            const allReviews: Awaited<ReturnType<typeof googleReviewsService.listReviews>>['reviews'] = [];
-
-            do {
-                const page = await googleReviewsService.listReviews(accessToken, reviewsLocationName, pageToken);
-                allReviews.push(...(page.reviews || []));
-                pageToken = page.nextPageToken;
-            } while (pageToken);
-
-            if (allReviews.length > 0) {
-                for (const review of allReviews) {
+            const { reviews } = await googleReviewsService.listReviews(accessToken, gbpLocationName);
+            
+            if (reviews && reviews.length > 0) {
+                for (const review of reviews) {
                     await reviewRepository.upsertReview({
                         business: { connect: { id: location.businessId } },
                         location: { connect: { id: source.locationId } },
@@ -107,7 +93,7 @@ export class ReviewSyncService {
             });
         }
        
-        return { sourceId: source.id, status, reviewsSynced, errorMessage };
+        return { sourceId: source.id, status, reviewsSynced };
     }
 
     private mapRating(starRating: string): number {

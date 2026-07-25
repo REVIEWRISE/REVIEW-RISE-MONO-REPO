@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { PostgresUuidSchema } from '../reviews/reviews.schema';
 
 // ============================================================================
 // Request Schemas
@@ -10,8 +9,8 @@ import { PostgresUuidSchema } from '../reviews/reviews.schema';
  * GET /api/v1/social/connections
  */
 export const ListConnectionsQuerySchema = z.object({
-    businessId: PostgresUuidSchema,
-    locationId: PostgresUuidSchema.optional()
+    businessId: z.string().uuid('businessId must be a valid UUID'),
+    locationId: z.string().uuid('locationId must be a valid UUID').optional()
 });
 
 export type ListConnectionsQuery = z.infer<typeof ListConnectionsQuerySchema>;

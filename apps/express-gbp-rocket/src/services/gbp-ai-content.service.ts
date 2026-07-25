@@ -115,36 +115,11 @@ export class GbpAiContentService {
             throw new Error('Location not found');
         }
 
-        const platformIds = (location.platformIds || {}) as any;
-        const gbpProfile = (platformIds?.gbpProfile || {}) as any;
-
-        let latestSnapshot: any = null;
-        try {
-            const rows = await prisma.$queryRawUnsafe<any[]>(
-                `
-                SELECT "snapshot"
-                FROM "GbpProfileSnapshot"
-                WHERE "locationId" = $1::uuid
-                ORDER BY "capturedAt" DESC
-                LIMIT 1
-                `,
-                locationId
-            );
-            latestSnapshot = rows[0] || null;
-        } catch (error: any) {
-            console.error('Failed to get latest snapshot for AI content generation:', error);
-        }
-
-        const snapshotProfile = latestSnapshot?.snapshot?.profile || {};
-        const serviceItems = snapshotProfile.serviceItems || gbpProfile.serviceItems || [];
-        const services = serviceItems.map((s: any) => s.serviceTypeId || s.name).filter(Boolean);
-
         const mergedInput = {
-            businessName: gbpProfile?.locationTitle || location.business?.name || location.name || input?.businessName || '',
-            category: input?.category || gbpProfile?.category || '',
-            location: gbpProfile?.address?.locality || location.name || '',
-            description: gbpProfile?.description || location.business?.description || '',
-            services: services.length > 0 ? services : (input?.services || []),
+            businessName: location.business?.name || input?.businessName || '',
+            category: input?.category || '',
+            location: location.name || '',
+            services: input?.services || [],
             tone: input?.tone || 'Professional and friendly',
             objective: input?.objective || 'Increase local discovery',
             offer: input?.offer || '',

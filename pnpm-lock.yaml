@@ -431,9 +431,6 @@ importers:
       '@platform/middleware':
         specifier: workspace:*
         version: link:../../packages/@platform/middleware
-      '@platform/utils':
-        specifier: workspace:*
-        version: link:../../packages/@platform/utils
       axios:
         specifier: ^1.7.2
         version: 1.13.4
@@ -775,9 +772,6 @@ importers:
         specifier: ^19.0.0
         version: 19.2.0(react@19.2.0)
     devDependencies:
-      '@parcel/watcher':
-        specifier: 2.5.1
-        version: 2.5.1
       '@types/node':
         specifier: ^20
         version: 20.19.27
@@ -986,9 +980,6 @@ importers:
       '@iconify/utils':
         specifier: 3.0.2
         version: 3.0.2
-      '@parcel/watcher':
-        specifier: 2.5.1
-        version: 2.5.1
       '@tailwindcss/postcss':
         specifier: 4.1.17
         version: 4.1.17

@@ -94,20 +94,10 @@ export async function getAccount(id: string) {
               include: {
                 _count: {
                   select: { locations: true }
-                },
-                locations: {
-                  where: { deletedAt: null },
-                  include: {
-                    socialConnections: true
-                  }
                 }
               }
             },
-            location: {
-              include: {
-                socialConnections: true
-              }
-            }
+            location: true
           }
         }
       }
@@ -129,26 +119,6 @@ export async function getAccount(id: string) {
   }
 }
 
-export async function getAccountByBusinessId(businessId: string) {
-  try {
-    const membership = await prisma.userBusinessRole.findFirst({
-      where: { businessId, deletedAt: null },
-      orderBy: { createdAt: 'asc' },
-      select: { userId: true },
-    })
-
-    if (!membership?.userId) {
-      throw new Error('Account not found for business')
-    }
-
-    return getAccount(membership.userId)
-  } catch (error: any) {
-    console.error('getAccountByBusinessId error:', error)
-
-    return { error: error.message }
-  }
-}
-
 export async function getCurrentAccount() {
   try {
     const user = await getServerUser()
@@ -162,64 +132,6 @@ export async function getCurrentAccount() {
     console.error('getCurrentAccount error:', error)
 
     return { error: error.message }
-  }
-}
-
-export type GoogleConnectionLocation = {
-  locationId: string
-  name: string
-}
-
-export async function getGoogleConnectionSummary(
-  locationIds: string[],
-  businessId?: string
-): Promise<{ connected: boolean; locations: GoogleConnectionLocation[] }> {
-  try {
-    const user = await getServerUser()
-
-    if (!user) {
-      throw new Error('Unauthorized')
-    }
-
-    let ids = [...new Set(locationIds.filter(Boolean))]
-
-    if (!ids.length && businessId) {
-      const businessLocations = await prisma.location.findMany({
-        where: { businessId, deletedAt: null },
-        select: { id: true }
-      })
-
-      ids = businessLocations.map(location => location.id)
-    }
-
-    if (!ids.length) {
-      return { connected: false, locations: [] }
-    }
-
-    const integrations = await prisma.platformIntegration.findMany({
-      where: {
-        locationId: { in: ids },
-        platform: 'google',
-        status: 'active'
-      },
-      include: {
-        location: {
-          select: { id: true, name: true }
-        }
-      }
-    })
-
-    return {
-      connected: integrations.length > 0,
-      locations: integrations.map(integration => ({
-        locationId: integration.locationId,
-        name: integration.gbpLocationTitle || integration.location.name
-      }))
-    }
-  } catch (error: any) {
-    console.error('getGoogleConnectionSummary error:', error)
-
-    return { connected: false, locations: [] }
   }
 }
 

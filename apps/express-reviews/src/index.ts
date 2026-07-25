@@ -1,11 +1,13 @@
-import './load-env';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import dotenv from 'dotenv';
 import helmet from 'helmet';
 import routes from './routes/v1';
 import { createSuccessResponse, SystemMessageCode } from '@platform/contracts';
 import { requestIdMiddleware, errorHandler } from '@platform/middleware';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3006;

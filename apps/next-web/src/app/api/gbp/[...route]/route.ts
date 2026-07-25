@@ -30,10 +30,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ route: st
             if (authHeader) headers.set('Authorization', authHeader);
         }
 
-        const body =
-            req.method !== 'GET' && req.method !== 'HEAD'
-                ? await req.arrayBuffer()
-                : undefined;
+        const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined;
 
         const response = await fetch(url, {
             method: req.method,
@@ -43,18 +40,6 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ route: st
 
         if (response.status === 204) {
             return new NextResponse(null, { status: 204 });
-        }
-
-        const responseContentType = response.headers.get('content-type') || '';
-
-        if (response.ok && (responseContentType.startsWith('image/') || responseContentType === 'application/octet-stream')) {
-            return new NextResponse(await response.arrayBuffer(), {
-                status: response.status,
-                headers: {
-                    'Content-Type': responseContentType,
-                    'Cache-Control': response.headers.get('cache-control') || 'public, max-age=86400',
-                },
-            });
         }
 
         const text = await response.text();

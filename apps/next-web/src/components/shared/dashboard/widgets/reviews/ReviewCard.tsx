@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-no-literals */
 /* eslint-disable react/no-unescaped-entities */
 'use client'
-/* eslint-disable react/jsx-no-literals */
 
 import React, { useState } from 'react';
 import { Card, Box, Typography, Avatar, Chip, Button, useTheme, Rating, TextField } from '@mui/material';
@@ -47,31 +46,27 @@ export default function ReviewCard({
         Negative: 'error'
     } as const;
 
-    const authorName = review.authorName || 'Anonymous';
-    const sentiment = review.sentiment && sentimentColor[review.sentiment] ? review.sentiment : 'Neutral';
-    const rating = typeof review.rating === 'number' ? review.rating : 0;
-
     return (
         <Card sx={{ mb: 3, p: 3, borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
             {/* Header Row */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Avatar src={review.authorPhotoUrl} alt={authorName} sx={{ bgcolor: 'primary.main' }}>
-                        {authorName.charAt(0)}
+                    <Avatar src={review.authorPhotoUrl} alt={review.authorName} sx={{ bgcolor: 'primary.main' }}>
+                        {review.authorName.charAt(0)}
                     </Avatar>
                     <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{authorName}</Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{review.authorName}</Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Rating value={rating} readOnly size="small" />
+                            <Rating value={review.rating} readOnly size="small" />
                             <Typography variant="caption" color="text.secondary">{review.timeAgo}</Typography>
                         </Box>
                     </Box>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Chip
-                        label={sentiment}
+                        label={review.sentiment}
                         size="small"
-                        color={sentimentColor[sentiment]}
+                        color={sentimentColor[review.sentiment]}
                         sx={{ fontWeight: 600, height: 24 }}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>

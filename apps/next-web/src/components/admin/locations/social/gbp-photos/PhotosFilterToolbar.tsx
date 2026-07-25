@@ -25,8 +25,6 @@ interface PhotosFilterToolbarProps {
   onSortChange: (value: string) => void;
   view: 'grid' | 'list';
   onViewChange: (value: 'grid' | 'list') => void;
-  search: string;
-  onSearchChange: (value: string) => void;
 }
 
 export const PHOTO_CATEGORIES = [
@@ -52,9 +50,7 @@ export const PhotosFilterToolbar = ({
   sort,
   onSortChange,
   view,
-  onViewChange,
-  search,
-  onSearchChange,
+  onViewChange
 }: PhotosFilterToolbarProps) => {
   const t = useTranslations('gbpRocket.photos');
   const theme = useTheme();
@@ -89,8 +85,6 @@ export const PhotosFilterToolbar = ({
         <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
         <InputBase
           placeholder={t('filter.searchPlaceholder')}
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
           sx={{ flex: 1, fontSize: 14 }}
         />
       </Box>

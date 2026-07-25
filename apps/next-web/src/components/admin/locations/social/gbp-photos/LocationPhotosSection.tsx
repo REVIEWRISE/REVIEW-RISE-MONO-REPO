@@ -9,10 +9,9 @@ import PhotoOutlinedIcon from '@mui/icons-material/PhotoOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import { GbpPhotoCategory, SystemMessageSeverity } from '@platform/contracts';
-import { useGbpPhotos, useSyncGbpPhotos, useUploadGbpPhoto, extractApiErrorMessage } from '@/hooks/gbp/useGbpPhotos';
-import { useSystemMessages } from '@/shared/components/SystemMessageProvider';
+import { useGbpPhotos, useSyncGbpPhotos, useUploadGbpPhoto } from '@/hooks/gbp/useGbpPhotos';
 import { LocationPhotosGrid } from './LocationPhotosGrid';
+import { GbpPhotoCategory } from '@platform/contracts';
 import { PHOTO_CATEGORIES } from './PhotosFilterToolbar';
 
 interface LocationPhotosSectionProps {
@@ -59,7 +58,6 @@ const StatBox = ({ value, label, icon, color }: any) => {
 export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps) => {
     const t = useTranslations('gbpRocket.photos');
     const theme = useTheme();
-    const { notify } = useSystemMessages();
     const { data: result } = useGbpPhotos(locationId);
     const { mutate: syncPhotos, isPending: isSyncing } = useSyncGbpPhotos();
     const { mutate: uploadPhoto, isPending: isUploading } = useUploadGbpPhoto();
@@ -82,37 +80,11 @@ export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps
         fileInputRef.current?.click();
     };
 
-    const getUploadErrorMessage = (uploadError: unknown) => {
-        const apiMessage = extractApiErrorMessage(uploadError);
-
-        if (apiMessage?.includes('Cannot reach Google Business Profile API')) {
-            return t('uploadNetworkError');
-        }
-
-        if (apiMessage?.includes('GBP_PUBLIC_BASE_URL')) {
-            return t('uploadNeedsPublicUrl');
-        }
-
-        return apiMessage || t('uploadError');
-    };
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
 
-            uploadPhoto(
-                { locationId, file, category: uploadCategory },
-                {
-                    onSuccess: () => notify({
-                        messageCode: t('uploadSuccess'),
-                        severity: SystemMessageSeverity.SUCCESS,
-                    }),
-                    onError: (uploadError) => notify({
-                        messageCode: getUploadErrorMessage(uploadError),
-                        severity: SystemMessageSeverity.ERROR,
-                    }),
-                }
-            );
+            uploadPhoto({ locationId, file, category: uploadCategory });
         }
 
         if (fileInputRef.current) {
@@ -169,16 +141,7 @@ export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps
                         variant="contained"
                         color="warning"
                         startIcon={isSyncing ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
-                        onClick={() => syncPhotos(locationId, {
-                            onSuccess: () => notify({
-                                messageCode: t('syncSuccess'),
-                                severity: SystemMessageSeverity.SUCCESS,
-                            }),
-                            onError: (syncError) => notify({
-                                messageCode: extractApiErrorMessage(syncError) || t('syncError'),
-                                severity: SystemMessageSeverity.ERROR,
-                            }),
-                        })}
+                        onClick={() => syncPhotos(locationId)}
                         disabled={isSyncing}
                         sx={{ fontWeight: 600, px: 3, textTransform: 'none', borderRadius: 1.5 }}
                     >
