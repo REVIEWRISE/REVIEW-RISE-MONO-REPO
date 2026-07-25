@@ -172,7 +172,7 @@ async function processReviewAutoReply(review: any) {
     console.log(`[AutoReplyJob] Generating AI reply for review ${review.id} (Rating: ${rating})`);
     
     try {
-        const aiResponse = await axios.post(`${EXPRESS_AI_URL}/api/v1/ai/generate-review-replies`, {
+        const aiResponse = await axios.post(`${EXPRESS_AI_URL}/api/v1/generate-review-replies`, {
             reviewId: review.id,
             options: {
                 // We can use the first descriptor as the tone if available

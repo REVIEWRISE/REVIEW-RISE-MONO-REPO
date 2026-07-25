@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 // MUI Imports
 import Card from '@mui/material/Card'

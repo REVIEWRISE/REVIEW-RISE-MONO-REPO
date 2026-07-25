@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-literals */
 import React from 'react';
 import { Card, Typography, Box, Button, useTheme } from '@mui/material';
 

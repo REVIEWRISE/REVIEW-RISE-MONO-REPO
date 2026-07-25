@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -75,16 +76,22 @@ export default function SeoIntelligenceLanding() {
     useEffect(() => {
         const fetchContext = async () => {
             if (!user?.id) return
+
             try {
                 if (locationId && locationId !== 'all') {
                     const loc = await apiClient.get<any>(`/api/admin/locations/${locationId}`).then(r => r.data)
+
                     if (loc && loc.businessId) {
                         setBusinessId(loc.businessId)
-                        return
+                        
+return
                     }
                 }
+
+
                 // Fallback to first business
                 const responseData = await apiClient.get<any[]>(`/api/admin/users/${user.id}/businesses`).then(res => res.data)
+
                 if (responseData && responseData.length > 0) {
                     setBusinessId(responseData[0].id)
                 }
@@ -92,6 +99,7 @@ export default function SeoIntelligenceLanding() {
                 console.error('Error fetching dashboard context:', err)
             }
         }
+
         fetchContext()
     }, [user?.id, locationId])
 
@@ -105,6 +113,7 @@ export default function SeoIntelligenceLanding() {
         enabled: !!businessId,
         queryFn: async () => {
             const locParam = safeLocation !== 'all' ? { locationId: safeLocation } : {}
+
             const res = await apiClient.get(`${SERVICES.seo.url}/visibility/metrics`, {
                 params: {
                     businessId,
@@ -112,12 +121,15 @@ export default function SeoIntelligenceLanding() {
                     ...locParam
                 }
             })
-            return res.data?.data?.[0] || null
+
+            
+return res.data?.data?.[0] || null
         },
     })
 
     const navigate = (href: string) => {
         const qs = safeLocation !== 'all' ? `?locationId=${safeLocation}` : ''
+
         router.push(`/en/admin/seo-intelligence/${href}${qs}`)
     }
 

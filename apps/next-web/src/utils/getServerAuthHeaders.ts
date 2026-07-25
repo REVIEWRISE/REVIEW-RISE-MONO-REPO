@@ -14,9 +14,11 @@ export async function getServerAuthHeaders(): Promise<Record<string, string>> {
   }
 
   const result: Record<string, string> = {}
+
   if (authorization) result.Authorization = authorization
 
   const refreshToken = cookieStore.get('refreshToken')
+
   if (refreshToken) {
     result['x-refresh-token'] = refreshToken.value
   }

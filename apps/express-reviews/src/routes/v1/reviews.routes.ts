@@ -8,13 +8,12 @@ import {
   ListReviewsQuerySchema,
   PostReplyRequestSchema,
   AnalyticsQuerySchema,
-  AddCompetitorDataSchema
+  AddCompetitorDataSchema,
+  LocationIdParamSchema
 } from '@platform/contracts';
 import { z } from 'zod';
 
 const router = Router();
-
-const LocationIdParamSchema = z.object({ locationId: z.string().uuid() });
 const ReviewIdParamSchema = z.object({ reviewId: z.string().uuid() });
 const SourceIdParamSchema = z.object({ id: z.string().uuid() });
 
@@ -51,6 +50,7 @@ router.post('/analytics/competitors', validateRequest(AddCompetitorDataSchema), 
 // Google OAuth – 3-Phase Flow
 router.get('/auth/google/connect', authController.connectGoogle);
 router.get('/auth/google/callback', authController.googleCallback);
+router.get('/auth/google/pending/location/:locationId', authController.getResumePendingConnection);
 router.get('/auth/google/pending/:id', authController.getPendingConnection);
 router.post('/auth/google/finalize', authController.finalizeConnection);
 router.post('/auth/google/disconnect/:locationId', authController.disconnectGoogle);

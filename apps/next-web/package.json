@@ -75,6 +75,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@parcel/watcher": "2.5.1",
     "@iconify/json": "2.2.408",
     "@iconify/tools": "4.1.4",
     "@iconify/types": "2.0.0",

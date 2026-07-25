@@ -73,6 +73,7 @@ export async function changePassword(data: { currentPassword: string; newPasswor
 export async function getUserSessions() {
     try {
         const authHeaders = await getServerAuthHeaders()
+
         const response = await backendClient<{ sessions: any[] }>('/v1/auth/sessions', {
             baseUrl: AUTH_SERVICE_URL,
             method: 'GET',
@@ -82,13 +83,15 @@ export async function getUserSessions() {
         return { success: true, data: response.sessions || [] }
     } catch (error: any) {
         console.error('getUserSessions error:', error)
-        return { success: false, message: error.message }
+        
+return { success: false, message: error.message }
     }
 }
 
 export async function revokeSession(sessionId: string) {
     try {
         const authHeaders = await getServerAuthHeaders()
+
         await backendClient(`/v1/auth/sessions/${sessionId}`, {
             baseUrl: AUTH_SERVICE_URL,
             method: 'DELETE',
@@ -96,16 +99,19 @@ export async function revokeSession(sessionId: string) {
         })
 
         revalidatePath('/[locale]/admin/profile')
-        return { success: true }
+        
+return { success: true }
     } catch (error: any) {
         console.error('revokeSession error:', error)
-        return { success: false, message: error.message }
+        
+return { success: false, message: error.message }
     }
 }
 
 export async function setup2FA() {
     try {
         const authHeaders = await getServerAuthHeaders()
+
         const data = await backendClient('/v1/auth/2fa/setup', {
             baseUrl: AUTH_SERVICE_URL,
             method: 'POST',
@@ -115,13 +121,15 @@ export async function setup2FA() {
         return { success: true, data }
     } catch (error: any) {
         console.error('setup2FA error:', error)
-        return { success: false, message: error.message }
+        
+return { success: false, message: error.message }
     }
 }
 
 export async function deactivateAccount() {
     try {
         const user = await getServerUser()
+
         if (!user) throw new Error('Unauthorized')
 
         // Mock deactivation logic: just log and return success
@@ -130,6 +138,7 @@ export async function deactivateAccount() {
         return { success: true, message: 'Account deactivated successfully. You will be logged out.' }
     } catch (error: any) {
         console.error('deactivateAccount error:', error)
-        return { success: false, message: error.message }
+        
+return { success: false, message: error.message }
     }
 }

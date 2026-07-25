@@ -1,202 +1,418 @@
-import { useState, useEffect } from 'react';
-import { 
-    Dialog, 
-    DialogContent, 
-    Box, 
-    Typography, 
-    IconButton, 
-    Avatar, 
-    Card, 
-    ListItem, 
-    ListItemText, 
-    Radio, 
-    Button, 
-    CircularProgress,
-    Alert
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import GoogleIcon from '@mui/icons-material/Google';
-import StorefrontIcon from '@mui/icons-material/Storefront';
-import { useTranslations } from 'next-intl';
-import apiClient from '@/lib/apiClient';
+import { useState, useEffect } from 'react'
+
+import { alpha, useTheme } from '@mui/material/styles'
+import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import Divider from '@mui/material/Divider'
+import IconButton from '@mui/material/IconButton'
+import Skeleton from '@mui/material/Skeleton'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import { useTranslations } from 'next-intl'
+
+import CustomAvatar from '@core/components/mui/Avatar'
+import CustomChip from '@core/components/mui/Chip'
+
+import apiClient from '@/lib/apiClient'
+import { SERVICES_CONFIG } from '@/configs/services'
+
+const REVIEWS_API_URL = SERVICES_CONFIG.review.url
+const GOOGLE_BLUE = '#4285F4'
+
+interface GbpLocationOption {
+    name: string
+    title: string
+    accountId: string
+    storefrontAddress?: {
+        addressLines?: string[]
+    }
+}
 
 interface LocationSelectorModalProps {
-    open: boolean;
-    pendingId: string;
-    onClose: () => void;
-    onSuccess: () => void;
+    open: boolean
+    pendingId: string
+    onClose: () => void
+    onSuccess: () => void
 }
 
 interface PendingData {
-    locationId: string;
-    accounts: any[];
-    locations: any[];
+    locationId: string
+    accounts: unknown[]
+    locations: GbpLocationOption[]
 }
 
-export default function LocationSelectorModal({ open, pendingId, onClose, onSuccess }: LocationSelectorModalProps) {
-    const t = useTranslations('locations.ReviewSources');
-    const tc = useTranslations('common');
+export default function LocationSelectorModal({
+    open,
+    pendingId,
+    onClose,
+    onSuccess
+}: LocationSelectorModalProps) {
+    const t = useTranslations('locations.ReviewSources')
+    const tc = useTranslations('common')
+    const theme = useTheme()
 
-    const [loading, setLoading] = useState(true);
-    const [finishing, setFinishing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [data, setData] = useState<PendingData | null>(null);
-    const [selectedGbpName, setSelectedGbpName] = useState<string>('');
+    const [loading, setLoading] = useState(true)
+    const [finishing, setFinishing] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [data, setData] = useState<PendingData | null>(null)
+    const [selectedGbpName, setSelectedGbpName] = useState<string>('')
 
     useEffect(() => {
-        if (!open || !pendingId) return;
+        if (!open || !pendingId) return
 
-        let isMounted = true;
+        let isMounted = true
 
-        setLoading(true);
-        setError(null);
+        setLoading(true)
+        setError(null)
+        setSelectedGbpName('')
 
-        apiClient.get(`/auth/google/pending/${pendingId}`)
+        apiClient
+            .get<PendingData>(`${REVIEWS_API_URL}/auth/google/pending/${pendingId}`)
             .then(res => {
-                if (!isMounted) return;
-                setData(res.data.data);
+                if (!isMounted) return
+                setData(res.data)
 
-
-                // Pre-select first if available
-                if (res.data.data?.locations?.length > 0) {
-                    setSelectedGbpName(res.data.data.locations[0].name);
+                if (res.data?.locations?.length > 0) {
+                    setSelectedGbpName(res.data.locations[0].name)
                 }
 
-                setLoading(false);
+                setLoading(false)
             })
             .catch(err => {
-                if (!isMounted) return;
-                setError(err.response?.data?.message || 'Failed to load locations.');
-                setLoading(false);
-            });
+                if (!isMounted) return
+                setError(err.response?.data?.message || 'Failed to load locations.')
+                setLoading(false)
+            })
 
-        return () => { isMounted = false; };
-    }, [open, pendingId]);
+        return () => {
+            isMounted = false
+        }
+    }, [open, pendingId])
 
     const handleConfirm = async () => {
-        if (!selectedGbpName || !data) return;
+        if (!selectedGbpName || !data) return
 
-        setFinishing(true);
-        setError(null);
+        setFinishing(true)
+        setError(null)
 
-        const gbpLocation = data.locations.find((l: any) => l.name === selectedGbpName);
-        
+        const gbpLocation = data.locations.find(loc => loc.name === selectedGbpName)
+
+        if (!gbpLocation) {
+            setError('Failed to connect location.')
+            setFinishing(false)
+
+            return
+        }
+
         try {
-            await apiClient.post('/auth/google/finalize', {
+            await apiClient.post(`${REVIEWS_API_URL}/auth/google/finalize`, {
                 pendingId,
                 gbpLocationName: gbpLocation.name,
                 gbpAccountId: gbpLocation.accountId,
                 gbpLocationTitle: gbpLocation.title
-            });
-            onSuccess();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to connect location.');
-            setFinishing(false);
+            })
+            onSuccess()
+        } catch (err: unknown) {
+            const message =
+                err &&
+                typeof err === 'object' &&
+                'response' in err &&
+                err.response &&
+                typeof err.response === 'object' &&
+                'data' in err.response &&
+                err.response.data &&
+                typeof err.response.data === 'object' &&
+                'message' in err.response.data &&
+                typeof err.response.data.message === 'string'
+                    ? err.response.data.message
+                    : 'Failed to connect location.'
+
+            setError(message)
+            setFinishing(false)
         }
-    };
+    }
+
+    const locationCount = data?.locations?.length ?? 0
 
     return (
-        <Dialog 
-            open={open} 
+        <Dialog
+            open={open}
             onClose={finishing ? undefined : onClose}
-            maxWidth="sm" 
+            maxWidth='sm'
             fullWidth
             PaperProps={{
-                sx: { borderRadius: 3, bgcolor: 'background.paper', backgroundImage: 'none' }
+                sx: {
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    bgcolor: 'background.paper',
+                    backgroundImage: 'none'
+                }
             }}
         >
-            <Box sx={{ position: 'relative', p: 1 }}>
-                {!finishing && (
-                    <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-                        <CloseIcon />
-                    </IconButton>
-                )}
-                
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3, pb: 2 }}>
-                    <Avatar sx={{ bgcolor: 'white', border: '1px solid #E0E0E0' }}>
-                        <GoogleIcon sx={{ color: '#4285F4' }} />
-                    </Avatar>
-                    <Box>
-                        <Typography variant="h5" fontWeight="bold">{t('selector.title')}</Typography>
-                        <Typography variant="body2" color="text.secondary">{t('selector.subtitle')}</Typography>
+            <Box
+                sx={{
+                    position: 'relative',
+                    px: 5,
+                    py: 4,
+                    bgcolor: alpha(GOOGLE_BLUE, 0.08),
+                    borderBottom: `1px solid ${theme.palette.divider}`
+                }}
+            >
+                <IconButton
+                    onClick={onClose}
+                    disabled={finishing}
+                    aria-label={tc('cancel')}
+                    sx={{ position: 'absolute', right: 12, top: 12 }}
+                >
+                    <i className='tabler-x' />
+                </IconButton>
+
+                <Stack direction='row' spacing={3} alignItems='center' pr={5}>
+                    <CustomAvatar
+                        skin='light'
+                        variant='rounded'
+                        sx={{
+                            width: 56,
+                            height: 56,
+                            bgcolor: alpha(GOOGLE_BLUE, 0.15),
+                            color: GOOGLE_BLUE
+                        }}
+                    >
+                        <i className='tabler-map-pin' style={{ fontSize: '1.75rem' }} />
+                    </CustomAvatar>
+                    <Box sx={{ minWidth: 0 }}>
+                        <Typography variant='h5' fontWeight={700}>
+                            {t('selector.title')}
+                        </Typography>
+                        <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
+                            {t('selector.subtitle')}
+                        </Typography>
                     </Box>
-                </Box>
+                </Stack>
             </Box>
 
-            <DialogContent sx={{ px: 4, pb: 4 }}>
+            <DialogContent sx={{ px: 5, py: 4 }}>
                 {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : error ? (
-                    <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+                    <Stack spacing={2}>
+                        <Skeleton variant='rounded' height={72} />
+                        <Skeleton variant='rounded' height={72} />
+                        <Skeleton variant='rounded' height={72} />
+                    </Stack>
+                ) : error && !data?.locations?.length ? (
+                    <Alert severity='error'>{error}</Alert>
                 ) : (
                     <>
-                        <Typography variant="subtitle2" sx={{ mb: 2, color: 'text.secondary' }}>
-                            {t('selector.foundLocations', { count: data?.locations?.length || 0 })}
-                        </Typography>
+                        {error ? (
+                            <Alert severity='error' sx={{ mb: 3 }}>
+                                {error}
+                            </Alert>
+                        ) : null}
 
-                        <Box sx={{ maxHeight: 300, overflowY: 'auto', mb: 4, pr: 1 }}>
-                            {data?.locations?.map((loc: any) => (
-                                <Card 
-                                    key={loc.name}
-                                    variant="outlined" 
-                                    sx={{ 
-                                        mb: 1.5, 
-                                        cursor: 'pointer',
-                                        border: '2px solid', 
-                                        borderColor: selectedGbpName === loc.name ? 'primary.main' : 'divider',
-                                        bgcolor: selectedGbpName === loc.name ? 'primary.light' : 'transparent',
-                                        transition: 'all 0.2s',
-                                        opacity: finishing && selectedGbpName !== loc.name ? 0.5 : 1
-                                    }}
-                                    onClick={() => !finishing && setSelectedGbpName(loc.name)}
-                                >
-                                    <ListItem sx={{ py: 1.5 }}>
-                                        <Radio 
-                                            checked={selectedGbpName === loc.name}
-                                            color="primary"
-                                        />
-                                        <Avatar sx={{ bgcolor: 'background.paper', color: 'primary.main', mr: 2, border: '1px solid', borderColor: 'divider' }}>
-                                            <StorefrontIcon />
-                                        </Avatar>
-                                        <ListItemText 
-                                            primary={
-                                                <Typography variant="subtitle1" fontWeight={selectedGbpName === loc.name ? 700 : 500}>
-                                                    {loc.title}
-                                                </Typography>
+                        <Stack
+                            direction='row'
+                            alignItems='center'
+                            justifyContent='space-between'
+                            spacing={2}
+                            sx={{ mb: 3 }}
+                        >
+                            <Typography variant='overline' color='text.secondary' fontWeight={600}>
+                                {t('selector.foundLocations', { count: locationCount })}
+                            </Typography>
+                            {locationCount > 0 ? (
+                                <CustomChip
+                                    size='small'
+                                    variant='tonal'
+                                    color='info'
+                                    label={`${locationCount}`}
+                                />
+                            ) : null}
+                        </Stack>
+
+                        <Stack
+                            spacing={1.5}
+                            sx={{
+                                maxHeight: 320,
+                                overflowY: 'auto',
+                                pr: 0.5,
+                                mb: 1
+                            }}
+                        >
+                            {data?.locations?.map(loc => {
+                                const isSelected = selectedGbpName === loc.name
+
+                                const address =
+                                    loc.storefrontAddress?.addressLines?.join(', ') ||
+                                    t('selector.noAddress')
+
+                                return (
+                                    <Box
+                                        key={loc.name}
+                                        role='button'
+                                        tabIndex={0}
+                                        onClick={() => !finishing && setSelectedGbpName(loc.name)}
+                                        onKeyDown={event => {
+                                            if (finishing) return
+
+                                            if (event.key === 'Enter' || event.key === ' ') {
+                                                event.preventDefault()
+                                                setSelectedGbpName(loc.name)
                                             }
-                                            secondary={loc.storefrontAddress?.addressLines?.join(', ') || t('selector.noAddress')}
-                                            secondaryTypographyProps={{ fontSize: '0.8rem', mt: 0.5 }}
-                                        />
-                                    </ListItem>
-                                </Card>
-                            ))}
-                        </Box>
+                                        }}
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 2,
+                                            p: 2.5,
+                                            borderRadius: 2,
+                                            cursor: finishing ? 'default' : 'pointer',
+                                            border: '2px solid',
+                                            borderColor: isSelected
+                                                ? GOOGLE_BLUE
+                                                : theme.palette.divider,
+                                            bgcolor: isSelected
+                                                ? alpha(GOOGLE_BLUE, 0.06)
+                                                : 'background.paper',
+                                            boxShadow: isSelected
+                                                ? `0 0 0 1px ${alpha(GOOGLE_BLUE, 0.15)}`
+                                                : 'none',
+                                            opacity: finishing && !isSelected ? 0.55 : 1,
+                                            transition:
+                                                'border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease',
+                                            '&:hover': finishing
+                                                ? undefined
+                                                : {
+                                                      borderColor: isSelected
+                                                          ? GOOGLE_BLUE
+                                                          : alpha(GOOGLE_BLUE, 0.45),
+                                                      bgcolor: isSelected
+                                                          ? alpha(GOOGLE_BLUE, 0.08)
+                                                          : alpha(theme.palette.action.hover, 0.04)
+                                                  }
+                                        }}
+                                    >
+                                        <CustomAvatar
+                                            skin='light'
+                                            variant='rounded'
+                                            sx={{
+                                                width: 44,
+                                                height: 44,
+                                                flexShrink: 0,
+                                                bgcolor: 'common.white',
+                                                color: isSelected ? GOOGLE_BLUE : theme.palette.text.secondary,
+                                                border: `1px solid ${isSelected ? alpha(GOOGLE_BLUE, 0.35) : theme.palette.divider}`
+                                            }}
+                                        >
+                                            <i className='tabler-building-store' style={{ fontSize: '1.25rem' }} />
+                                        </CustomAvatar>
 
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                            <Button 
-                                onClick={onClose} 
-                                variant="text" 
-                                color="inherit"
-                                disabled={finishing}
-                            >
-                                {tc('cancel')}
-                            </Button>
-                            <Button 
-                                onClick={handleConfirm} 
-                                variant="contained" 
-                                color="primary" 
-                                size="large" 
-                                disabled={!selectedGbpName || finishing}
-                                startIcon={finishing ? <CircularProgress size={20} color="inherit" /> : null}
-                            >
-                                {finishing ? t('selector.connecting') : t('selector.confirm')}
-                            </Button>
-                        </Box>
+                                        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                                            <Typography
+                                                variant='subtitle2'
+                                                fontWeight={isSelected ? 700 : 600}
+                                                noWrap
+                                            >
+                                                {loc.title}
+                                            </Typography>
+                                            <Typography
+                                                variant='caption'
+                                                color='text.secondary'
+                                                sx={{
+                                                    display: 'block',
+                                                    mt: 0.5,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                {address}
+                                            </Typography>
+                                        </Box>
+
+                                        <Box
+                                            sx={{
+                                                width: 28,
+                                                height: 28,
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                                border: '2px solid',
+                                                borderColor: isSelected
+                                                    ? GOOGLE_BLUE
+                                                    : theme.palette.divider,
+                                                bgcolor: isSelected ? GOOGLE_BLUE : 'transparent',
+                                                color: isSelected ? 'common.white' : 'transparent',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            {isSelected ? (
+                                                <i className='tabler-check' style={{ fontSize: '0.95rem' }} />
+                                            ) : null}
+                                        </Box>
+                                    </Box>
+                                )
+                            })}
+                        </Stack>
                     </>
                 )}
             </DialogContent>
+
+            <Divider />
+
+            <DialogActions
+                sx={{
+                    px: 5,
+                    py: 3,
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 2
+                }}
+            >
+                <Stack direction='row' spacing={1} alignItems='center'>
+                    <i
+                        className='tabler-brand-google'
+                        style={{ fontSize: '1rem', color: GOOGLE_BLUE }}
+                    />
+                    <Typography variant='caption' color='text.secondary'>
+                        {t('googleModal.secure')}
+                    </Typography>
+                </Stack>
+                <Stack direction='row' spacing={2}>
+                    <Button
+                        onClick={onClose}
+                        variant='outlined'
+                        color='secondary'
+                        disabled={finishing}
+                    >
+                        {tc('cancel')}
+                    </Button>
+                    <Button
+                        onClick={handleConfirm}
+                        variant='contained'
+                        disabled={!selectedGbpName || finishing || loading}
+                        startIcon={
+                            finishing ? (
+                                <CircularProgress size={18} color='inherit' />
+                            ) : (
+                                <i className='tabler-plug-connected' />
+                            )
+                        }
+                        sx={{
+                            fontWeight: 600,
+                            bgcolor: GOOGLE_BLUE,
+                            '&:hover': { bgcolor: alpha(GOOGLE_BLUE, 0.88) }
+                        }}
+                    >
+                        {finishing ? t('selector.connecting') : t('selector.confirm')}
+                    </Button>
+                </Stack>
+            </DialogActions>
         </Dialog>
-    );
+    )
 }

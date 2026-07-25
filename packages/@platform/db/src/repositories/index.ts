@@ -31,7 +31,7 @@ export { JobRepository, jobRepository } from './job.repository';
 export { ReviewSyncLogRepository, reviewSyncLogRepository } from './review-sync-log.repository';
 export { BrandRecommendationRepository, brandRecommendationRepository } from './brand-recommendation.repository';
 export { BrandScoreRepository, brandScoreRepository } from './brand-score.repository';
-export { ReviewRepository, reviewRepository } from './review.repository';
+export { ReviewRepository, reviewRepository, SYNCED_REVIEW_WHERE } from './review.repository';
 export { BrandProfileRepository, brandProfileRepository } from './brand-profile.repository';
 export { ReviewSourceRepository, reviewSourceRepository } from './review-source.repository';
 export { SocialConnectionRepository, socialConnectionRepository } from './social-connection.repository';

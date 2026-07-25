@@ -1,9 +1,11 @@
  import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { createSuccessResponse, createErrorResponse, ErrorCode } from '@platform/contracts';
-import { platformIntegrationRepository, pendingGoogleConnectionRepository } from '@platform/db';
+import { platformIntegrationRepository, pendingGoogleConnectionRepository, reviewSourceRepository } from '@platform/db';
 import { encryptToken, decryptToken, isEncryptedToken } from '@platform/utils';
 import { googleReviewsService } from '../services/google-reviews.service';
+import { reviewSyncService } from '../services/review-sync.service';
+import { resolveGbpLocationResourceName } from '../utils/gbp-location';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const PENDING_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -158,11 +160,43 @@ export const googleCallback = async (req: Request, res: Response) => {
             `${FRONTEND_URL}/admin/locations/${locationId}?pending_google=${newPending.id}`
         );
     } catch (error: any) {
-        console.error('[googleCallback] Error:', error);
+        console.error('[googleCallback] Error:', error?.message || error);
         const redirect = locationId
             ? `${FRONTEND_URL}/admin/locations/${locationId}?google_error=server_error`
             : `${FRONTEND_URL}/admin/locations?google_error=server_error`;
         return res.redirect(redirect);
+    }
+};
+
+// ─────────────────────────────────────────────────────────────
+// Resume incomplete OAuth — active pending session for a location
+// GET /auth/google/pending/location/:locationId
+// ─────────────────────────────────────────────────────────────
+export const getResumePendingConnection = async (req: Request, res: Response) => {
+    try {
+        const { locationId } = req.params;
+
+        const pending = await pendingGoogleConnectionRepository.findActiveByLocationId(locationId);
+
+        if (!pending) {
+            return res.status(200).json(
+                createSuccessResponse({ pendingId: null }, 'No pending connection', 200, { requestId: req.id })
+            );
+        }
+
+        return res.status(200).json(
+            createSuccessResponse(
+                { pendingId: pending.id },
+                'Pending connection found',
+                200,
+                { requestId: req.id }
+            )
+        );
+    } catch (error: any) {
+        console.error('[getResumePendingConnection] Error:', error?.message || error);
+        return res.status(500).json(
+            createErrorResponse('Internal server error', ErrorCode.INTERNAL_SERVER_ERROR, 500, error.message, req.id)
+        );
     }
 };
 
@@ -246,12 +280,23 @@ export const finalizeConnection = async (req: Request, res: Response) => {
             refreshToken: pending.encryptedRefreshToken,
             expiresAt: pending.expiryDate,
             gbpAccountId,
-            gbpLocationName,
+            gbpLocationName: resolveGbpLocationResourceName(gbpLocationName, gbpAccountId),
             gbpLocationTitle: gbpLocationTitle || '',
         });
 
         // Clean up the pending record
         await pendingGoogleConnectionRepository.deleteById(pendingId);
+
+        // Enable review sync and pull real reviews from the connected GBP profile
+        await reviewSourceRepository.upsertLocationPlatform(pending.locationId, 'google');
+
+        let syncResults: Awaited<ReturnType<typeof reviewSyncService.syncReviewsForLocation>> = [];
+
+        try {
+            syncResults = await reviewSyncService.syncReviewsForLocation(pending.locationId);
+        } catch (syncError) {
+            console.error('[finalizeConnection] Initial review sync failed:', syncError);
+        }
 
         return res.status(200).json(
             createSuccessResponse(
@@ -261,6 +306,7 @@ export const finalizeConnection = async (req: Request, res: Response) => {
                     locationId: integration.locationId,
                     gbpLocationTitle: integration.gbpLocationTitle,
                     connectedAt: integration.connectedAt,
+                    syncResults,
                 },
                 'Google Business Profile connected successfully',
                 200,

@@ -7,7 +7,7 @@
     "packages/**/*"
   ],
   "scripts": {
-    "dev:all": "pnpm --parallel --filter \"./apps/*\" run dev",
+    "dev:all": "ulimit -n 65536 && WATCHPACK_POLLING=true pnpm --parallel --filter \"./apps/*\" run dev",
     "build:all": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test",
@@ -16,7 +16,9 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@parcel/watcher",
       "@prisma/engines",
+      "@swc/core",
       "esbuild",
       "prisma",
       "sharp"

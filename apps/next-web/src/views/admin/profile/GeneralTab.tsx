@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 import { useState } from 'react'
 
@@ -54,8 +55,10 @@ const GeneralTab = ({ user }: GeneralTabProps) => {
 
     const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
+
         if (file) {
             const url = URL.createObjectURL(file)
+
             setAvatarUrl(url)
             notify(SystemMessageCode.SUCCESS) // Mock success
         }
@@ -64,6 +67,7 @@ const GeneralTab = ({ user }: GeneralTabProps) => {
     const handleSubmit = async () => {
         setIsSubmitting(true)
         const fullName = `${formData.firstName} ${formData.lastName}`.trim()
+
         const result = await updateProfile({
             name: fullName,
             email: formData.email,
@@ -83,8 +87,10 @@ const GeneralTab = ({ user }: GeneralTabProps) => {
     const handleDeactivate = async () => {
         setIsDangerDialogOpen(false)
         const result = await deactivateAccount()
+
         if (result.success) {
             notify(SystemMessageCode.SUCCESS)
+
             // In a real app, sign out the user here
             router.push('/login')
         } else {
