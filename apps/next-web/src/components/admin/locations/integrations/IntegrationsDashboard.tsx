@@ -52,9 +52,9 @@ export default function IntegrationsDashboard() {
 
         try {
             setLoading(true)
-            const res = await apiClient.get(`/auth/google/status/${locationId}`)
+            const res = await apiClient.get(`/reviews/api/v1/auth/google/status/${locationId}`)
 
-            setStatus(res.data.data)
+            setStatus(res.data)
         } catch (error) {
             console.error('Failed to fetch integration status:', error)
         } finally {
@@ -97,10 +97,10 @@ export default function IntegrationsDashboard() {
 
     const handleConnectGoogle = async () => {
         try {
-            const res = await apiClient.get(`/auth/google/connect?locationId=${locationId}`)
+            const res = await apiClient.get<{ url: string }>(`/reviews/api/v1/auth/google/connect?locationId=${locationId}`)
 
-            if (res.data?.data?.url) {
-                window.location.href = res.data.data.url
+            if (res.data?.url) {
+                window.location.href = res.data.url
             } else {
                 setSnackbarMsg('Failed to generate connection link.')
             }
@@ -114,7 +114,7 @@ export default function IntegrationsDashboard() {
 
         try {
             setLoading(true)
-            await apiClient.post(`/auth/google/disconnect/${locationId}`)
+            await apiClient.post(`/reviews/api/v1/auth/google/disconnect/${locationId}`)
             await fetchStatus()
             setSnackbarMsg('Google Business Profile disconnected.')
         } catch {

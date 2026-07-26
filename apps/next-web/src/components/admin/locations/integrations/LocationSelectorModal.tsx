@@ -51,15 +51,15 @@ export default function LocationSelectorModal({ open, pendingId, onClose, onSucc
         setLoading(true);
         setError(null);
 
-        apiClient.get(`/auth/google/pending/${pendingId}`)
+        apiClient.get(`/reviews/api/v1/auth/google/pending/${pendingId}`)
             .then(res => {
                 if (!isMounted) return;
-                setData(res.data.data);
+                setData(res.data);
 
 
                 // Pre-select first if available
-                if (res.data.data?.locations?.length > 0) {
-                    setSelectedGbpName(res.data.data.locations[0].name);
+                if (res.data?.locations?.length > 0) {
+                    setSelectedGbpName(res.data.locations[0].name);
                 }
 
                 setLoading(false);
@@ -82,7 +82,7 @@ export default function LocationSelectorModal({ open, pendingId, onClose, onSucc
         const gbpLocation = data.locations.find((l: any) => l.name === selectedGbpName);
         
         try {
-            await apiClient.post('/auth/google/finalize', {
+            await apiClient.post('/reviews/api/v1/auth/google/finalize', {
                 pendingId,
                 gbpLocationName: gbpLocation.name,
                 gbpAccountId: gbpLocation.accountId,
