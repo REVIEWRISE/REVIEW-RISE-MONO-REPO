@@ -56,6 +56,10 @@ const nextConfig: NextConfig = {
       {
         source: '/api/v1/uploads/:path*',
         destination: 'http://localhost:3007/api/v1/uploads/:path*',
+      },
+      {
+        source: '/reviews/api/v1/:path*',
+        destination: `${process.env.EXPRESS_REVIEWS_URL || 'http://localhost:3006'}/api/v1/:path*`,
       }
     ]
   },
