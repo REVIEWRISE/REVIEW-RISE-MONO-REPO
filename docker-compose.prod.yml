@@ -523,28 +523,6 @@ services:
           memory: 384M
 
   # ==================================================
-  # DB MIGRATIONS & SEED — runs once then exits
-  # Uses a slim node image with the full workspace so
-  # tsx / prisma / seed scripts are all available.
-  # ==================================================
-  db-migrate:
-    image: node:20-alpine
-    container_name: reviewrise-db-migrate
-    restart: "no"
-    networks:
-      - reviewrise-network
-    working_dir: /app/packages/@platform/db
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable
-    volumes:
-      - .:/app
-    command: ["sh", "/app/scripts/db-migrate.sh"]
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  # ==================================================
   # REVERSE PROXY - Nginx
   # ==================================================
 

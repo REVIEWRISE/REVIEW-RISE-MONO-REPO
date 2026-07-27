@@ -48,7 +48,7 @@ Add these secrets (click "New repository secret"):
 
 3. **VPS_HOST**
    - Your VPS IP address or domain
-   - Example: `123.45.67.89` or `staging.vyntrise.com/`
+   - Example: `123.45.67.89` or `staging.reviewrise.com`
 
 4. **VPS_USER**
    - SSH username for VPS
@@ -60,7 +60,7 @@ Add these secrets (click "New repository secret"):
 
 6. **STAGING_URL**
    - Full URL for health checks
-   - Example: `http://staging.vyntrise.com/` (or use IP if DNS not ready)
+   - Example: `http://staging.reviewrise.com` (or use IP if DNS not ready)
 
 7. **GOOGLE_CLIENT_ID**
    - Google OAuth Web Client ID (NextAuth login + GBP)
@@ -171,7 +171,7 @@ JWT_SECRET="PASTE_YOUR_64_CHAR_SECRET_HERE"
 LLM_PROVIDER_API_KEY="sk-YOUR_ACTUAL_API_KEY"
 
 # Public URLs (update to your actual domain)
-NEXT_PUBLIC_API_URL=https://staging.vyntrise.com//api
+NEXT_PUBLIC_API_URL=https://staging.reviewrise.com/api
 ```
 
 ---
@@ -186,14 +186,14 @@ apt install certbot -y
 
 # Generate certificates (Nginx must be stopped)
 certbot certonly --standalone \
-  -d staging.vyntrise.com/ \
-  -d landing.vyntrise.com/ \
+  -d staging.reviewrise.com \
+  -d landing.reviewrise.com \
   --agree-tos \
   --email your-email@example.com
 
 # Copy certificates to nginx/ssl
-cp /etc/letsencrypt/live/staging.vyntrise.com//fullchain.pem ./nginx/ssl/
-cp /etc/letsencrypt/live/staging.vyntrise.com//privkey.pem ./nginx/ssl/
+cp /etc/letsencrypt/live/staging.reviewrise.com/fullchain.pem ./nginx/ssl/
+cp /etc/letsencrypt/live/staging.reviewrise.com/privkey.pem ./nginx/ssl/
 chmod 644 ./nginx/ssl/*.pem
 
 # Update nginx.conf to enable HTTPS
@@ -265,7 +265,7 @@ curl http://localhost/api/auth/health
 ```
 
 ### 7.2 Access Application
-- Open browser: `http://YOUR_VPS_IP` or `http://staging.vyntrise.com/`
+- Open browser: `http://YOUR_VPS_IP` or `http://staging.reviewrise.com`
 - You should see the Next.js frontend
 - Try logging in to test authentication
 

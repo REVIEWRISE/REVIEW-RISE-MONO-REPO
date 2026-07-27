@@ -445,6 +445,9 @@
       "title": "Smart Reviews™",
       "subtitle": "عرض وإدارة جميع مراجعات العملاء في مكان واحد",
       "manageSubtitle": "إدارة ومراقبة سمعة عملائك عبر المنصات",
+      "noSyncedReviews": "لا توجد مراجعات متزامنة بعد. قم بربط ملف Google Business Profile ومزامنة المراجعات لعرض البيانات الحقيقية هنا.",
+      "noSyncedReviewsLocation": "لا توجد مراجعات متزامنة لهذا الموقع بعد.",
+      "connectToSync": "ربط ومزامنة المراجعات",
       "runSentiment": "تشغيل تحليل المشاعر",
       "reviewsCount": "{count} مراجعات",
       "totalCount": "{count} إجمالي",
@@ -684,7 +687,7 @@
     "channels": {
       "title": "المنصات المتصلة",
       "subtitle": "إدارة التكامل مع منصات الطرف الثالث",
-      "googleSubtitle": "ملف تعريف العمل",
+      "googleSubtitle": "GBP",
       "facebookSubtitle": "الصفحات",
       "connected": "متصل",
       "notConnected": "غير متصل"
@@ -1504,6 +1507,7 @@
     "confirmDelete": "هل أنت متأكد أنك تريد حذف هذا العنصر؟",
     "channel": {
       "google": "جوجل",
+      "gbp": "ملف Google Business",
       "facebook": "فيسبوك",
       "instagram": "إنستغرام",
       "twitter": "تويتر",

@@ -11,6 +11,7 @@ import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
 import LinearProgress from '@mui/material/LinearProgress'
 import Skeleton from '@mui/material/Skeleton'
+import { alpha, useTheme } from '@mui/material/styles'
 
 // Core Component Imports
 import CustomAvatar from '@core/components/mui/Avatar'
@@ -19,14 +20,23 @@ import CustomChip from '@core/components/mui/Chip'
 // Hook Imports
 import useTranslation from '@/hooks/useTranslation'
 import { useDashboardMetrics } from '@/hooks/reviews/useReviewAnalytics'
+import { useAccountChannelStatus } from '@/hooks/useAccountChannelStatus'
+import { getAccountChannelStatus } from '@/utils/accountChannelStatus'
 
 interface PlatformStatus {
   key: string
   label: string
   icon: string
-  color: 'success' | 'error' | 'secondary'
+  brandColor: string
   connected: boolean
+  loading?: boolean
 }
+
+const BRAND = {
+  google: '#4285F4',
+  facebook: '#1877F2',
+  sync: '#7367F0'
+} as const
 
 const StatBlock = ({
   icon, label, value, subLabel, color, loading
@@ -63,13 +73,16 @@ const StatBlock = ({
 
 const AccountOverview = ({ data }: { data: any }) => {
   const t = useTranslation('dashboard')
+  const theme = useTheme()
 
   const primaryBusiness = data?.userBusinessRoles?.[0]?.business
   const businessId = primaryBusiness?.id || data?.id
 
   // Fix bug: prefer _count from API, then array length
 
-  const locationCount = primaryBusiness?._count?.locations ?? data?._count?.locations ?? data?.locations?.length ?? 0
+  const channelStatus = useAccountChannelStatus(data)
+  const locationMeta = getAccountChannelStatus(data)
+  const locationCount = primaryBusiness?._count?.locations ?? locationMeta.locations.length ?? 0
 
   const userCount = data?.userBusinessRoles?.length ?? 1
 
@@ -86,7 +99,7 @@ const AccountOverview = ({ data }: { data: any }) => {
   // Real API metrics
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics({
     businessId: businessId || '',
-    limit: 30
+    period: 30
   })
 
   const avgRating = metrics ? Number((metrics as any).averageRating ?? 0).toFixed(1) : '—'
@@ -100,33 +113,29 @@ const AccountOverview = ({ data }: { data: any }) => {
     ? Math.max(0, ((metrics as any).totalReviews ?? 0) - ((metrics as any).responseCount ?? 0))
     : '—'
 
-  // Platform connections — aggregate across all locations
-  const allLocations: any[] = data?.locations || []
-  const hasGoogle = allLocations.some((l: any) => l.googlePlaceId || l.platforms?.google)
-  const hasFacebook = allLocations.some((l: any) => l.facebookPageId || l.platforms?.facebook)
-  const locationConnections = allLocations.length > 0
-
   const platforms: PlatformStatus[] = [
     {
       key: 'google',
       label: t('accounts.overview.platformConnections.google'),
       icon: 'tabler-brand-google',
-      color: hasGoogle ? 'success' : 'error',
-      connected: hasGoogle
+      brandColor: BRAND.google,
+      connected: channelStatus.google.connected,
+      loading: channelStatus.google.loading
     },
     {
       key: 'facebook',
       label: t('accounts.overview.platformConnections.facebook'),
       icon: 'tabler-brand-facebook',
-      color: hasFacebook ? 'success' : 'error',
-      connected: hasFacebook
+      brandColor: BRAND.facebook,
+      connected: channelStatus.facebook.connected
     },
     {
       key: 'sync',
       label: t('accounts.overview.platformConnections.reviewSync'),
       icon: 'tabler-refresh',
-      color: locationConnections ? 'success' : 'secondary',
-      connected: locationConnections
+      brandColor: BRAND.sync,
+      connected: channelStatus.reviewSync.connected,
+      loading: channelStatus.reviewSync.loading
     }
   ]
 
@@ -306,23 +315,43 @@ const AccountOverview = ({ data }: { data: any }) => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     p: 3,
-                    borderRadius: 1,
-                    border: theme => `1px solid ${theme.palette.divider}`,
-                    bgcolor: platform.connected ? 'success.light' : 'action.hover'
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: platform.connected
+                      ? alpha(theme.palette.success.main, 0.35)
+                      : theme.palette.divider,
+                    bgcolor: platform.connected
+                      ? alpha(theme.palette.success.main, 0.04)
+                      : 'background.paper',
+                    transition: 'border-color 0.2s ease, background-color 0.2s ease'
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <CustomAvatar skin='light' color={platform.color} size={36}>
-                      <i className={platform.icon} />
+                    <CustomAvatar
+                      skin='light'
+                      variant='rounded'
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor: 'common.white',
+                        color: platform.brandColor,
+                        border: `1px solid ${alpha(platform.brandColor, platform.connected ? 0.35 : 0.18)}`
+                      }}
+                    >
+                      <i className={platform.icon} style={{ fontSize: '1.15rem' }} />
                     </CustomAvatar>
-                    <Typography variant='body2' fontWeight={500}>{platform.label}</Typography>
+                    <Typography variant='body2' fontWeight={600}>{platform.label}</Typography>
                   </Box>
-                  <CustomChip
-                    size='small'
-                    variant='tonal'
-                    color={platform.color}
-                    label={platform.connected ? t('accounts.overview.platformConnections.connected') : t('accounts.overview.platformConnections.notConnected')}
-                  />
+                  {platform.loading ? (
+                    <Skeleton width={88} height={24} sx={{ borderRadius: 2 }} />
+                  ) : (
+                    <CustomChip
+                      size='small'
+                      variant='tonal'
+                      color={platform.connected ? 'success' : 'secondary'}
+                      label={platform.connected ? t('accounts.overview.platformConnections.connected') : t('accounts.overview.platformConnections.notConnected')}
+                    />
+                  )}
                 </Box>
               ))}
             </Box>

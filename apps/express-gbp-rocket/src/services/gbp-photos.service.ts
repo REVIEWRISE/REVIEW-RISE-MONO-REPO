@@ -2,8 +2,19 @@ import axios from 'axios';
 import { locationPhotoRepository, locationRepository, prisma } from '@platform/db';
 import { GbpPhotoCategory } from '@platform/contracts';
 import { gbpProfileService } from './gbp-profile.service';
+import { resolveGbpLocationResourceName } from '../utils/gbp-location';
+import { stagePhoto } from '../utils/photo-staging';
+import {
+    buildPublishHelpMessage,
+    resolveGbpPublicBaseUrl,
+    validateGbpPhotoFile,
+} from '../utils/photo-upload';
+import { formatGoogleNetworkError, googleDelete, googleGet, googlePost } from '../utils/google-api-client';
 
 const GOOGLE_GBP_MEDIA_URL_BASE = 'https://mybusiness.googleapis.com/v4';
+const GOOGLE_GBP_UPLOAD_BASE = 'https://mybusiness.googleapis.com/upload/v1/media';
+const PUBLISH_RETRY_DELAY_MS = 2000;
+const PUBLISH_MAX_RETRIES = 3;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -20,20 +31,24 @@ export class GbpPhotosService {
         }
 
         const accessToken = await gbpProfileService.getAccessToken(locationId);
+        const mediaLocationName = resolveGbpLocationResourceName(
+            connection.gbpLocationName,
+            connection.gbpAccountId
+        );
 
         let pageToken: string | undefined;
         let syncedCount = 0;
         const photosToUpsert: any[] = [];
 
         do {
-            const url = `${GOOGLE_GBP_MEDIA_URL_BASE}/${connection.gbpLocationName}/media`;
+            const url = `${GOOGLE_GBP_MEDIA_URL_BASE}/${mediaLocationName}/media`;
             const params: any = { pageSize: 100 };
             if (pageToken) {
                 params.pageToken = pageToken;
             }
 
             try {
-                const response = await axios.get(url, {
+                const response = await googleGet(url, {
                     headers: { Authorization: `Bearer ${accessToken}` },
                     params
                 });
@@ -102,8 +117,16 @@ export class GbpPhotosService {
      * Gets paginated photos from local DB for the UI
      */
     async getLocationPhotos(locationId: string, skip = 0, take = 100, category?: string) {
-        const [photos, total] = await locationPhotoRepository.findByLocationId(locationId, { skip, take, category });
-        const stats = await locationPhotoRepository.getStats(locationId);
+        const [photoResult, stats, connection] = await Promise.all([
+            locationPhotoRepository.findByLocationId(locationId, { skip, take, category }),
+            locationPhotoRepository.getStats(locationId),
+            gbpProfileService.getConnection(locationId),
+        ]);
+        const [photos, total] = photoResult;
+
+        const profileUrl = connection?.gbpLocationTitle
+            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(connection.gbpLocationTitle)}`
+            : 'https://business.google.com/locations';
 
         return {
             data: photos,
@@ -111,7 +134,8 @@ export class GbpPhotosService {
                 total,
                 skip,
                 take,
-                stats
+                stats,
+                profileUrl,
             }
         };
     }
@@ -157,6 +181,8 @@ export class GbpPhotosService {
      * Uploads a photo to Google Business Profile and saves it to the local database
      */
     async uploadPhoto(locationId: string, file: Express.Multer.File, category: string) {
+        validateGbpPhotoFile(file);
+
         const connection = await gbpProfileService.getConnection(locationId);
 
         if (!connection || connection.status !== 'active' || !connection.gbpLocationName) {
@@ -164,48 +190,43 @@ export class GbpPhotosService {
         }
 
         const accessToken = await gbpProfileService.getAccessToken(locationId);
+        const mediaLocationName = resolveGbpLocationResourceName(
+            connection.gbpLocationName,
+            connection.gbpAccountId
+        );
+        const createUrl = `${GOOGLE_GBP_MEDIA_URL_BASE}/${mediaLocationName}/media`;
+        const publishCategory = category || GbpPhotoCategory.ADDITIONAL;
+        const publicBase = resolveGbpPublicBaseUrl();
 
-        // 1. Start the upload process
-        const startUploadUrl = `${GOOGLE_GBP_MEDIA_URL_BASE}/${connection.gbpLocationName}/media:startUpload`;
-        const startRes = await axios.post(startUploadUrl, {}, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        });
-
-        const resourceName = startRes.data.resourceName;
-        if (!resourceName) {
-            throw new Error('Failed to start media upload: resourceName is missing');
+        let createRes;
+        if (publicBase) {
+            createRes = await this.publishPhotoFromSourceUrl(
+                createUrl,
+                file,
+                publishCategory,
+                accessToken,
+                publicBase
+            );
+        } else {
+            createRes = await this.publishPhotoFromBytes(
+                createUrl,
+                mediaLocationName,
+                file,
+                publishCategory,
+                accessToken
+            );
         }
-
-        // 2. Upload the file bytes
-        const uploadUrl = `https://mybusiness.googleapis.com/upload/v1/media/${resourceName}?upload_type=media`;
-        await axios.post(uploadUrl, file.buffer, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': file.mimetype,
-                'Content-Length': file.size.toString()
-            }
-        });
-
-        // 3. Create the media item in Google Business Profile
-        const createUrl = `${GOOGLE_GBP_MEDIA_URL_BASE}/${connection.gbpLocationName}/media`;
-        const createRes = await axios.post(createUrl, {
-            mediaFormat: 'PHOTO',
-            locationAssociation: { category: category || GbpPhotoCategory.COVER },
-            dataRef: { resourceName }
-        }, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        });
 
         const item = createRes.data;
 
-        // 4. Save to local database
+        // Save to local database
         const photoData: any = {
             id: item.name,
             locationId,
             accountId: connection.gbpAccountId as string,
             googleUrl: item.googleUrl,
             thumbnailUrl: item.thumbnailUrl,
-            category: item.locationAssociation?.category || category,
+            category: item.locationAssociation?.category || publishCategory,
             createTime: item.createTime ? new Date(item.createTime) : new Date(),
             updateTime: item.updateTime ? new Date(item.updateTime) : new Date(),
             sourceUrl: item.sourceUrl || null,
@@ -217,6 +238,110 @@ export class GbpPhotosService {
         await locationPhotoRepository.upsertPhotos([photoData]);
 
         return photoData;
+    }
+
+    private async publishPhotoFromSourceUrl(
+        createUrl: string,
+        file: Express.Multer.File,
+        category: string,
+        accessToken: string,
+        publicBase: string
+    ) {
+        const stagingToken = stagePhoto(file.buffer, file.mimetype);
+        const sourceUrl = `${publicBase}/photos/staging/${stagingToken}`;
+
+        try {
+            return await googlePost(createUrl, {
+                mediaFormat: 'PHOTO',
+                locationAssociation: { category },
+                sourceUrl,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+        } catch (error: any) {
+            if (error?.message?.includes('Cannot reach Google Business Profile API')) {
+                throw error;
+            }
+            const detail = error?.response?.data?.error?.message || error?.message;
+            throw new Error(`Failed to publish GBP photo: ${detail}. Ensure GBP_PUBLIC_BASE_URL is publicly reachable by Google.`);
+        }
+    }
+
+    private async publishPhotoFromBytes(
+        createUrl: string,
+        mediaLocationName: string,
+        file: Express.Multer.File,
+        category: string,
+        accessToken: string
+    ) {
+        const startUploadUrl = `${GOOGLE_GBP_MEDIA_URL_BASE}/${mediaLocationName}/media:startUpload`;
+        let startRes;
+
+        try {
+            startRes = await googlePost(startUploadUrl, {}, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+        } catch (error: any) {
+            if (error?.message?.includes('Cannot reach Google Business Profile API')) {
+                throw new Error(formatGoogleNetworkError(error, 'start GBP photo upload'));
+            }
+            const detail = error?.response?.data?.error?.message || error?.message;
+            throw new Error(`Failed to start GBP photo upload: ${detail}`);
+        }
+
+        const resourceName = startRes.data.resourceName;
+        if (!resourceName) {
+            throw new Error('Failed to start media upload: resourceName is missing');
+        }
+
+        const uploadUrl = `${GOOGLE_GBP_UPLOAD_BASE}/${resourceName}?uploadType=media`;
+        try {
+            await googlePost(uploadUrl, file.buffer, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': file.mimetype,
+                    'Content-Length': file.size.toString()
+                }
+            });
+        } catch (error: any) {
+            if (error?.message?.includes('Cannot reach Google Business Profile API')) {
+                throw new Error(formatGoogleNetworkError(error, 'upload GBP photo bytes'));
+            }
+            const detail = error?.response?.data?.error?.message || error?.message;
+            throw new Error(`Failed to upload GBP photo bytes: ${detail}`);
+        }
+
+        await sleep(PUBLISH_RETRY_DELAY_MS);
+
+        let lastError: any;
+        for (let attempt = 1; attempt <= PUBLISH_MAX_RETRIES; attempt++) {
+            try {
+                return await googlePost(createUrl, {
+                    mediaFormat: 'PHOTO',
+                    locationAssociation: { category },
+                    dataRef: { resourceName }
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+            } catch (error: any) {
+                lastError = error;
+                if (attempt < PUBLISH_MAX_RETRIES) {
+                    await sleep(PUBLISH_RETRY_DELAY_MS * attempt);
+                }
+            }
+        }
+
+        const detail = lastError?.response?.data?.error?.message || lastError?.message;
+        if (lastError?.code && ['ENOTFOUND', 'EAI_AGAIN', 'ETIMEDOUT', 'ENETUNREACH'].includes(lastError.code)) {
+            throw new Error(formatGoogleNetworkError(lastError, 'publish GBP photo'));
+        }
+        throw new Error(`Failed to publish GBP photo: ${detail}. ${buildPublishHelpMessage()}`);
     }
 
     /**
@@ -234,7 +359,7 @@ export class GbpPhotosService {
         try {
             // Delete from Google Business Profile
             const photoUrl = `${GOOGLE_GBP_MEDIA_URL_BASE}/${photoId}`;
-            await axios.delete(photoUrl, {
+            await googleDelete(photoUrl, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
         } catch (error: any) {

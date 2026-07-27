@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { decryptToken, encryptToken, isEncryptedToken } from '@platform/utils';
 import { auditLogRepository, businessRepository, locationRepository, platformIntegrationRepository, prisma } from '@platform/db';
 import { SnapshotCaptureType, SnapshotDetail, SnapshotListItem, normalizeGbpProfile } from './gbp-types';
 import { auditService } from './audit.service';
+import { resolveGbpBusinessInfoLocationName, resolveGbpLocationResourceName } from '../utils/gbp-location';
 
 const GOOGLE_OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_GBP_LOCATION_URL = 'https://mybusinessbusinessinformation.googleapis.com/v1';
@@ -332,18 +334,28 @@ export class GbpProfileService {
             throw new Error('No Google connection found for this location');
         }
 
-        // Check if token is expired or close to expiring (within 5 minutes)
-        const isExpired = connection.expiresAt && Number(connection.expiresAt) < Date.now() + 5 * 60 * 1000;
-
-        if (isExpired && connection.refreshToken) {
-            return this.refreshTokens(locationId, connection.refreshToken);
-        }
-
         if (!connection.accessToken) {
             throw new Error('Access token is missing from connection');
         }
 
-        return connection.accessToken;
+        const plainAccessToken = this.decryptSafe(connection.accessToken);
+
+        // Check if token is expired or close to expiring (within 5 minutes)
+        const isExpired = connection.expiresAt && Number(connection.expiresAt) < Date.now() + 5 * 60 * 1000;
+
+        if (isExpired && connection.refreshToken) {
+            return this.refreshTokens(locationId, this.decryptSafe(connection.refreshToken));
+        }
+
+        return plainAccessToken;
+    }
+
+    private decryptSafe(token: string): string {
+        if (isEncryptedToken(token)) {
+            return decryptToken(token);
+        }
+
+        return token;
     }
 
     /**
@@ -364,7 +376,7 @@ export class GbpProfileService {
             refresh_token: refreshToken
         });
 
-        const data = response.data as { access_token: string; expires_in: number };
+        const data = response.data as { access_token: string; expires_in: number; refresh_token?: string };
 
         const expiresAt = Date.now() + data.expires_in * 1000;
 
@@ -373,8 +385,8 @@ export class GbpProfileService {
         if (connection) {
             await platformIntegrationRepository.updateTokens(
                 connection.id,
-                data.access_token,
-                refreshToken,
+                encryptToken(data.access_token),
+                data.refresh_token ? encryptToken(data.refresh_token) : encryptToken(refreshToken),
                 expiresAt
             );
         }
@@ -399,10 +411,11 @@ export class GbpProfileService {
      * Fetch raw location details from Google Business API
      */
     private async fetchLocationDetails(accessToken: string, locationName: string) {
-        const response = await axios.get(`${GOOGLE_GBP_LOCATION_URL}/${locationName}`, {
+        const businessInfoLocationName = resolveGbpBusinessInfoLocationName(locationName);
+        const response = await axios.get(`${GOOGLE_GBP_LOCATION_URL}/${businessInfoLocationName}`, {
             headers: { Authorization: `Bearer ${accessToken}` },
             params: {
-                readMask: 'name,title,profile,regularHours,primaryCategory,storefrontAddress,phoneNumbers,websiteUri,metadata,serviceItems'
+                readMask: 'name,title,profile,regularHours,categories,storefrontAddress,phoneNumbers,websiteUri,metadata'
             }
         });
 
@@ -410,10 +423,9 @@ export class GbpProfileService {
     }
 
     private async fetchMediaItems(accessToken: string, locationName: string) {
-        // Simple fetch of first 100 photos for audit purposes
-        // We can reuse GbpPhotosService logic or simplify here
         try {
-            const url = `https://mybusiness.googleapis.com/v4/${locationName}/media`;
+            const mediaLocationName = resolveGbpLocationResourceName(locationName);
+            const url = `https://mybusiness.googleapis.com/v4/${mediaLocationName}/media`;
             const response = await axios.get(url, {
                 headers: { Authorization: `Bearer ${accessToken}` },
                 params: { pageSize: 100 }
@@ -449,7 +461,8 @@ export class GbpProfileService {
             // So I need services.
             // Let's try: GET https://mybusinessbusinessinformation.googleapis.com/v1/{name=locations/*/serviceList}
             // It is `serviceList`.
-            const url = `${GOOGLE_GBP_LOCATION_URL}/${locationName}/serviceList`;
+            const businessInfoLocationName = resolveGbpBusinessInfoLocationName(locationName);
+            const url = `${GOOGLE_GBP_LOCATION_URL}/${businessInfoLocationName}/serviceList`;
             const response = await axios.get(url, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -499,9 +512,11 @@ export class GbpProfileService {
 
         if (updateMask.length === 0) return null;
 
+        const businessInfoLocationName = resolveGbpBusinessInfoLocationName(connection.gbpLocationName);
+
         // Perform Google API Update
         await axios.patch(
-            `${GOOGLE_GBP_LOCATION_URL}/${connection.gbpLocationName}`,
+            `${GOOGLE_GBP_LOCATION_URL}/${businessInfoLocationName}`,
             requestBody,
             {
                 headers: { Authorization: `Bearer ${accessToken}` },
@@ -695,6 +710,7 @@ export class GbpProfileService {
             }
 
             const accessToken = await this.getAccessToken(locationId);
+            const businessInfoLocationName = resolveGbpBusinessInfoLocationName(connection.gbpLocationName);
             const patch = this.buildPatchPayload(input, connection.gbpLocationName);
             warnings = patch.warnings;
 
@@ -705,7 +721,7 @@ export class GbpProfileService {
             }
 
             if (patch.updateMask.length > 0) {
-                await axios.patch(`${GOOGLE_GBP_LOCATION_URL}/${connection.gbpLocationName}`, patch.payload, {
+                await axios.patch(`${GOOGLE_GBP_LOCATION_URL}/${businessInfoLocationName}`, patch.payload, {
                     headers: { Authorization: `Bearer ${accessToken}` },
                     params: { updateMask: patch.updateMask.join(',') }
                 });
@@ -715,7 +731,7 @@ export class GbpProfileService {
                 const servicePayload = this.buildServiceListPayload(input.serviceItems, connection.gbpLocationName);
 
                 if (servicePayload.hasItems) {
-                    await axios.patch(`${GOOGLE_GBP_LOCATION_URL}/${connection.gbpLocationName}/serviceList`, servicePayload.payload, {
+                    await axios.patch(`${GOOGLE_GBP_LOCATION_URL}/${businessInfoLocationName}/serviceList`, servicePayload.payload, {
                         headers: { Authorization: `Bearer ${accessToken}` },
                         params: { updateMask: 'serviceItems' }
                     });

@@ -1,11 +1,9 @@
+import './load-env';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import { createSuccessResponse } from '@platform/contracts';
 import { requestIdMiddleware, errorHandler } from '@platform/middleware';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3003;

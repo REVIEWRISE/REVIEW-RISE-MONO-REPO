@@ -7,7 +7,7 @@ import { requestIdMiddleware, errorHandler } from '@platform/middleware';
 import v1Routes from './routes/v1';
 import { attachUserContext } from './middleware/user-context.middleware';
 
-dotenv.config();
+dotenv.config({ path: '.env' });
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -29,7 +29,6 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/v1', v1Routes);
-app.use('/', v1Routes);
 
 app.use(errorHandler);
 
