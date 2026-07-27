@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { createSuccessResponse, createErrorResponse, ErrorCode } from '@platform/contracts';
 
-import { SERVICES_CONFIG } from '@/configs/services';
+
 
 const SERVICE_URL = process.env.EXPRESS_REVIEWS_URL || 'http://localhost:3006/api/v1';
 
@@ -47,6 +47,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ route: st
         // If it's a redirect, just pass it back to the client directly
         if (response.status >= 300 && response.status < 400) {
             const location = response.headers.get('location');
+
             if (location) {
                 return NextResponse.redirect(location, { status: response.status });
             }
@@ -69,6 +70,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ route: st
         // Otherwise wrap it
         if (response.ok) {
             const wrapped = createSuccessResponse(data, 'Success', response.status);
+
             return NextResponse.json(wrapped, { status: response.status });
         }
 
