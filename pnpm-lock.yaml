@@ -431,6 +431,9 @@ importers:
       '@platform/middleware':
         specifier: workspace:*
         version: link:../../packages/@platform/middleware
+      '@platform/utils':
+        specifier: workspace:*
+        version: link:../../packages/@platform/utils
       axios:
         specifier: ^1.7.2
         version: 1.13.4
