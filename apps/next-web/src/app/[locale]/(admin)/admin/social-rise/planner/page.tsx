@@ -20,6 +20,7 @@ import {
   Paper,
   Select,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
   alpha,
@@ -42,6 +43,7 @@ import { useTranslations } from 'next-intl';
 import { useBusinessId } from '@/hooks/useBusinessId';
 import { useLocationFilter } from '@/hooks/useLocationFilter';
 import { BrandService } from '@/services/brand.service';
+import LocationDropdown from '@/components/layout/shared/LocationDropdown';
 
 const Icon = ({ icon, fontSize, color, ...rest }: { icon: string; fontSize?: number | string; color?: string;[key: string]: any }) => {
   return <i className={icon} style={{ fontSize, color }} {...rest} />;
@@ -149,7 +151,7 @@ export default function PlannerPage() {
     if (!plan || !businessId) return;
 
     if (!locationId) {
-      setError('Please select a specific location from the top navigation to sync your plan.');
+      setError('Please select a location from the sidebar before syncing.');
       return;
     }
 
@@ -226,25 +228,29 @@ export default function PlannerPage() {
             </Button>
           )}
           {plan && plan.status !== 'converted' && (
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={converting ? <CircularProgress size="20" color="inherit" /> : <ContentPaste />}
-              onClick={handleCreateDrafts}
-              disabled={converting}
-              sx={{
-                borderRadius: '14px',
-                fontWeight: '900',
-                px: 4,
-                height: 48,
-                boxShadow: `0 8px 20px -6px ${alpha(theme.palette.secondary.main, 0.5)}`,
-                '&:hover': {
-                  boxShadow: `0 12px 25px -6px ${alpha(theme.palette.secondary.main, 0.6)}`,
-                }
-              }}
-            >
-              {converting ? ts('actions.syncing') : ts('actions.syncToScheduler')}
-            </Button>
+            <Tooltip title={!locationId ? 'Select a location from the sidebar first' : ''} arrow>
+              <span>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={converting ? <CircularProgress size="20" color="inherit" /> : <ContentPaste />}
+                  onClick={handleCreateDrafts}
+                  disabled={converting || !locationId}
+                  sx={{
+                    borderRadius: '14px',
+                    fontWeight: '900',
+                    px: 4,
+                    height: 48,
+                    boxShadow: `0 8px 20px -6px ${alpha(theme.palette.secondary.main, 0.5)}`,
+                    '&:hover': {
+                      boxShadow: `0 12px 25px -6px ${alpha(theme.palette.secondary.main, 0.6)}`,
+                    }
+                  }}
+                >
+                  {converting ? ts('actions.syncing') : ts('actions.syncToScheduler')}
+                </Button>
+              </span>
+            </Tooltip>
           )}
           <Button
             variant="contained"
@@ -319,6 +325,12 @@ export default function PlannerPage() {
               </Typography>
 
               <Stack spacing={3}>
+                <Box>
+                  <Typography variant="caption" fontWeight="800" color="text.secondary" sx={{ display: 'block', mb: 1, ml: 0.5, letterSpacing: '0.05em' }}>
+                    Location
+                  </Typography>
+                  <LocationDropdown />
+                </Box>
                 <Box>
                   <Typography variant="caption" fontWeight="800" color="text.secondary" sx={{ display: 'block', mb: 1, ml: 0.5, letterSpacing: '0.05em' }}>
                     {ts('controls.targetPeriod')}
