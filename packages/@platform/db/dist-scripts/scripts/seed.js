@@ -1,0 +1,923 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+// Load environment variables
+// Load environment variables (optional, for local dev)
+const envPath = path_1.default.resolve(__dirname, '../../../../.env');
+try {
+    const result = dotenv_1.default.config({ path: envPath });
+    if (result.error) {
+        console.warn('⚠️  Dotenv loaded with error (ignoring if env vars exist):', result.error.message);
+    }
+    else {
+        console.log('✅ Loaded .env from:', envPath);
+    }
+}
+catch (error) {
+    console.log('ℹ️  Skipping .env load (likely in production/docker):', error.message);
+}
+console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+// Prisma instance will be imported dynamically
+let prisma;
+async function main() {
+    // Dynamic import to ensure env vars are loaded first
+    const clientModule = await Promise.resolve().then(() => __importStar(require('../src/client')));
+    prisma = clientModule.prisma;
+    console.log('🌱 Starting database seed...\n');
+    // Helper to safely assign roles using findMany + JS checks (safest for NULL unique constraints)
+    const assignRole = async (uId, bId, rId, lId) => {
+        try {
+            // Fetch all roles for this user/business/role combo (ignoring location for now)
+            const existingRoles = await prisma.userBusinessRole.findMany({
+                where: {
+                    userId: uId,
+                    businessId: bId,
+                    roleId: rId,
+                }
+            });
+            // Check if exact match exists (handling null locationId explicitly in JS)
+            const exists = existingRoles.find(r => r.locationId === lId);
+            if (!exists) {
+                const createData = {
+                    userId: uId,
+                    businessId: bId,
+                    roleId: rId,
+                };
+                if (lId) {
+                    createData.locationId = lId;
+                }
+                await prisma.userBusinessRole.create({
+                    data: createData
+                });
+            }
+        }
+        catch (e) {
+            console.error(`FAILED assignRole for u=${uId} b=${bId} r=${rId} l=${lId}`, e);
+            throw e;
+        }
+    };
+    // 1. Create Roles
+    console.log('📋 Creating roles...');
+    const ownerRole = await prisma.role.upsert({
+        where: { name: 'Owner' },
+        update: {},
+        create: {
+            name: 'Owner',
+            description: 'Full business ownership and control',
+        },
+    });
+    const adminRole = await prisma.role.upsert({
+        where: { name: 'Admin' },
+        update: {},
+        create: {
+            name: 'Admin',
+            description: 'Administrative access to business operations',
+        },
+    });
+    // Helper for system roles
+    const assignSystemRole = async (userId, roleName) => {
+        const role = await prisma.role.findUnique({ where: { name: roleName } });
+        if (role) {
+            await prisma.userRole.upsert({
+                where: { userId_roleId: { userId, roleId: role.id } },
+                create: { userId, roleId: role.id },
+                update: {}
+            });
+        }
+    };
+    const managerRole = await prisma.role.upsert({
+        where: { name: 'Manager' },
+        update: {},
+        create: {
+            name: 'Manager',
+            description: 'Operational management access',
+        },
+    });
+    const editorRole = await prisma.role.upsert({
+        where: { name: 'Editor' },
+        update: {},
+        create: {
+            name: 'Editor',
+            description: 'Can edit and manage content',
+        },
+    });
+    const viewerRole = await prisma.role.upsert({
+        where: { name: 'Viewer' },
+        update: {},
+        create: {
+            name: 'Viewer',
+            description: 'Read-only access to the workspace',
+        },
+    });
+    const staffRole = await prisma.role.upsert({
+        where: { name: 'Staff' },
+        update: {},
+        create: {
+            name: 'Staff',
+            description: 'Basic staff access',
+        },
+    });
+    console.log(`✅ Created roles\n`);
+    // 2. Create Permissions
+    console.log('🔐 Creating permissions...');
+    const permissions = [
+        { action: 'business:read', description: 'View business information' },
+        { action: 'business:write', description: 'Edit business information' },
+        { action: 'business:delete', description: 'Delete business' },
+        { action: 'location:read', description: 'View locations' },
+        { action: 'location:write', description: 'Create and edit locations' },
+        { action: 'location:delete', description: 'Delete locations' },
+        { action: 'user:read', description: 'View users' },
+        { action: 'user:write', description: 'Invite and edit users' },
+        { action: 'user:delete', description: 'Remove users' },
+        { action: 'subscription:read', description: 'View subscription details' },
+        { action: 'subscription:write', description: 'Manage subscription' },
+        { action: 'review:read', description: 'View reviews' },
+        { action: 'review:write', description: 'Create and edit reviews' },
+        { action: 'review:respond', description: 'Respond to reviews' },
+        { action: 'adrise:read', description: 'View AdRise sessions and plans' },
+        { action: 'adrise:write', description: 'Create and edit AdRise sessions' },
+        { action: 'adrise:regenerate', description: 'Regenerate AdRise plans' },
+        { action: 'adrise:delete', description: 'Delete AdRise sessions' },
+    ];
+    const createdPermissions = {};
+    for (const perm of permissions) {
+        const permission = await prisma.permission.upsert({
+            where: { action: perm.action },
+            update: {},
+            create: perm,
+        });
+        createdPermissions[perm.action] = permission;
+    }
+    console.log(`✅ Created ${permissions.length} permissions\n`);
+    // 3. Assign Permissions to Roles
+    console.log('🔗 Assigning permissions to roles...');
+    // Owner: All permissions
+    const ownerPermissions = Object.values(createdPermissions);
+    for (const permission of ownerPermissions) {
+        await prisma.rolePermission.upsert({
+            where: {
+                roleId_permissionId: {
+                    roleId: ownerRole.id,
+                    permissionId: permission.id,
+                },
+            },
+            update: {},
+            create: {
+                roleId: ownerRole.id,
+                permissionId: permission.id,
+            },
+        });
+    }
+    // Admin: All except business:delete
+    const adminPermissions = ownerPermissions.filter((p) => p.action !== 'business:delete');
+    for (const permission of adminPermissions) {
+        await prisma.rolePermission.upsert({
+            where: {
+                roleId_permissionId: {
+                    roleId: adminRole.id,
+                    permissionId: permission.id,
+                },
+            },
+            update: {},
+            create: {
+                roleId: adminRole.id,
+                permissionId: permission.id,
+            },
+        });
+    }
+    // Manager: Read/write for business, locations, reviews, adrise
+    const managerPermissionActions = [
+        'business:read',
+        'business:write',
+        'location:read',
+        'location:write',
+        'user:read',
+        'review:read',
+        'review:write',
+        'review:respond',
+        'adrise:read',
+        'adrise:write',
+        'adrise:regenerate',
+    ];
+    for (const action of managerPermissionActions) {
+        const permission = createdPermissions[action];
+        if (permission) {
+            await prisma.rolePermission.upsert({
+                where: {
+                    roleId_permissionId: {
+                        roleId: managerRole.id,
+                        permissionId: permission.id,
+                    },
+                },
+                update: {},
+                create: {
+                    roleId: managerRole.id,
+                    permissionId: permission.id,
+                },
+            });
+        }
+    }
+    // Editor: Same as Manager for now
+    for (const action of managerPermissionActions) {
+        const permission = createdPermissions[action];
+        if (permission) {
+            await prisma.rolePermission.upsert({
+                where: {
+                    roleId_permissionId: {
+                        roleId: editorRole.id,
+                        permissionId: permission.id,
+                    },
+                },
+                update: {},
+                create: {
+                    roleId: editorRole.id,
+                    permissionId: permission.id,
+                },
+            });
+        }
+    }
+    // Viewer: Read-only access
+    const viewerPermissionActions = [
+        'business:read',
+        'location:read',
+        'review:read',
+        'adrise:read',
+    ];
+    for (const action of viewerPermissionActions) {
+        const permission = createdPermissions[action];
+        if (permission) {
+            await prisma.rolePermission.upsert({
+                where: {
+                    roleId_permissionId: {
+                        roleId: viewerRole.id,
+                        permissionId: permission.id,
+                    },
+                },
+                update: {},
+                create: {
+                    roleId: viewerRole.id,
+                    permissionId: permission.id,
+                },
+            });
+        }
+    }
+    // Staff: Read-only access
+    const staffPermissionActions = [
+        'business:read',
+        'location:read',
+        'review:read',
+    ];
+    for (const action of staffPermissionActions) {
+        const permission = createdPermissions[action];
+        if (permission) {
+            await prisma.rolePermission.upsert({
+                where: {
+                    roleId_permissionId: {
+                        roleId: staffRole.id,
+                        permissionId: permission.id,
+                    },
+                },
+                update: {},
+                create: {
+                    roleId: staffRole.id,
+                    permissionId: permission.id,
+                },
+            });
+        }
+    }
+    console.log(`✅ Assigned permissions to all roles\n`);
+    // 4. Create Sample Users (for development only)
+    console.log('👤 Creating sample users...');
+    const hashedPassword = await bcryptjs_1.default.hash('password123', 10);
+    const user1 = await prisma.user.upsert({
+        where: { email: 'owner@example.com' },
+        update: {
+            password: hashedPassword,
+        },
+        create: {
+            id: 'e6f0e74b-2f63-4467-8e10-631742461991',
+            email: 'owner@example.com',
+            name: 'John Owner',
+            emailVerified: new Date(),
+            password: hashedPassword,
+        },
+    });
+    const user2 = await prisma.user.upsert({
+        where: { email: 'admin@example.com' },
+        update: {
+            password: hashedPassword,
+        },
+        create: {
+            id: 'f7a1f85c-3a74-5578-9f21-742853572002',
+            email: 'admin@example.com',
+            name: 'Jane Admin',
+            emailVerified: new Date(),
+            password: hashedPassword,
+        },
+    });
+    const user3 = await prisma.user.upsert({
+        where: { email: 'manager@example.com' },
+        update: {
+            password: hashedPassword,
+        },
+        create: {
+            id: 'c5b2c96d-4b85-6689-a032-853964683113',
+            email: 'manager@example.com',
+            name: 'Bob Manager',
+            emailVerified: new Date(),
+            password: hashedPassword,
+        },
+    });
+    console.log(`✅ Created 3 sample users\n`);
+    // 4b. Assign System Roles to Users (CRITICAL for login)
+    console.log('🔗 Assigning system roles (UserRole) to users...');
+    await assignSystemRole(user1.id, 'Owner');
+    await assignSystemRole(user2.id, 'Admin');
+    await assignSystemRole(user3.id, 'Manager');
+    const viewerUser = await prisma.user.upsert({
+        where: { email: 'viewer@example.com' },
+        update: {
+            password: hashedPassword,
+        },
+        create: {
+            id: 'a1b2c3d4-e5f6-4a5b-b6c7-d8e9f0a1b2c3',
+            email: 'viewer@example.com',
+            name: 'Vince Viewer',
+            emailVerified: new Date(),
+            password: hashedPassword,
+        },
+    });
+    await assignSystemRole(viewerUser.id, 'Viewer');
+    console.log(`✅ Assigned system roles to users\n`);
+    // 5. Create Sample Businesses
+    console.log('🏢 Creating sample businesses...');
+    const business1 = await prisma.business.upsert({
+        where: { id: 'a1dd8e07-694c-499f-a01a-2b991c283921' },
+        update: {},
+        create: {
+            id: 'a1dd8e07-694c-499f-a01a-2b991c283921',
+            name: 'ACME Restaurant',
+            slug: 'acme-restaurant',
+            description: 'Fine dining experience in the heart of the city',
+            phone: '+1-555-1000',
+            email: 'contact@acme-restaurant.com',
+            website: 'https://acme-restaurant.com',
+            status: 'active',
+        },
+    });
+    const business2 = await prisma.business.upsert({
+        where: { id: 'b2ee9f18-705d-500e-b12b-3c002d394032' },
+        update: {},
+        create: {
+            id: 'b2ee9f18-705d-500e-b12b-3c002d394032',
+            name: 'Tech Cafe',
+            slug: 'tech-cafe',
+            description: 'Modern cafe with great coffee and workspace',
+            phone: '+1-555-2000',
+            email: 'hello@techcafe.com',
+            website: 'https://techcafe.com',
+            status: 'active',
+        },
+    });
+    console.log(`✅ Created 2 sample businesses\n`);
+    // Assign Viewer role to ACME Restaurant
+    await assignRole(viewerUser.id, business1.id, viewerRole.id, null);
+    // Create Brand Profile for business1
+    console.log('🎭 Creating brand profile for business1...');
+    await prisma.brandProfile.upsert({
+        where: { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' },
+        update: {},
+        create: {
+            id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+            businessId: business1.id,
+            websiteUrl: 'https://acme-restaurant.com',
+            status: 'completed',
+            title: 'ACME Restaurant',
+            description: 'A high-end restaurant focusing on local ingredients and sustainable dining.',
+            autoReplySettings: {
+                enabled: true,
+                minRating: 4,
+                delayHours: 2,
+                tonePreset: 'Professional',
+                excludeKeywords: ['hair', 'dirty', 'rude']
+            }
+        }
+    });
+    console.log('✅ Created brand profile\n');
+    // 6. Create Locations
+    console.log('📍 Creating locations...');
+    await prisma.location.upsert({
+        where: { id: '11111111-1111-4111-8111-111111111111' },
+        update: {},
+        create: {
+            id: '11111111-1111-4111-8111-111111111111',
+            name: 'ACME Downtown',
+            address: '123 Main Street, New York, NY 10001, US',
+            status: 'active',
+            businessId: business1.id,
+        },
+    });
+    await prisma.location.upsert({
+        where: { id: '22222222-2222-4222-8222-222222222222' },
+        update: {},
+        create: {
+            id: '22222222-2222-4222-8222-222222222222',
+            name: 'ACME Uptown',
+            address: '456 Park Avenue, New York, NY 10021, US',
+            status: 'active',
+            businessId: business1.id,
+        },
+    });
+    await prisma.location.upsert({
+        where: { id: '33333333-3333-4333-8333-333333333333' },
+        update: {},
+        create: {
+            id: '33333333-3333-4333-8333-333333333333',
+            name: 'Tech Cafe Main',
+            address: '789 Tech Boulevard, San Francisco, CA 94102, US',
+            status: 'active',
+            businessId: business2.id,
+        },
+    });
+    console.log(`✅ Created 3 locations\n`);
+    // 7. Assign Users to Businesses with Roles
+    console.log('🔗 Assigning users to businesses...');
+    // ACME Downtown ID
+    const acmeDowntownId = '11111111-1111-4111-8111-111111111111';
+    // Assign Owner role to user1 for business1
+    await assignRole(user1.id, business1.id, ownerRole.id, null);
+    // Assign Admin role to user2 for business1
+    await assignRole(user2.id, business1.id, adminRole.id, null);
+    // Assign Manager role to user3 for business2
+    await assignRole(user3.id, business2.id, managerRole.id, null);
+    // Assign Manager role to user2 specifically for ACME Downtown
+    await assignRole(user2.id, business1.id, managerRole.id, acmeDowntownId);
+    console.log(`✅ Assigned users to businesses\n`);
+    console.log('🗑️ Deleting existing audit logs...');
+    await prisma.auditLog.deleteMany({});
+    console.log('✅ Deleted audit logs');
+    console.log('🗑️ Deleting existing subscriptions...');
+    await prisma.subscription.deleteMany({});
+    console.log('✅ Deleted subscriptions\n');
+    // 8. Create Sample Subscriptions
+    console.log('💳 Creating subscriptions...');
+    await prisma.subscription.upsert({
+        where: { id: '44444444-4444-4444-8444-444444444444' },
+        update: {},
+        create: {
+            id: '44444444-4444-4444-8444-444444444444',
+            businessId: business1.id,
+            plan: 'professional',
+            status: 'active',
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            stripeSubscriptionId: 'sub_test_acme_123',
+            stripeCustomerId: 'cus_test_acme_123',
+        },
+    });
+    await prisma.subscription.upsert({
+        where: { id: '55555555-5555-4555-8555-555555555555' },
+        update: {},
+        create: {
+            id: '55555555-5555-4555-8555-555555555555',
+            businessId: business2.id,
+            plan: 'starter',
+            status: 'active',
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            stripeSubscriptionId: 'sub_test_tech_123',
+            stripeCustomerId: 'cus_test_tech_123',
+            trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days trial
+        },
+    });
+    console.log(`✅ Created 2 subscriptions\n`);
+    // 8.1 Create Problematic Subscriptions (for Subscription Issues feature)
+    console.log('💳 Creating problematic subscriptions...');
+    // Unpaid subscription (e.g., payment failed on renewal)
+    await prisma.subscription.upsert({
+        where: { id: '99999999-9999-4999-8999-999999999999' },
+        update: {},
+        create: {
+            id: '99999999-9999-4999-8999-999999999999',
+            businessId: business1.id,
+            plan: 'professional',
+            status: 'unpaid',
+            currentPeriodEnd: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+            stripeSubscriptionId: 'sub_test_acme_unpaid',
+            stripeCustomerId: 'cus_test_acme_123',
+        },
+    });
+    // Incomplete subscription (e.g., payment method requires action)
+    await prisma.subscription.upsert({
+        where: { id: '00000000-0000-4000-8000-000000000000' },
+        update: {},
+        create: {
+            id: '00000000-0000-4000-8000-000000000000',
+            businessId: business2.id,
+            plan: 'starter',
+            status: 'incomplete',
+            currentPeriodEnd: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days from now (but incomplete)
+            stripeSubscriptionId: 'sub_test_tech_incomplete',
+            stripeCustomerId: 'cus_test_tech_123',
+        },
+    });
+    // Incomplete_expired subscription (e.g., payment action not taken in time)
+    await prisma.subscription.upsert({
+        where: { id: '11111111-1111-4111-8111-111111111111' },
+        update: {},
+        create: {
+            id: '11111111-1111-4111-8111-111111111111',
+            businessId: business1.id,
+            plan: 'basic',
+            status: 'incomplete_expired',
+            currentPeriodEnd: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+            stripeSubscriptionId: 'sub_test_acme_incomplete_expired',
+            stripeCustomerId: 'cus_test_acme_123',
+        },
+    });
+    console.log(`✅ Created 3 problematic subscriptions\n`);
+    // 8.2 Create Audit Logs for Problematic Subscriptions
+    console.log('📝 Creating audit logs for problematic subscriptions...');
+    // Audit log for unpaid subscription (Insufficient funds)
+    await prisma.auditLog.create({
+        data: {
+            userId: user2.id, // Admin user
+            action: 'subscription:issue_contacted',
+            entityType: 'Subscription',
+            entityId: '99999999-9999-4999-8999-999999999999', // Unpaid subscription
+            details: {
+                reason: 'Insufficient funds or exceeded credit limit',
+                status: 'contacted',
+                notes: 'Customer contacted regarding payment failure due to insufficient funds.',
+            },
+        },
+    });
+    // Audit log for incomplete subscription (Fraud suspicion)
+    await prisma.auditLog.create({
+        data: {
+            userId: user2.id, // Admin user
+            action: 'subscription:issue_contacted',
+            entityType: 'Subscription',
+            entityId: '00000000-0000-4000-8000-000000000000', // Incomplete subscription
+            details: {
+                reason: 'Fraud suspicion or security flags',
+                status: 'contacted',
+                notes: 'Payment flagged for potential fraud, customer notified for verification.',
+            },
+        },
+    });
+    // Audit log for incomplete_expired subscription (Technical or processing issues)
+    await prisma.auditLog.create({
+        data: {
+            userId: user2.id, // Admin user
+            action: 'subscription:issue_contacted',
+            entityType: 'Subscription',
+            entityId: '11111111-1111-4111-8111-111111111111', // Incomplete_expired subscription
+            details: {
+                reason: 'Technical or processing issues',
+                status: 'contacted',
+                notes: 'Payment failed due to a technical issue during processing. Retrying payment.',
+            },
+        },
+    });
+    console.log(`✅ Created 3 audit logs for problematic subscriptions\n`);
+    // 9. Create Failed Jobs
+    console.log('⚠️ Creating failed jobs...');
+    // Job 1: Review Fetch Failure
+    await prisma.job.upsert({
+        where: { id: '66666666-6666-4666-8666-666666666666' },
+        update: {},
+        create: {
+            id: '66666666-6666-4666-8666-666666666666',
+            type: 'reviews',
+            status: 'failed',
+            businessId: business1.id,
+            locationId: '11111111-1111-4111-8111-111111111111',
+            error: {
+                message: 'Google API rate limit exceeded',
+                code: 'RATE_LIMIT_EXCEEDED',
+                details: 'Quota 1000/1000 used'
+            },
+            payload: {
+                source: 'google',
+                days: 30
+            },
+            retryCount: 3,
+            maxRetries: 3,
+            failedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+            createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
+        },
+    });
+    // Job 2: Social Post Failure
+    await prisma.job.upsert({
+        where: { id: '77777777-7777-4777-8777-777777777777' },
+        update: {},
+        create: {
+            id: '77777777-7777-4777-8777-777777777777',
+            type: 'social_posts',
+            status: 'failed',
+            businessId: business2.id,
+            locationId: '33333333-3333-4333-8333-333333333333',
+            error: {
+                message: 'Invalid image format',
+                code: 'INVALID_FORMAT',
+                details: 'Image must be JPG or PNG'
+            },
+            payload: {
+                platform: 'facebook',
+                content: 'Check out our new latte art!',
+                media: ['image.webp']
+            },
+            retryCount: 1,
+            maxRetries: 3,
+            failedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+            createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000),
+        },
+    });
+    // Job 3: AI Task Failure
+    await prisma.job.upsert({
+        where: { id: '88888888-8888-4888-8888-888888888888' },
+        update: {},
+        create: {
+            id: '88888888-8888-4888-8888-888888888888',
+            type: 'ai_tasks',
+            status: 'failed',
+            businessId: business1.id,
+            error: {
+                message: 'OpenAI API timeout',
+                code: 'TIMEOUT',
+                details: 'Request took longer than 30s'
+            },
+            payload: {
+                prompt: 'Generate a response to a positive review about our steak',
+                model: 'gpt-4'
+            },
+            retryCount: 5,
+            maxRetries: 5,
+            failedAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+            createdAt: new Date(Date.now() - 40 * 60 * 1000),
+        },
+    });
+    console.log(`✅ Created 3 failed jobs\n`);
+    // 10. Create Review Sync Logs
+    console.log('📝 Creating review sync logs...');
+    // Clear reviews and replies to check flow from scratch
+    console.log('🗑️ Deleting existing reviews, replies and sources...');
+    await prisma.reviewReply.deleteMany({});
+    await prisma.review.deleteMany({});
+    await prisma.reviewSource.deleteMany({});
+    console.log('✅ Deleted reviews, replies and sources\n');
+    // Create Review Source for ACME Downtown
+    console.log('🔌 Creating review source for ACME Downtown...');
+    const reviewSource1 = await prisma.reviewSource.create({
+        data: {
+            id: '77777777-7777-4777-8777-777777777777',
+            locationId: '11111111-1111-4111-8111-111111111111',
+            platform: 'gbp',
+            status: 'active',
+        }
+    });
+    console.log('✅ Created review source\n');
+    // Log 1: Successful Google Sync for ACME Downtown
+    await prisma.reviewSyncLog.create({
+        data: {
+            businessId: business1.id,
+            locationId: '11111111-1111-4111-8111-111111111111',
+            platform: 'google',
+            status: 'success',
+            reviewsSynced: 15,
+            durationMs: 1250,
+            startedAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+            completedAt: new Date(Date.now() - 1000 * 60 * 60 + 1250),
+            requestData: {
+                accountId: 'accounts/12345',
+                locationId: 'locations/67890',
+                pageSize: 50
+            },
+            responseData: {
+                reviews: [
+                    { id: 'r1', rating: 5, comment: 'Great service!' },
+                    { id: 'r2', rating: 4, comment: 'Good food.' }
+                ],
+                nextPageToken: null
+            }
+        }
+    });
+    // Log 2: Failed Facebook Sync for ACME Uptown (Linked to Failed Job)
+    await prisma.reviewSyncLog.create({
+        data: {
+            businessId: business1.id,
+            locationId: '22222222-2222-4222-8222-222222222222',
+            platform: 'facebook',
+            status: 'failed',
+            errorMessage: 'Facebook Graph API Error: Session expired',
+            errorStack: 'Error: Session expired\n    at FacebookClient.getReviews (src/clients/facebook.ts:45:12)\n    at processTicksAndRejections (node:internal/process/task_queues:95:5)',
+            durationMs: 500,
+            startedAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+            completedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 + 500),
+            jobId: '66666666-6666-4666-8666-666666666666',
+            requestData: {
+                pageId: '1029384756',
+                fields: 'rating,review_text,created_time'
+            },
+            responseData: {
+                error: {
+                    message: 'Session has expired',
+                    type: 'OAuthException',
+                    code: 190
+                }
+            }
+        }
+    });
+    // Log 3: Successful Yelp Sync for Tech Cafe
+    await prisma.reviewSyncLog.create({
+        data: {
+            businessId: business2.id,
+            locationId: '33333333-3333-4333-8333-333333333333',
+            platform: 'yelp',
+            status: 'success',
+            reviewsSynced: 5,
+            durationMs: 800,
+            startedAt: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
+            completedAt: new Date(Date.now() - 1000 * 60 * 30 + 800),
+            requestData: {
+                businessId: 'tech-cafe-sf',
+                limit: 20
+            },
+            responseData: {
+                reviews: [
+                    { id: 'y1', rating: 5, text: 'Best coffee in town!' }
+                ],
+                total: 150
+            }
+        }
+    });
+    console.log(`✅ Created 3 review sync logs\n`);
+    // 11. Create Sample Reviews
+    console.log('⭐ Creating sample reviews...');
+    const location1_id = '11111111-1111-4111-8111-111111111111';
+    await prisma.review.create({
+        data: {
+            author: 'Alice Johnson',
+            rating: 5,
+            content: 'Absolutely amazing experience! The staff was incredibly friendly and the food was top-notch. Highly recommend the steak.',
+            publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+            platform: 'gbp',
+            externalId: 'google_review_1',
+            businessId: business1.id,
+            locationId: location1_id,
+            reviewSourceId: '77777777-7777-4777-8777-777777777777',
+            sentiment: 'Positive',
+            replyStatus: 'pending'
+        }
+    });
+    await prisma.review.create({
+        data: {
+            author: 'Mark Smith',
+            rating: 3,
+            content: 'The coffee was decent but the service was quite slow today. It usually is better than this.',
+            publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+            platform: 'gbp',
+            externalId: 'google_review_2',
+            businessId: business1.id,
+            locationId: location1_id,
+            reviewSourceId: '77777777-7777-4777-8777-777777777777',
+            sentiment: 'Neutral',
+            replyStatus: 'pending'
+        }
+    });
+    console.log(`✅ Created 2 sample reviews\n`);
+    // 12. Create Content Templates (Task 4.1)
+    console.log('📝 Creating content templates...');
+    const industries = ['Local Restaurant', 'Salon', 'Agency', 'Real Estate'];
+    const templates = [
+        // Local Restaurant
+        { industry: 'Local Restaurant', title: 'Menu Spotlight', contentType: 'image', content: 'Check out our delicious [Dish Name]! Made fresh daily with local ingredients. #LocalEats #Foodie' },
+        { industry: 'Local Restaurant', title: 'Behind the Scenes', contentType: 'video', content: 'Meet our chef and see how we prepare your favorite dishes! #KitchenLife #ChefSpotlight' },
+        { industry: 'Local Restaurant', title: 'Customer Favorite', contentType: 'image', content: 'Our customers can\'t get enough of [Popular Dish]. Come try it today! #CustomerLove #TopPick' },
+        { industry: 'Local Restaurant', title: 'Special Offer', contentType: 'image', content: 'Limited time offer! Get 20% off your next meal when you mention this post. #DiningDeal #LocalBiz' },
+        // Salon
+        { industry: 'Salon', title: 'Transformation Tuesday', contentType: 'image', content: 'Check out this amazing hair transformation! Book your appointment today. #HairGoals #SalonLife' },
+        { industry: 'Salon', title: 'Product Recommendation', contentType: 'image', content: 'Keep your hair looking fresh with [Product Name]. Now available in-store! #HairCare #BeautyTips' },
+        { industry: 'Salon', title: 'Stylist Spotlight', contentType: 'video', content: 'Meet [Stylist Name], our expert in [Specialty]. #StylistLife #ExpertAdvice' },
+        { industry: 'Salon', title: 'New Service Alert', contentType: 'image', content: 'We are now offering [New Service]! Treat yourself to some pampering. #NewService #PamperDay' },
+        // Agency
+        { industry: 'Agency', title: 'Case Study', contentType: 'carousel', content: 'How we helped [Client Name] achieve [Result]. Swipe to see the details! #SuccessStory #MarketingAgency' },
+        { industry: 'Agency', title: 'Expert Tip', contentType: 'image', content: 'Want to improve your [Metric]? Here is a quick tip from our experts. #MarketingTips #ExpertAdvice' },
+        { industry: 'Agency', title: 'Industry News', contentType: 'image', content: 'Stay ahead of the curve! Here is what you need to know about [Industry Trend]. #IndustryTrends #AgencyInsights' },
+        { industry: 'Agency', title: 'Meet the Team', contentType: 'video', content: 'Get to know the faces behind the magic at [Agency Name]. #TeamSpotlight #AgencyLife' },
+        // Real Estate
+        { industry: 'Real Estate', title: 'New Listing', contentType: 'carousel', content: 'Check out this stunning new listing in [Neighborhood]! 3 bed, 2 bath, and a beautiful backyard. #NewListing #HomeForSale' },
+        { industry: 'Real Estate', title: 'Open House', contentType: 'image', content: 'Join us this Saturday for an open house at [Address]. See you there! #OpenHouse #RealEstate' },
+        { industry: 'Real Estate', title: 'Market Update', contentType: 'image', content: 'The market in [City] is heating up! Here is the latest update for buyers and sellers. #MarketUpdate #RealEstateNews' },
+        { industry: 'Real Estate', title: 'Home Maintenance Tip', contentType: 'image', content: 'Keep your home in top shape with these quick maintenance tips. #HomeTips #RealEstateExpert' }
+    ];
+    for (const t of templates) {
+        const existing = await prisma.contentTemplate.findFirst({
+            where: {
+                industry: t.industry,
+                title: t.title
+            }
+        });
+        if (!existing) {
+            await prisma.contentTemplate.create({
+                data: {
+                    industry: t.industry,
+                    title: t.title,
+                    contentType: t.contentType,
+                    content: t.content,
+                    objective: 'Engagement'
+                }
+            });
+        }
+    }
+    console.log(`✅ Created ${templates.length} content templates\n`);
+    // 13. Create Seasonal Events (Task 4.1)
+    console.log('📅 Creating seasonal events...');
+    const events = [
+        { name: 'Valentine\'s Day', date: new Date(2026, 1, 14), market: 'Global', description: 'Celebration of love and affection.', tags: ['love', 'romance', 'gifts'] },
+        { name: 'President\'s Day', date: new Date(2026, 1, 16), market: 'US', description: 'Honoring US Presidents.', tags: ['holiday', 'history', 'usa'] },
+        { name: 'International Women\'s Day', date: new Date(2026, 2, 8), market: 'Global', description: 'Celebrating women\'s achievements and raising awareness about women\'s equality.', tags: ['women', 'equality', 'empowerment'] },
+        { name: 'St. Patrick\'s Day', date: new Date(2026, 2, 17), market: 'Global', description: 'Celebration of Irish culture.', tags: ['irish', 'green', 'culture'] },
+        { name: 'International Day of Happiness', date: new Date(2026, 2, 20), market: 'Global', description: 'A day to recognize the importance of happiness in the lives of people around the world.', tags: ['happiness', 'joy', 'wellbeing'] },
+        { name: 'First Day of Spring', date: new Date(2026, 2, 20), market: 'Northern Hemisphere', description: 'Vernal equinox.', tags: ['spring', 'nature', 'renewal'] }
+    ];
+    for (const e of events) {
+        const existing = await prisma.seasonalEvent.findFirst({
+            where: {
+                name: e.name,
+                date: e.date
+            }
+        });
+        if (!existing) {
+            await prisma.seasonalEvent.create({
+                data: {
+                    name: e.name,
+                    date: e.date,
+                    market: e.market,
+                    description: e.description,
+                    tags: e.tags
+                }
+            });
+        }
+    }
+    console.log(`✅ Created ${events.length} seasonal events\n`);
+    console.log('✨ Seed completed successfully!\n');
+    console.log('Summary:');
+    console.log('  - 4 roles (Owner, Admin, Manager, Staff)');
+    console.log(`  - ${permissions.length} permissions`);
+    console.log('  - Role-permission mappings');
+    console.log('  - 3 sample users');
+    console.log('  - 2 sample businesses');
+    console.log('  - 3 locations');
+    console.log('  - 3 user-business-role assignments');
+    console.log('  - 2 active subscriptions');
+    console.log('  - 3 failed jobs');
+}
+main()
+    .catch((e) => {
+    console.error('❌ Error during seed:', e);
+    process.exit(1);
+})
+    .finally(async () => {
+    if (prisma) {
+        await prisma.$disconnect();
+    }
+});

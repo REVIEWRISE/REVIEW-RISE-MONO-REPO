@@ -49,6 +49,7 @@ RUN pnpm install --frozen-lockfile --offline
 # Generate Prisma client and build DB package (TypeScript project reference for auth)
 RUN pnpm --filter "@platform/db" run db:generate
 RUN pnpm --filter "@platform/db" run build
+RUN pnpm --filter "@platform/db" run build:scripts
 # Build auth explicitly (now that DB is built)
 RUN pnpm --filter "@platform/auth" run build
 # Verify auth build succeeded
@@ -130,6 +131,9 @@ COPY --from=builder --chown=expressjs:expressjs /app/pnpm-workspace.yaml ./pnpm-
 # Copy Prisma schema and migrations for auto-migration on startup
 COPY --from=builder --chown=expressjs:expressjs /app/packages/@platform/db/prisma ./packages/@platform/db/prisma
 COPY --from=builder --chown=expressjs:expressjs /app/packages/@platform/db/package.json ./packages/@platform/db/package.json
+# Copy compiled seed scripts (built from tsconfig.scripts.json)
+COPY --from=builder --chown=expressjs:expressjs /app/packages/@platform/db/dist-scripts ./packages/@platform/db/dist-scripts
+COPY --from=builder --chown=expressjs:expressjs /app/packages/@platform/db/prisma.config.ts ./packages/@platform/db/prisma.config.ts
 
 # Copy entrypoint script
 COPY --chmod=755 apps/express-auth/docker-entrypoint.sh /docker-entrypoint.sh

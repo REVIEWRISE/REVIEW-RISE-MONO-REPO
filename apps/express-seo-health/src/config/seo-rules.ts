@@ -94,6 +94,16 @@ export const seoRules = {
           ],
           "message": "Canonical tag missing or incorrect",
           "recommendation": "Set a canonical URL that matches the preferred domain version."
+        },
+        {
+          "id": "content_length",
+          "severity": "LOW",
+          "thresholds": {
+            "pass": { "field": "content.wordCount", "operator": "gte", "value": 300 },
+            "warning": { "field": "content.wordCount", "operator": "between", "value": [100, 299] }
+          },
+          "message": "Content is too thin",
+          "recommendation": "Aim for at least 300 words of substantive content on the page."
         }
       ]
     },
@@ -371,6 +381,34 @@ export const seoRules = {
           ],
           "message": "SPF record missing",
           "recommendation": "Add an SPF DNS record to improve domain trust and email deliverability."
+        },
+        {
+          "id": "social_meta_tags",
+          "severity": "LOW",
+          "checks": [
+            { "field": "social.ogTitle", "operator": "equals", "value": true },
+            { "field": "social.ogImage", "operator": "equals", "value": true }
+          ],
+          "message": "Missing essential Open Graph tags",
+          "recommendation": "Add Open Graph title and image tags to improve social sharing appearance."
+        },
+        {
+          "id": "analytics_installed",
+          "severity": "LOW",
+          "checks": [
+            { "field": "analytics.detected", "operator": "equals", "value": true }
+          ],
+          "message": "No analytics tracking detected",
+          "recommendation": "Install an analytics tool (like Google Analytics) to track performance."
+        },
+        {
+          "id": "meta_robots_indexable",
+          "severity": "HIGH",
+          "checks": [
+            { "field": "metaRobots.noindex", "operator": "equals", "value": false }
+          ],
+          "message": "Page is blocking search engines (noindex)",
+          "recommendation": "Remove the 'noindex' robots meta tag if you want this page to be indexed."
         }
       ]
     }

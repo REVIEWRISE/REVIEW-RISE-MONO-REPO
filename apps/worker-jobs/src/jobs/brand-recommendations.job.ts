@@ -29,7 +29,7 @@ export const brandRecommendationsJob = async (jobId: string, payload: { business
         for (const category of categories) {
             try {
                 // Call Express AI Service
-                const response = await axios.post(`${EXPRESS_AI_URL}/api/v1/generate-recommendations`, {
+                const response = await axios.post(`${EXPRESS_AI_URL}/api/v1/ai/generate-recommendations`, {
                     category,
                     context: {
                         brandDNA: brandDNA || {},

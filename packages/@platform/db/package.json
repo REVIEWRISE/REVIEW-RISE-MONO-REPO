@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "tsc --build",
+    "build:scripts": "esbuild scripts/seed-all.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-all.js --external:@prisma/client --external:@prisma/client-runtime-utils && esbuild scripts/seed.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed.js --external:@prisma/client --external:@prisma/client-runtime-utils && esbuild scripts/seed-visibility.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-visibility.js --external:@prisma/client --external:@prisma/client-runtime-utils && esbuild scripts/seed-competitors.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-competitors.js --external:@prisma/client --external:@prisma/client-runtime-utils && esbuild scripts/seed-brand-rise.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-brand-rise.js --external:@prisma/client --external:@prisma/client-runtime-utils && esbuild scripts/seed-reviews.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-reviews.js --external:@prisma/client --external:@prisma/client-runtime-utils && esbuild scripts/seed-metrics.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-metrics.js --external:@prisma/client --external:@prisma/client-runtime-utils && esbuild scripts/seed-snapshot.ts --bundle --platform=node --target=node20 --outfile=dist-scripts/seed-snapshot.js --external:@prisma/client --external:@prisma/client-runtime-utils",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "tsx scripts/db-admin.ts prisma db push",
@@ -17,7 +18,7 @@
     "db:migrate:deploy": "tsx scripts/db-admin.ts prisma migrate deploy",
     "db:reset": "tsx scripts/db-admin.ts prisma migrate reset",
     "db:seed": "tsx scripts/seed.ts && tsx scripts/seed-visibility.ts",
-    "seed": "tsx scripts/seed.ts && tsx scripts/seed-visibility.ts && tsx scripts/seed-competitors.ts && tsx scripts/seed-brand-rise.ts",
+    "seed": "tsx scripts/seed.ts && tsx scripts/seed-visibility.ts && tsx scripts/seed-competitors.ts && tsx scripts/seed-brand-rise.ts &&tsx scripts/seed-reviews.ts",
     "db:seed:all": "tsx scripts/seed-all.ts",
     "db:seed:reviews": "tsx scripts/seed-reviews.ts",
     "db:health": "tsx src/health.ts",
@@ -40,6 +41,7 @@
     "@types/pg": "^8.16.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^16.4.7",
+    "esbuild": "^0.28.0",
     "prisma": "^7.1.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"

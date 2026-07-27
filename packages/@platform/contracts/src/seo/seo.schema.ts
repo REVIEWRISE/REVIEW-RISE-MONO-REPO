@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const SEOAnalysisRequestSchema = z.object({
   url: z.string().url(),
-  businessId: z.string().uuid(),
+  businessId: z.string().uuid().optional(),
   locationId: z.string().uuid().optional(),
 });
 

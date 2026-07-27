@@ -30,17 +30,6 @@ export class PendingGoogleConnectionRepository {
         return result.count;
     }
 
-    async findActiveByLocationId(locationId: string): Promise<PendingGoogleConnection | null> {
-        return prisma.pendingGoogleConnection.findFirst({
-            where: {
-                locationId,
-                expiresAt: { gt: new Date() },
-                encryptedAccessToken: { not: '' },
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-    }
-
     async isExpired(pending: PendingGoogleConnection): Promise<boolean> {
         return pending.expiresAt < new Date();
     }

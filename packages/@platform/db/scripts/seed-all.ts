@@ -15,12 +15,30 @@ try {
 function runScript(scriptRelPath: string) {
   return new Promise<void>((resolve, reject) => {
     const isWin = process.platform === 'win32';
-    const cmd = isWin ? 'tsx.cmd' : 'tsx';
-    const child = spawn(cmd, [scriptRelPath], {
+
+    // In production the scripts are pre-compiled to dist-scripts/*.js
+    // Use node to run them directly — no tsx needed.
+    const scriptName = path.basename(scriptRelPath, '.ts') + '.js';
+    const compiledPath = path.resolve(__dirname, '../dist-scripts', scriptName);
+    const fs = require('fs');
+
+    let cmd: string;
+    let args: string[];
+
+    if (fs.existsSync(compiledPath)) {
+      cmd = 'node';
+      args = [compiledPath];
+    } else {
+      // Local dev fallback — use tsx
+      cmd = isWin ? 'tsx.cmd' : 'tsx';
+      args = [scriptRelPath];
+    }
+
+    const child = spawn(cmd, args, {
       stdio: 'inherit',
-      shell: true,
+      shell: false,
       env: process.env,
-      cwd: path.resolve(__dirname, '../')  // run from package dir to avoid Windows space path issues
+      cwd: path.resolve(__dirname, '../'),
     });
     child.on('exit', (code) => {
       if (code === 0) resolve();

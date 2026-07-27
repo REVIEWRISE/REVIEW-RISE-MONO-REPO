@@ -2,7 +2,7 @@
 'use client'
 
 // React Imports
-import { createContext, useContext, useState, useCallback, useMemo } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 
 // Next Imports
 import { useRouter } from 'next/navigation'
@@ -90,7 +90,6 @@ const findFirstAllowedMenuPath = (items: MenuItem[], role: string | null): strin
   return null
 }
 
-import { useEffect } from 'react'
 
 export const AuthProvider = ({ children, user: initialUser }: ChildrenType & { user: User | null }) => {
   // States

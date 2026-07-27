@@ -1,7 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { Linkedin, Instagram, Facebook } from 'lucide-react';
 
 export default function Footer() {
   const t = useTranslations('landing');
@@ -11,106 +13,115 @@ export default function Footer() {
       <div className="container">
         <div className="top">
           <div className="brand">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L2 19.5h20L12 2z" />
-            </svg>
-            <span>{t('common.brandName')}</span>
+            <Image src="/logo.png" alt={t('common.brandName')} width={28} height={28} style={{ borderRadius: '6px', objectFit: 'contain' }} />
+            <span className="brand-name">{t('common.brandName')}</span>
           </div>
           <div className="links">
-            <Link href="#features">{t('footer.features')}</Link>
-            <Link href="#how-it-works">{t('howItWorks.title')}</Link>
-            <Link href="https://app.reviewrise.com">{t('footer.login')}</Link>
+            <Link href="https://app.vyntrise.com/">{t('footer.login')}</Link>
           </div>
         </div>
+        <div className="divider" />
         <div className="bottom">
           <p className="copyright">
             {'©'} {new Date().getFullYear()} {t('common.brandName')}{'.'} {t('footer.rights')}
           </p>
-          <div className="legal">
-            <Link href="/privacy">{t('footer.privacy')}</Link>
-            <Link href="/terms">{t('footer.terms')}</Link>
+          <div className="socials">
+            <Link href="https://www.linkedin.com/company/vyntrise-technologies" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <Linkedin size={20} />
+            </Link>
+            <Link href="https://www.instagram.com/vyntrisellc" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <Instagram size={20} />
+            </Link>
+            <Link href="https://www.facebook.com/share/1cBw5oDbhj/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <Facebook size={20} />
+            </Link>
           </div>
         </div>
       </div>
 
       <style jsx>{`
         .footer {
-          padding: 64px 0 32px;
+          padding: 72px 0 40px;
           border-top: 1px solid var(--border-color);
           background: var(--bg-primary);
+          position: relative;
         }
         .container {
           max-width: 1200px;
           margin: 0 auto;
-          padding: 0 24px;
+          padding: 0 32px;
         }
         .top {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 48px;
+          margin-bottom: 40px;
         }
         .brand {
           display: flex;
           align-items: center;
           gap: 10px;
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--text-primary);
         }
-        .brand svg {
-          color: var(--accent);
+        .brand-name {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 15px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          color: var(--text-primary);
         }
         .links {
           display: flex;
           gap: 32px;
         }
-        .links a {
+        .links :global(a) {
           color: var(--text-secondary);
           font-size: 14px;
           font-weight: 500;
-          transition: color 0.2s;
+          transition: color 0.2s ease;
         }
-        .links a:hover {
-          color: var(--accent);
+        .links :global(a:hover) {
+          color: var(--text-primary);
+        }
+        .divider {
+          height: 1px;
+          background: linear-gradient(to right, transparent, var(--border-color), transparent);
+          margin-bottom: 32px;
         }
         .bottom {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-top: 32px;
-          border-top: 1px solid var(--border-color);
         }
         .copyright {
           font-size: 13px;
-          color: var(--text-tertiary);
+          color: var(--text-muted);
         }
-        .legal {
+        .socials {
           display: flex;
-          gap: 24px;
+          gap: 20px;
+          align-items: center;
         }
-        .legal a {
-          font-size: 13px;
-          color: var(--text-tertiary);
-          transition: color 0.2s;
+        .socials :global(a) {
+          color: var(--text-muted);
+          transition: color 0.2s ease, transform 0.2s ease;
+          display: flex;
         }
-        .legal a:hover {
-          color: var(--accent);
+        .socials :global(a:hover) {
+          color: var(--text-primary);
+          transform: translateY(-2px);
         }
         @media (max-width: 768px) {
+          .container { padding: 0 20px; }
           .top {
             flex-direction: column;
-            gap: 24px;
+            gap: 28px;
             align-items: flex-start;
           }
-          .links {
-            flex-direction: column;
-            gap: 16px;
-          }
+          .links { flex-direction: column; gap: 16px; }
           .bottom {
-            flex-direction: column;
-            gap: 16px;
-            align-items: flex-start;
+            flex-direction: column-reverse;
+            gap: 24px;
+            align-items: center;
           }
         }
       `}</style>

@@ -36,29 +36,22 @@ export interface GbpLocation {
 }
 
 export class GoogleReviewsService {
-    private oauth2Client: OAuth2Client | null = null;
+    private oauth2Client: OAuth2Client;
 
-    private getOAuth2Client(): OAuth2Client {
-        if (this.oauth2Client) {
-            return this.oauth2Client;
+    constructor() {
+        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REDIRECT_URI) {
+            console.error('Google OAuth credentials missing');
         }
 
-        const clientId = process.env.GOOGLE_CLIENT_ID;
-        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-        const redirectUri = process.env.GOOGLE_REDIRECT_URI;
-
-        if (!clientId || !clientSecret || !redirectUri) {
-            throw new Error(
-                'Google OAuth credentials missing. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI in apps/express-reviews/.env'
-            );
-        }
-
-        this.oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
-        return this.oauth2Client;
+        this.oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            process.env.GOOGLE_REDIRECT_URI
+        );
     }
 
     getAuthUrl(state: string): string {
-        return this.getOAuth2Client().generateAuthUrl({
+        return this.oauth2Client.generateAuthUrl({
             access_type: 'offline',
             scope: SCOPES,
             state,
@@ -67,14 +60,13 @@ export class GoogleReviewsService {
     }
 
     async getTokens(code: string) {
-        const { tokens } = await this.getOAuth2Client().getToken(code);
+        const { tokens } = await this.oauth2Client.getToken(code);
         return tokens;
     }
 
     async refreshAccessToken(refreshToken: string) {
-        const client = this.getOAuth2Client();
-        client.setCredentials({ refresh_token: refreshToken });
-        const { credentials } = await client.refreshAccessToken();
+        this.oauth2Client.setCredentials({ refresh_token: refreshToken });
+        const { credentials } = await this.oauth2Client.refreshAccessToken();
         return credentials;
     }
 

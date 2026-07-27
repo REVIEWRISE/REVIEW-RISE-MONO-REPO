@@ -24,7 +24,6 @@ import { useTranslations } from 'next-intl'
 import { useSettings } from '@core/hooks/useSettings'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLocationFilter } from '@/hooks/useLocationFilter'
-import { isValidLocationId } from '@/utils/locationId'
 
 import apiClient from '@/lib/apiClient'
 import { SERVICES } from '@/configs/services'
@@ -50,7 +49,6 @@ const LocationDropdown = () => {
 
   // Refs
   const anchorRef = useRef<HTMLDivElement>(null)
-  const restoredFromStorageRef = useRef(false)
 
   // Hooks
   const { settings } = useSettings()
@@ -91,15 +89,9 @@ const LocationDropdown = () => {
   }, [user?.id])
 
   useEffect(() => {
+    // Only invalidate locationId when loading is complete — avoids clearing a
+    // valid selection during the transient empty-state of a re-fetch.
     if (!locationId || loading) return
-
-    if (!isValidLocationId(locationId)) {
-      setLocationId(null)
-
-      return
-    }
-
-    if (!locations.length) return
 
     const exists = locations.some(l => String(l.id) === String(locationId))
 
@@ -194,17 +186,16 @@ const LocationDropdown = () => {
       return
     }
 
-    if (!locations.length || restoredFromStorageRef.current) return
+    if (!locations.length) return
 
     try {
       const stored = localStorage.getItem('rr:lastLocationId')
 
-      if (!stored || !isValidLocationId(stored)) return
+      if (!stored) return
 
       const exists = locations.some(l => String(l.id) === String(stored))
 
       if (exists) {
-        restoredFromStorageRef.current = true
         setLocationId(stored)
       }
     } catch { }

@@ -1,6 +1,23 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL || 'http://localhost:3011/api/v1';
+const getApiUrl = () => {
+  const envUrl =
+    process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL;
+
+  if (envUrl) return envUrl;
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return `${window.location.origin}/api/v1`;
+    }
+  }
+
+  return 'http://localhost:3011/api/v1';
+};
+
+const API_URL = getApiUrl();
 
 export interface Recommendation {
   priority: 'high' | 'medium' | 'low';
@@ -94,4 +111,3 @@ export async function analyzeSEO(url: string): Promise<SEOAnalysisResult> {
     throw new Error(errorMessage);
   }
 }
-
