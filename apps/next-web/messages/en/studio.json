@@ -303,6 +303,7 @@
     "untitledPost": "Untitled Post",
     "controls": {
       "title": "Strategy Controls",
+      "location": "LOCATION",
       "targetPeriod": "TARGET PERIOD",
       "brandContext": "BRAND CONTEXT",
       "publishingFrequency": "PUBLISHING FREQUENCY",

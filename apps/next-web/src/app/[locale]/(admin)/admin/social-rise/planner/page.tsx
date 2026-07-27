@@ -152,6 +152,7 @@ export default function PlannerPage() {
 
     if (!locationId) {
       setError('Please select a location from the sidebar before syncing.');
+
       return;
     }
 
@@ -327,7 +328,7 @@ export default function PlannerPage() {
               <Stack spacing={3}>
                 <Box>
                   <Typography variant="caption" fontWeight="800" color="text.secondary" sx={{ display: 'block', mb: 1, ml: 0.5, letterSpacing: '0.05em' }}>
-                    Location
+                    {ts('controls.location')}
                   </Typography>
                   <LocationDropdown />
                 </Box>
