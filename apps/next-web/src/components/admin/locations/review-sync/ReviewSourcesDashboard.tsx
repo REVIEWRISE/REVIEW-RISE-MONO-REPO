@@ -32,6 +32,7 @@ interface ReviewStats {
 }
 
 import { SERVICES_CONFIG } from '@/configs/services';
+import { resolveLocationIdFromParams } from '@/utils/locationId';
 
 const REVIEWS_API_URL = SERVICES_CONFIG.review.url;
 
@@ -40,13 +41,15 @@ const ReviewSourcesDashboard = () => {
     const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { id: locationId } = params;
+    const locationId = resolveLocationIdFromParams(params.id);
+    const invalidLocationId = !!params.id && !locationId;
 
     const [view, setView] = useState<'dashboard' | 'success'>('dashboard');
     const [sources, setSources] = useState<ReviewSource[]>([]);
     const [stats, setStats] = useState<ReviewStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
+    const [syncingSourceId, setSyncingSourceId] = useState<string | null>(null);
 
     const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
         open: false,
@@ -68,10 +71,7 @@ const ReviewSourcesDashboard = () => {
             router.replace(`?${newParams.toString()}`);
             setSnackbar({ open: true, message: t('sourceConnected'), severity: 'success' });
         } else if (pending) {
-            const newParams = new URLSearchParams(searchParams.toString());
-
-            newParams.delete('pending_google');
-            router.replace(`?${newParams.toString()}`);
+            router.replace(`?tab=integrations&pending_google=${pending}`);
         } else if (error) {
             let errorMsg = t('failedToConnect');
             
@@ -93,12 +93,17 @@ const ReviewSourcesDashboard = () => {
     }, [searchParams, router, t]);
 
     const fetchData = useCallback(async () => {
-        if (!locationId) return;
+        if (!locationId) {
+            setLoading(false);
+            setSources([]);
+            setStats(null);
+
+            return;
+        }
 
         try {
             setLoading(true);
 
-            // Use apiClient (auto-unwraps data field)
             const [sourcesRes, statsRes] = await Promise.all([
                 apiClient.get<ReviewSource[]>(`${REVIEWS_API_URL}/locations/${locationId}/sources`),
                 apiClient.get<ReviewStats>(`${REVIEWS_API_URL}/locations/${locationId}/stats`)
@@ -121,13 +126,20 @@ const ReviewSourcesDashboard = () => {
 
     const [googleConnected, setGoogleConnected] = useState(false);
 
+    const isGooglePlatform = (platform: string) => platform === 'google' || platform === 'gbp';
+    const hasGoogleReviewSource = sources.some(source => isGooglePlatform(source.platform));
+
     const checkGoogleStatus = useCallback(async () => {
         if (!locationId) return;
 
         try {
-            const res = await apiClient.get(`/auth/google/status/${locationId}`);
+            const res = await apiClient.get<{
+                connected?: boolean
+                gbpLocationTitle?: string
+                gbpLocationName?: string
+            }>(`${REVIEWS_API_URL}/auth/google/status/${locationId}`);
 
-            setGoogleConnected(res.data?.data?.connected === true);
+            setGoogleConnected(res.data?.connected === true);
         } catch (error) {
             console.error('Failed to check google status', error);
         }
@@ -163,18 +175,81 @@ const ReviewSourcesDashboard = () => {
         }
     };
 
+    const handleSyncSource = async (source: { id: string; platform: string }) => {
+        if (!locationId) return;
+
+        try {
+            setSyncingSourceId(source.id);
+            setSnackbar({ open: true, message: t('syncStarted'), severity: 'info' });
+
+            const res = await apiClient.post<{ results?: Array<{ status: string; reviewsSynced?: number; errorMessage?: string }>; totalSynced?: number }>(
+                `${REVIEWS_API_URL}/locations/${locationId}/sync`,
+                { platform: source.platform === 'gbp' ? 'google' : source.platform }
+            );
+
+            const totalSynced = res.data?.totalSynced ?? 0;
+            const failed = res.data?.results?.filter((result) => result.status === 'failed') ?? [];
+
+            if (failed.length > 0 && totalSynced === 0) {
+                setSnackbar({
+                    open: true,
+                    message: failed[0]?.errorMessage || t('syncFailed'),
+                    severity: 'error',
+                });
+            } else if (totalSynced > 0) {
+                setSnackbar({ open: true, message: `${t('syncCompletedMsg')} (${totalSynced})`, severity: 'success' });
+            } else {
+                setSnackbar({ open: true, message: t('syncNoReviewsFound'), severity: 'info' });
+            }
+
+            fetchData();
+        } catch (error: unknown) {
+            console.error('Source sync failed', error);
+            const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+
+            setSnackbar({ open: true, message: message || t('syncFailed'), severity: 'error' });
+        } finally {
+            setSyncingSourceId(null);
+        }
+    };
+
     const handleSyncAll = async () => {
         if (!locationId) return;
 
         try {
             setSyncing(true);
             setSnackbar({ open: true, message: t('syncStarted'), severity: 'info' });
-            await apiClient.post(`${REVIEWS_API_URL}/locations/${locationId}/sync`);
-            setSnackbar({ open: true, message: t('syncCompletedMsg'), severity: 'success' });
+
+            if (googleConnected && !hasGoogleReviewSource) {
+                await apiClient.post(`${REVIEWS_API_URL}/locations/${locationId}/enable-google-sync`);
+            }
+
+            const res = await apiClient.post<{ results?: Array<{ status: string; reviewsSynced?: number; errorMessage?: string }>; totalSynced?: number }>(
+                `${REVIEWS_API_URL}/locations/${locationId}/sync`
+            );
+
+            const totalSynced = res.data?.totalSynced ?? 0;
+            const failed = res.data?.results?.filter((result) => result.status === 'failed') ?? [];
+
+            if (failed.length > 0 && totalSynced === 0) {
+                setSnackbar({
+                    open: true,
+                    message: failed[0]?.errorMessage || t('syncFailed'),
+                    severity: 'error',
+                });
+            } else if (totalSynced > 0) {
+                setSnackbar({ open: true, message: `${t('syncCompletedMsg')} (${totalSynced})`, severity: 'success' });
+            } else {
+                setSnackbar({ open: true, message: t('syncNoReviewsFound'), severity: 'info' });
+            }
+
             fetchData();
-        } catch (error) {
+            checkGoogleStatus();
+        } catch (error: unknown) {
             console.error('Sync failed', error);
-            setSnackbar({ open: true, message: t('syncFailed'), severity: 'error' });
+            const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+
+            setSnackbar({ open: true, message: message || t('syncFailed'), severity: 'error' });
         } finally {
             setSyncing(false);
         }
@@ -187,6 +262,8 @@ const ReviewSourcesDashboard = () => {
     const handleCloseSnackbar = () => {
         setSnackbar({ ...snackbar, open: false });
     };
+
+    const canSync = sources.length > 0 || googleConnected;
 
     return (
         <Box>
@@ -201,7 +278,11 @@ const ReviewSourcesDashboard = () => {
                 </Alert>
             </Snackbar>
 
-
+            {invalidLocationId && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {t('failedToLoad')}
+                </Alert>
+            )}
 
             <Dialog
                 open={view === 'success'}
@@ -223,7 +304,7 @@ const ReviewSourcesDashboard = () => {
                     color="warning"
                     startIcon={<SyncIcon />}
                     onClick={handleSyncAll}
-                    disabled={syncing || loading}
+                    disabled={!canSync || syncing || loading}
                 >
                     {syncing ? t('syncing') : t('syncAllNow')}
                 </Button>
@@ -298,24 +379,44 @@ const ReviewSourcesDashboard = () => {
                             <Skeleton variant="rectangular" height={100} sx={{ mb: 2, borderRadius: 2 }} />
                         </>
                     ) : (
-                        sources.length > 0 ? (
-                            sources.map(source => (
-                                <ConnectedSourceCard
-                                    key={source.id}
-                                    source={source}
-                                    onDisconnect={handleDisconnect}
-                                    onConfigure={() => setSnackbar({ open: true, message: t('configurationComingSoon'), severity: 'info' })}
-                                />
-                            ))
-                        ) : (
-                            <Typography color="text.secondary" sx={{ mb: 4 }}>{t('noSourcesYet')}</Typography>
-                        )
+                        <>
+                            {googleConnected && !hasGoogleReviewSource && (
+                                <Card sx={{ mb: 2, border: '1px dashed', borderColor: 'warning.main', bgcolor: 'background.paper' }}>
+                                    <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                            <Box sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 2 }}><GoogleIcon color="info" /></Box>
+                                            <Box>
+                                                <Typography variant="subtitle1" fontWeight="bold">{t('googleBusiness')}</Typography>
+                                                <Typography variant="caption" color="text.secondary">{t('connectToSyncReviews')}</Typography>
+                                            </Box>
+                                        </Box>
+                                        <Button variant="contained" color="warning" onClick={handleEnableGoogleSync} disabled={loading}>
+                                            {t('enableSync')}
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )}
+                            {sources.length > 0 ? (
+                                sources.map(source => (
+                                    <ConnectedSourceCard
+                                        key={source.id}
+                                        source={source}
+                                        onDisconnect={handleDisconnect}
+                                        onSync={handleSyncSource}
+                                        syncing={syncingSourceId === source.id}
+                                        onConfigure={() => setSnackbar({ open: true, message: t('configurationComingSoon'), severity: 'info' })}
+                                    />
+                                ))
+                            ) : !googleConnected ? (
+                                <Typography color="text.secondary" sx={{ mb: 4 }}>{t('noSourcesYet')}</Typography>
+                            ) : null}
+                        </>
                     )}
 
                     <Typography variant="h6" sx={{ mb: 2 }}>{t('availableSources')}</Typography>
 
                     {/* Filter out already connected specific platforms? For MVP, Google is unique. */}
-                    {!sources.some(s => s.platform === 'google') && (
+                    {!hasGoogleReviewSource && !googleConnected && (
                         <Card sx={{ mb: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
                             <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -332,7 +433,7 @@ const ReviewSourcesDashboard = () => {
                                 <Button 
                                     variant="contained" 
                                     color="primary" 
-                                    onClick={googleConnected ? handleEnableGoogleSync : () => router.push(`/admin/locations/${locationId}?tab=integrations`)}
+                                    onClick={googleConnected ? handleEnableGoogleSync : () => router.push(`?tab=integrations`)}
 
                                     // Make button say "Enable Sync" or "Go to Integrations"
                                 >

@@ -1,127 +1,221 @@
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CloseIcon from '@mui/icons-material/Close';
-import GoogleIcon from '@mui/icons-material/Google';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import { useTranslations } from 'next-intl';
+import { alpha, useTheme } from '@mui/material/styles'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import Divider from '@mui/material/Divider'
+import IconButton from '@mui/material/IconButton'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import { useTranslations } from 'next-intl'
 
-// Note: If GoogleIcon is not available in mui/icons-material, use a custom SVG or just 'G' text. 
-// Assuming it exists or I'll use a placeholder.
+import CustomAvatar from '@core/components/mui/Avatar'
+
+const GOOGLE_BLUE = '#4285F4'
 
 interface ConnectGoogleModalProps {
-    open: boolean;
-    onClose: () => void;
-    onConnect: () => void;
+  open: boolean
+  onClose: () => void
+  onConnect: () => void
+  loading?: boolean
 }
 
-const ConnectGoogleModal = ({ open, onClose, onConnect }: ConnectGoogleModalProps) => {
-    const t = useTranslations('locations.ReviewSources.googleModal');
-    const tc = useTranslations('common');
+const ConnectGoogleModal = ({ open, onClose, onConnect, loading = false }: ConnectGoogleModalProps) => {
+  const t = useTranslations('locations.ReviewSources.googleModal')
+  const tc = useTranslations('common')
+  const theme = useTheme()
 
-    // Hardcoded steps for display matching Image 0
-    const steps = [
-        { id: 1, title: t('step1Title'), description: t('step1Desc') },
-        { id: 2, title: t('step2Title'), description: t('step2Desc') },
-        { id: 3, title: t('step3Title'), description: t('step3Desc') }
-    ];
+  const steps = [
+    { id: 1, title: t('step1Title'), description: t('step1Desc'), icon: 'tabler-key' },
+    { id: 2, title: t('step2Title'), description: t('step2Desc'), icon: 'tabler-map-pin' },
+    { id: 3, title: t('step3Title'), description: t('step3Desc'), icon: 'tabler-refresh' }
+  ]
 
-    const permissions = [
-        t('permission1'),
-        t('permission2'),
-        t('permission3')
-    ];
+  const permissions = [
+    t('permission1'),
+    t('permission2'),
+    t('permission3')
+  ]
 
-    return (
-        <Dialog 
-            open={open} 
-            onClose={onClose} 
-            maxWidth="md" 
-            fullWidth
-            PaperProps={{
-                sx: { 
-                    borderRadius: 3,
-                    bgcolor: 'background.paper',
-                    backgroundImage: 'none' // Remove default elevation gradient
-                }
-            }}
+  return (
+    <Dialog
+      open={open}
+      onClose={loading ? undefined : onClose}
+      maxWidth='sm'
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          backgroundImage: 'none'
+        }
+      }}
+    >
+      <Box
+        sx={{
+          position: 'relative',
+          px: 5,
+          py: 4,
+          bgcolor: alpha(GOOGLE_BLUE, 0.08),
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        <IconButton
+          onClick={onClose}
+          disabled={loading}
+          aria-label={tc('common.cancel')}
+          sx={{ position: 'absolute', right: 12, top: 12 }}
         >
-             <Box sx={{ position: 'relative', p: 1 }}>
-                <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-                    <CloseIcon />
-                </IconButton>
-                
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3, pb: 2 }}>
-                    <Avatar sx={{ bgcolor: 'white', border: '1px solid #E0E0E0' }}>
-                        <GoogleIcon sx={{ color: '#4285F4' }} />
-                    </Avatar>
-                    <Box>
-                        <Typography variant="h5" fontWeight="bold">{t('title')}</Typography>
-                        <Typography variant="body2" color="text.secondary">{t('subtitle')}</Typography>
-                    </Box>
-                </Box>
-            </Box>
+          <i className='tabler-x' />
+        </IconButton>
 
-            <DialogContent sx={{ px: 4, pb: 4 }}>
-                {/* Steps Section */}
-                <Box sx={{ mb: 4 }}>
-                     {steps.map((step) => (
-                         <Box key={step.id} sx={{ display: 'flex', gap: 2, mb: 3 }}>
-                             <Avatar 
-                                sx={{ 
-                                    bgcolor: 'warning.main', // Using warning logic matching Image 0 orange/gold
-                                    color: 'white',
-                                    width: 32, 
-                                    height: 32,
-                                    fontSize: '0.875rem',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                {step.id}
-                            </Avatar>
-                            <Box>
-                                <Typography variant="subtitle1" fontWeight="bold">{step.title}</Typography>
-                                <Typography variant="body2" color="text.secondary">{step.description}</Typography>
-                            </Box>
-                         </Box>
-                     ))}
-                </Box>
+        <Stack direction='row' spacing={3} alignItems='center' pr={5}>
+          <CustomAvatar
+            skin='light'
+            variant='rounded'
+            sx={{
+              width: 56,
+              height: 56,
+              bgcolor: alpha(GOOGLE_BLUE, 0.15),
+              color: GOOGLE_BLUE
+            }}
+          >
+            <i className='tabler-brand-google' style={{ fontSize: '1.75rem' }} />
+          </CustomAvatar>
+          <Box>
+            <Typography variant='h5' fontWeight={700}>
+              {t('title')}
+            </Typography>
+            <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
+              {t('subtitle')}
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
 
-                {/* Permissions Section */}
-                <Card variant="outlined" sx={{ p: 2.5, mb: 4, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
-                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                         {/* Purple shield icon substitute */}
-                         <CheckCircleIcon color="secondary" /> 
-                         <Typography variant="h6">{t('permissionsTitle')}</Typography>
-                     </Box>
-                     {permissions.map((perm, idx) => (
-                         <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                             <CheckCircleIcon color="success" fontSize="small" />
-                             <Typography variant="body2">{perm}</Typography>
-                         </Box>
-                     ))}
-                </Card>
+      <DialogContent sx={{ px: 5, py: 5 }}>
+        <Typography variant='overline' color='text.secondary' fontWeight={600} sx={{ mb: 3, display: 'block' }}>
+          {t('howItWorks')}
+        </Typography>
 
-                 <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="caption" color="text.secondary">{t('secure')}</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button onClick={onClose} variant="text" color="inherit">{tc('common.cancel')}</Button>
-                        <Button onClick={onConnect} variant="contained" color="primary" size="large" sx={{ fontWeight: 'bold' }}>
-                            {t('connectBtn')}
-                        </Button>
-                    </Box>
-                 </Box>
+        <Stack spacing={0} sx={{ mb: 4 }}>
+          {steps.map((step, index) => (
+            <Stack key={step.id} direction='row' spacing={2.5} sx={{ position: 'relative' }}>
+              {index < steps.length - 1 ? (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: 19,
+                    top: 40,
+                    bottom: -8,
+                    width: 2,
+                    bgcolor: alpha(GOOGLE_BLUE, 0.2)
+                  }}
+                />
+              ) : null}
+              <CustomAvatar
+                skin='light'
+                variant='rounded'
+                sx={{
+                  width: 40,
+                  height: 40,
+                  flexShrink: 0,
+                  bgcolor: alpha(GOOGLE_BLUE, 0.12),
+                  color: GOOGLE_BLUE,
+                  fontWeight: 700,
+                  fontSize: '0.875rem',
+                  zIndex: 1
+                }}
+              >
+                <i className={step.icon} style={{ fontSize: '1.1rem' }} />
+              </CustomAvatar>
+              <Box sx={{ pb: index < steps.length - 1 ? 4 : 0, pt: 0.5 }}>
+                <Typography variant='subtitle2' fontWeight={700}>
+                  {step.title}
+                </Typography>
+                <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
+                  {step.description}
+                </Typography>
+              </Box>
+            </Stack>
+          ))}
+        </Stack>
 
-            </DialogContent>
-        </Dialog>
-    );
-};
+        <Box
+          sx={{
+            p: 3,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            bgcolor: alpha(theme.palette.success.main, 0.04)
+          }}
+        >
+          <Stack direction='row' spacing={1.5} alignItems='center' sx={{ mb: 2 }}>
+            <i className='tabler-shield-check' style={{ fontSize: '1.25rem', color: theme.palette.success.main }} />
+            <Typography variant='subtitle2' fontWeight={700}>
+              {t('permissionsTitle')}
+            </Typography>
+          </Stack>
+          <Stack spacing={1.5}>
+            {permissions.map(permission => (
+              <Stack key={permission} direction='row' spacing={1.5} alignItems='flex-start'>
+                <i
+                  className='tabler-circle-check-filled'
+                  style={{ fontSize: '1rem', color: theme.palette.success.main, marginTop: 3, flexShrink: 0 }}
+                />
+                <Typography variant='body2' color='text.secondary'>
+                  {permission}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+      </DialogContent>
 
-export default ConnectGoogleModal;
+      <Divider />
+
+      <DialogActions
+        sx={{
+          px: 5,
+          py: 3,
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2
+        }}
+      >
+        <Stack direction='row' spacing={1} alignItems='center'>
+          <i className='tabler-lock' style={{ fontSize: '1rem', color: theme.palette.text.secondary }} />
+          <Typography variant='caption' color='text.secondary'>
+            {t('secure')}
+          </Typography>
+        </Stack>
+        <Stack direction='row' spacing={2}>
+          <Button onClick={onClose} variant='outlined' color='secondary' disabled={loading}>
+            {tc('common.cancel')}
+          </Button>
+          <Button
+            onClick={onConnect}
+            variant='contained'
+            disabled={loading}
+            startIcon={
+              loading
+                ? <CircularProgress size={18} color='inherit' />
+                : <i className='tabler-brand-google' />
+            }
+            sx={{
+              fontWeight: 600,
+              bgcolor: GOOGLE_BLUE,
+              '&:hover': { bgcolor: alpha(GOOGLE_BLUE, 0.88) }
+            }}
+          >
+            {t('connectBtn')}
+          </Button>
+        </Stack>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+export default ConnectGoogleModal

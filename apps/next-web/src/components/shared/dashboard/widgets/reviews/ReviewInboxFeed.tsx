@@ -1,25 +1,41 @@
-/* eslint-disable react/jsx-no-literals */
-/* eslint-disable react/no-unescaped-entities */
 'use client'
+/* eslint-disable react/jsx-no-literals */
 
 import React from 'react';
-import { Box, Typography, TextField, MenuItem, CircularProgress } from '@mui/material';
+import { Box, Typography, TextField, MenuItem, CircularProgress, Alert } from '@mui/material';
 import ReviewCard from './ReviewCard';
 import { useReviewsInbox, type ReviewFeedFilters } from '@/views/admin/reviews/hooks/useReviewsInbox';
-import { useSearchParams } from 'next/navigation';
+import { useLocationFilter } from '@/hooks/useLocationFilter';
+import { Link } from '@/i18n/routing';
 
 export default function ReviewInboxFeed() {
-    const searchParams = useSearchParams();
-    const locationId = searchParams.get('locationId') || 'default';
+    const { locationId } = useLocationFilter();
 
-    const { reviews, isLoading, isError, generateAiReply, postReply, filters, setFilters } = useReviewsInbox(locationId);
+    const { reviews, isLoading, isError, hasValidLocation, generateAiReply, postReply, filters, setFilters } = useReviewsInbox(locationId);
 
     const handleFilterChange = (key: keyof ReviewFeedFilters, value: string) => {
         setFilters(prev => ({ ...prev, [key]: value }));
     };
 
+    if (!hasValidLocation) {
+        return (
+            <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', p: 4 }}>
+                Select a location to view the review inbox.
+            </Typography>
+        );
+    }
+
     return (
         <Box>
+            {!isLoading && reviews.length === 0 && (
+                <Alert severity="info" sx={{ mb: 3 }}>
+                    No synced reviews for this location yet.{' '}
+                    <Link href={`/admin/locations/${locationId}?tab=integrations` as any} style={{ fontWeight: 600 }}>
+                        Connect & sync reviews
+                    </Link>
+                </Alert>
+            )}
+
             {/* Search & Filter Bar */}
             <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
                 <TextField
@@ -79,10 +95,10 @@ export default function ReviewInboxFeed() {
                     </Typography>
                 ) : reviews.length === 0 ? (
                     <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', p: 4 }}>
-                        No reviews found matching your filters.
+                        No synced reviews match your filters.
                     </Typography>
                 ) : (
-                    reviews.map((review: any) => (
+                    reviews.map((review) => (
                         <ReviewCard
                             key={review.id}
                             review={review}

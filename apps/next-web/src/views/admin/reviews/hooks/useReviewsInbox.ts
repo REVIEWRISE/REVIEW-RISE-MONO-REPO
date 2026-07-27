@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
-import { useApiGet, useApiPost } from '@/hooks/useApi'
+import { useApiGet } from '@/hooks/useApi'
 import { SERVICES_CONFIG } from '@/configs/services'
+import { isValidLocationId, normalizeInboxReviews } from '../utils/mapInboxReview'
 
 const REVIEWS_API = SERVICES_CONFIG.review.url
 
-// Filter state for the feed
 export interface ReviewFeedFilters {
     rating?: string
     replyStatus?: string
@@ -16,7 +16,6 @@ export interface ReviewFeedFilters {
     search?: string
 }
 
-// Shape of a single review returned from the API
 export interface InboxReview {
     id: string
     authorName: string
@@ -30,8 +29,29 @@ export interface InboxReview {
     aiSuggestedReply?: string
 }
 
-export function useReviewsInbox(locationId: string) {
+export interface LocationInboxStats {
+    totalReviews: number
+    averageRating: number
+    platforms: string[]
+    unrepliedCount: number
+    responseRate: number
+    positiveSentiment: number
+    avgResponseTimeHours: number | null
+    platformBreakdown: Array<{
+        platform: string
+        totalReviews: number
+        averageRating: number
+    }>
+    sentimentBreakdown: {
+        positive: number
+        neutral: number
+        negative: number
+    }
+}
+
+export function useReviewsInbox(locationId: string | null) {
     const queryClient = useQueryClient()
+    const hasValidLocation = isValidLocationId(locationId)
 
     const [filters, setFilters] = useState<ReviewFeedFilters>({
         replyStatus: 'unanswered',
@@ -41,52 +61,32 @@ export function useReviewsInbox(locationId: string) {
 
     const [isGenerating, setIsGenerating] = useState(false)
 
-    /**
-     * --------------- Reviews Feed ---------------
-     */
-    const reviewsQuery = useApiGet<{ reviews: InboxReview[]; total: number; page: number }>(
-        ['reviews', 'inbox', locationId, JSON.stringify(filters)],
+    const reviewsQuery = useApiGet<{ reviews?: unknown[] }>(
+        ['reviews', 'inbox', locationId ?? 'none', JSON.stringify(filters)],
         `${REVIEWS_API}/reviews/locations/${locationId}/reviews`,
         {
+            limit: 50,
             ...(filters.rating && filters.rating !== 'all' ? { rating: filters.rating } : {}),
-            ...(filters.replyStatus && filters.replyStatus !== 'all' ? { replyStatus: filters.replyStatus } : {}),
             ...(filters.sentiment && filters.sentiment !== 'all' ? { sentiment: filters.sentiment } : {}),
-            limit: 20
+            ...(filters.replyStatus && filters.replyStatus !== 'all' ? { replyStatus: filters.replyStatus } : {}),
+            ...(filters.search?.trim() ? { search: filters.search.trim() } : {}),
         },
-        { enabled: !!locationId }
+        { enabled: hasValidLocation }
     )
 
-    /**
-     * --------------- Review Stats (for the hero card) ---------------
-     */
-    const statsQuery = useApiGet(
-        ['reviews', 'stats', locationId],
+    const statsQuery = useApiGet<LocationInboxStats>(
+        ['reviews', 'stats', locationId ?? 'none'],
         `${REVIEWS_API}/reviews/locations/${locationId}/stats`,
         {},
-        { enabled: !!locationId }
+        { enabled: hasValidLocation }
     )
 
-    /**
-     * --------------- Post Reply ---------------
-     */
-    const postReplyMutation = useApiPost<unknown, { reviewId: string; content: string }>(
-        `${REVIEWS_API}/reviews/PLACEHOLDER/reply`,
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['reviews', 'inbox', locationId] })
-                queryClient.invalidateQueries({ queryKey: ['reviews', 'stats', locationId] })
-            }
-        }
+    const keywordsQuery = useApiGet<{ keywords: Array<{ keyword: string; count: number }> }>(
+        ['reviews', 'keywords', locationId ?? 'none'],
+        `${REVIEWS_API}/reviews/locations/${locationId}/keywords`,
+        { timeRange: '30d' },
+        { enabled: hasValidLocation }
     )
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const postReply = async ({ reviewId, content }: { reviewId: string; content: string }) => {
-        await postReplyMutation.mutateAsync({ reviewId, content })
-    }
-
-    /**
-     * --------------- Generate AI Reply ---------------
-     */
 
     const generateAiReply = async ({ reviewId, tone }: { reviewId: string; tone: string }): Promise<string> => {
         setIsGenerating(true)
@@ -104,8 +104,6 @@ export function useReviewsInbox(locationId: string) {
             }
 
             const json = await response.json()
-
-            // The service returns { variations: [{ tone, reply }] } — pick the matching tone or first
             const variations: Array<{ tone: string; reply: string }> = json?.data?.variations || []
             const match = variations.find(v => v.tone.toLowerCase() === tone.toLowerCase())
 
@@ -115,15 +113,7 @@ export function useReviewsInbox(locationId: string) {
         }
     }
 
-    /**
-     * Expose a normalized post helper that uses the real endpoint
-     */
-
     const postReplyForReview = async ({ reviewId, content }: { reviewId: string; content: string }) => {
-
-        /**
-         * POST /api/v1/reviews/:reviewId/reply
-         */
         const response = await fetch(`${REVIEWS_API}/reviews/${reviewId}/reply`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -135,22 +125,29 @@ export function useReviewsInbox(locationId: string) {
 
         queryClient.invalidateQueries({ queryKey: ['reviews', 'inbox', locationId] })
         queryClient.invalidateQueries({ queryKey: ['reviews', 'stats', locationId] })
+        queryClient.invalidateQueries({ queryKey: ['reviews', 'keywords', locationId] })
     }
 
+    const reviews = normalizeInboxReviews(reviewsQuery.data)
+
     return {
-        reviews: reviewsQuery.data?.reviews ?? [],
-        total: reviewsQuery.data?.total ?? 0,
-        isLoading: reviewsQuery.isLoading,
-        isError: reviewsQuery.isError,
+        reviews,
+        total: reviews.length,
+        isLoading: hasValidLocation && reviewsQuery.isLoading,
+        isError: hasValidLocation && reviewsQuery.isError,
+        hasValidLocation,
 
         stats: statsQuery.data,
         statsLoading: statsQuery.isLoading,
+
+        keywords: keywordsQuery.data?.keywords ?? [],
+        keywordsLoading: keywordsQuery.isLoading,
 
         filters,
         setFilters,
 
         postReply: postReplyForReview,
-        isPosting: postReplyMutation.isPending,
+        isPosting: false,
 
         generateAiReply,
         isGenerating

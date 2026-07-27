@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 
-import { useSearchParams } from 'next/navigation'
-
 import ReviewsIcon from '@mui/icons-material/RateReview'
 import ReplyIcon from '@mui/icons-material/Reply'
 import StarIcon from '@mui/icons-material/Star'
@@ -13,6 +11,8 @@ import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
+import Alert from '@mui/material/Alert'
+import Link from '@mui/material/Link'
 import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import InputLabel from '@mui/material/InputLabel'
@@ -30,15 +30,16 @@ import ReviewMetricCard from '@/components/shared/dashboard/ReviewMetricCard'
 import SentimentHeatmap from '@/components/shared/dashboard/SentimentHeatmap'
 import { useReviewAnalytics } from '@/hooks/reviews/useReviewAnalytics'
 import { useBusinessId } from '@/hooks/useBusinessId'
+import { useLocationFilter } from '@/hooks/useLocationFilter'
+import { resolveScopedLocationId } from '@/utils/locationId'
 
 const ReviewsDashboard = () => {
   const t = useTranslations('dashboard')
   const tc = useTranslations('common')
   const [period, setPeriod] = useState<number>(30)
   const { businessId, loading: businessLoading } = useBusinessId()
-
-  const searchParams = useSearchParams()
-  const locationId = searchParams.get('locationId') || 'all'
+  const { locationId: rawLocationId } = useLocationFilter()
+  const locationId = resolveScopedLocationId(rawLocationId) ?? 'all'
 
   const {
     ratingTrend,
@@ -56,6 +57,8 @@ const ReviewsDashboard = () => {
   }
 
   const isLoading = businessLoading || analyticsLoading || !businessId
+  const hasSyncedReviews = (dashboardMetrics.data?.totalReviews ?? 0) > 0
+  const scopedLocationId = resolveScopedLocationId(rawLocationId)
   
   // Data for Recent Reviews Widget
   const recentSummary = summaryData.data
@@ -201,6 +204,18 @@ return Array.from(platforms).map(platform => ({
           <CircularProgress />
         </Box>
       ) : (
+        <>
+          {!hasSyncedReviews && (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              {scopedLocationId
+                ? t('reviews.smart.noSyncedReviewsLocation')
+                : t('reviews.smart.noSyncedReviews')}
+              {' '}
+              <Link href={scopedLocationId ? `/admin/locations/${scopedLocationId}?tab=integrations` : '/admin/locations'} underline="hover">
+                {t('reviews.smart.connectToSync')}
+              </Link>
+            </Alert>
+          )}
         <Grid container spacing={3}>
           {/* Metric Cards */}
           <Grid size={{xs: 12, sm: 6, md: 3}}>
@@ -347,6 +362,7 @@ return Array.from(platforms).map(platform => ({
              />
           </Grid>
         </Grid>
+        </>
       )}
     </Box>
   )

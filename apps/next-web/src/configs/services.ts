@@ -42,12 +42,8 @@ export const SERVICES_CONFIG = {
     seo: {
         get url() {
             if (typeof window === 'undefined') {
-                // Server-side: prefer internal Docker URL, fall back to public domain
-                return (
-                    process.env.EXPRESS_SEO_HEALTH_URL ||
-                    process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL ||
-                    'http://localhost:3011/api/v1'
-                );
+                // Server-side
+                return process.env.NEXT_PUBLIC_SEO_HEALTH_API_URL || 'http://localhost:3011/api/v1';
             }
 
             // Client-side
@@ -55,7 +51,7 @@ export const SERVICES_CONFIG = {
                 return `${getClientBaseUrl()}/api/seo`;
             }
 
-            return '/api/seo';
+            return 'http://localhost:3011/api/v1';
         },
     },
     review: {
@@ -67,7 +63,8 @@ export const SERVICES_CONFIG = {
 
             // Client-side
             if (isProduction()) {
-                return `${getClientBaseUrl()}/api/reviews`;
+                // Return /api so hooks can append /reviews/analytics/* → /api/reviews/analytics/*
+                return `${getClientBaseUrl()}/api`;
             }
 
             return 'http://localhost:3006/api/v1';
@@ -76,7 +73,8 @@ export const SERVICES_CONFIG = {
     gbp: {
         get url() {
             if (typeof window === 'undefined') {
-                return process.env.EXPRESS_GBP_ROCKET_URL || 'http://localhost:3004/api/v1';
+                // Server-side (API proxy routes)
+                return process.env.EXPRESS_GBP_ROCKET_URL || 'http://localhost:3005/api/v1';
             }
 
             if (isProduction()) {
@@ -102,7 +100,7 @@ export const SERVICES_CONFIG = {
     social: {
         get url() {
             if (typeof window === 'undefined') {
-                return process.env.EXPRESS_SOCIAL_URL || 'http://localhost:3003/api/v1';
+                return process.env.EXPRESS_SOCIAL_URL || 'http://localhost:3003';
             }
 
             if (isProduction()) {

@@ -1,86 +1,165 @@
+'use client'
 /* eslint-disable react/jsx-no-literals */
-/* eslint-disable react/no-unescaped-entities */
-'use client';
 
-import React from 'react';
-import { Card, Typography, Box, useTheme } from '@mui/material';
-import dynamic from 'next/dynamic';
+import React, { useMemo } from 'react'
+import { Card, Typography, Box, Skeleton, useTheme } from '@mui/material'
+import {
+    Area,
+    AreaChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts'
 
-const ReactApexcharts = dynamic(() => import('react-apexcharts'), { ssr: false });
+import { useLocationFilter } from '@/hooks/useLocationFilter'
+import { useBusinessId } from '@/hooks/useBusinessId'
+import { useSentimentHeatmap } from '@/hooks/reviews/useReviewAnalytics'
+import { resolveScopedLocationId } from '@/utils/locationId'
+
+const formatDayLabel = (dateStr: string) => {
+    const date = new Date(dateStr)
+
+    if (Number.isNaN(date.getTime())) return dateStr
+
+    return date.toLocaleDateString(undefined, { weekday: 'short' })
+}
 
 export default function SentimentTrendChart() {
-    const theme = useTheme();
+    const theme = useTheme()
+    const { locationId } = useLocationFilter()
+    const scopedLocationId = resolveScopedLocationId(locationId)
+    const { businessId, loading: businessLoading } = useBusinessId()
 
-    const chartOptions = {
-        chart: {
-            type: 'area' as const,
-            parentHeightOffset: 0,
-            toolbar: { show: false },
-            background: 'transparent'
-        },
-        colors: [theme.palette.success.main, theme.palette.info.main, theme.palette.error.main],
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth' as const, width: 2 },
-        xaxis: {
-            categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            labels: { style: { colors: theme.palette.text.secondary } },
-            axisBorder: { show: false },
-            axisTicks: { show: false },
-        },
-        yaxis: {
-            show: false,
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.4,
-                opacityTo: 0.0,
-                stops: [0, 90, 100]
+    const { data, isLoading } = useSentimentHeatmap({
+        businessId: businessId || '',
+        locationId: scopedLocationId,
+        period: 7,
+        groupBy: 'day',
+    })
+
+    const chartData = useMemo(() => {
+        if (!Array.isArray(data) || data.length === 0) return []
+
+        return data.slice(-7).map((point: { date: string; positive: number; neutral: number; negative: number }) => {
+            const total = point.positive + point.neutral + point.negative
+
+            if (total === 0) {
+                return {
+                    day: formatDayLabel(point.date),
+                    positive: 0,
+                    neutral: 0,
+                    negative: 0,
+                }
             }
-        },
-        legend: { show: false },
-        grid: { show: false, padding: { top: -20, right: 0, left: -10, bottom: -10 } },
-    };
 
-    const chartSeries = [
-        { name: 'Positive', data: [80, 85, 82, 90, 95, 92, 98] },
-        { name: 'Neutral', data: [15, 10, 12, 8, 5, 6, 2] },
-        { name: 'Negative', data: [5, 5, 6, 2, 0, 2, 0] },
-    ];
+            return {
+                day: formatDayLabel(point.date),
+                positive: Math.round((point.positive / total) * 100),
+                neutral: Math.round((point.neutral / total) * 100),
+                negative: Math.round((point.negative / total) * 100),
+            }
+        })
+    }, [data])
+
+    const totals = useMemo(() => {
+        if (!Array.isArray(data) || data.length === 0) {
+            return { positive: 0, neutral: 0, negative: 0 }
+        }
+
+        const sum = data.reduce(
+            (acc, point: { positive: number; neutral: number; negative: number }) => ({
+                positive: acc.positive + point.positive,
+                neutral: acc.neutral + point.neutral,
+                negative: acc.negative + point.negative,
+            }),
+            { positive: 0, neutral: 0, negative: 0 }
+        )
+
+        const total = sum.positive + sum.neutral + sum.negative
+
+        if (total === 0) return { positive: 0, neutral: 0, negative: 0 }
+
+        return {
+            positive: Math.round((sum.positive / total) * 100),
+            neutral: Math.round((sum.neutral / total) * 100),
+            negative: Math.round((sum.negative / total) * 100),
+        }
+    }, [data])
+
+    const positiveColor = theme.palette.success?.main ?? '#56ca00'
+    const neutralColor = theme.palette.info?.main ?? '#16b1ff'
+    const negativeColor = theme.palette.error?.main ?? '#ff4c51'
+
+    if (businessLoading || isLoading) {
+        return (
+            <Card sx={{ p: 3, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
+                <Skeleton variant="rounded" height={260} />
+            </Card>
+        )
+    }
 
     return (
         <Card sx={{ p: 3, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper' }}>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Sentiment Trends</Typography>
 
-            <Box sx={{ height: 200 }}>
-                <ReactApexcharts type="area" height="100%" options={chartOptions} series={chartSeries} />
-            </Box>
+            {chartData.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ py: 6, textAlign: 'center' }}>
+                    No synced review sentiment data for the last 7 days.
+                </Typography>
+            ) : (
+                <Box sx={{ height: 200, width: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="inbox_positive" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={positiveColor} stopOpacity={0.35} />
+                                    <stop offset="95%" stopColor={positiveColor} stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="inbox_neutral" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={neutralColor} stopOpacity={0.25} />
+                                    <stop offset="95%" stopColor={neutralColor} stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="inbox_negative" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={negativeColor} stopOpacity={0.25} />
+                                    <stop offset="95%" stopColor={negativeColor} stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
+                            <XAxis dataKey="day" stroke={theme.palette.text.secondary} fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis hide />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: theme.palette.background.paper,
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    borderRadius: 8,
+                                    color: theme.palette.text.primary,
+                                }}
+                            />
+                            <Area type="monotone" dataKey="positive" stroke={positiveColor} fill="url(#inbox_positive)" strokeWidth={2} />
+                            <Area type="monotone" dataKey="neutral" stroke={neutralColor} fill="url(#inbox_neutral)" strokeWidth={2} />
+                            <Area type="monotone" dataKey="negative" stroke={negativeColor} fill="url(#inbox_negative)" strokeWidth={2} />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </Box>
+            )}
 
-            {/* Custom Legend underneath */}
             <Box sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Positive</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '70%' }}>
-                        <Box sx={{ height: 4, bgcolor: 'success.main', flex: 1, borderRadius: 2 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>92%</Typography>
+                {([
+                    { key: 'positive', color: positiveColor, value: totals.positive },
+                    { key: 'neutral', color: neutralColor, value: totals.neutral },
+                    { key: 'negative', color: negativeColor, value: totals.negative },
+                ] as const).map(({ key, color, value }, index, arr) => (
+                    <Box key={key} sx={{ display: 'flex', justifyContent: 'space-between', mb: index === arr.length - 1 ? 0 : 1, alignItems: 'center' }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{key}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '70%' }}>
+                            <Box sx={{ height: 4, bgcolor: color, flex: 1, borderRadius: 2 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 700 }}>{value}%</Typography>
+                        </Box>
                     </Box>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Neutral</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '70%' }}>
-                        <Box sx={{ height: 4, bgcolor: 'info.main', flex: 1, borderRadius: 2 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>6%</Typography>
-                    </Box>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Negative</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '70%' }}>
-                        <Box sx={{ height: 4, bgcolor: 'error.main', flex: 1, borderRadius: 2 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>2%</Typography>
-                    </Box>
-                </Box>
+                ))}
             </Box>
         </Card>
-    );
+    )
 }
