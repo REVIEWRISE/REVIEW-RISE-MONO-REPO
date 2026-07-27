@@ -69,12 +69,17 @@ export const SystemMessageProvider: React.FC<{ children: React.ReactNode }> = ({
   // Track active toast IDs to prevent duplicates
   const activeToasts = useRef<Set<string>>(new Set());
 
-  const getMessage = useCallback((code: SystemMessageCode, params?: Record<string, any>) => {
+  const getMessage = useCallback((code: SystemMessageCode | string, params?: Record<string, any>) => {
+    // Avoid next-intl MISSING_MESSAGE console noise for unknown / freeform codes.
+    if (typeof (t as any).has === 'function' && !(t as any).has(code as any)) {
+      return params?.detail || String(code);
+    }
+
     try {
-      return t(code, params);
+      return t(code as any, params);
     } catch {
       // Fallback to code if translation missing
-      return code;
+      return params?.detail || String(code);
     }
   }, [t]);
 

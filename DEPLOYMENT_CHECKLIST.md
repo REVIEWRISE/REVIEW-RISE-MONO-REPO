@@ -62,6 +62,20 @@ Add these secrets (click "New repository secret"):
    - Full URL for health checks
    - Example: `http://staging.reviewrise.com` (or use IP if DNS not ready)
 
+7. **GOOGLE_CLIENT_ID**
+   - Google OAuth Web Client ID (NextAuth login + GBP)
+   - From Google Cloud Console → APIs & Services → Credentials
+
+8. **GOOGLE_CLIENT_SECRET**
+   - Google OAuth Web Client secret for the same client
+
+9. **GOOGLE_REDIRECT_URI**
+   - Exact OAuth callback URL for GBP connect (`express-reviews`)
+   - Must match Google Cloud Console → Authorized redirect URIs
+   - Example: `https://staging.reviewrise.com/api/reviews/v1/auth/google/callback`
+
+Also ensure `ENV_PRODUCTION` includes GBP-related values such as `TOKEN_ENCRYPTION_KEY`, `FRONTEND_URL`, and optionally `GBP_PUBLIC_BASE_URL` / `NEXTAUTH_URL` / `NEXTAUTH_SECRET`.
+
 ---
 
 ## ✅ Step 3: Set Up Your VPS

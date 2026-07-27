@@ -1,6 +1,6 @@
 'use client';
 
-import { getGbpPhotoProxyUrl, useGbpPhotos, useDeleteGbpPhoto, extractApiErrorMessage } from '@/hooks/gbp/useGbpPhotos';
+import { getGbpPhotoProxyUrl, useGbpPhotos, useDeleteGbpPhoto } from '@/hooks/gbp/useGbpPhotos';
 import {
   alpha,
   Box,
@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
-import { SystemMessageSeverity } from '@platform/contracts';
+import { SystemMessageCode } from '@platform/contracts';
 
 import { PhotosFilterToolbar } from './PhotosFilterToolbar';
 import { getCategoryColor, getCategoryLabelKey, matchesPhotoSearch, sortPhotos } from './photoCategoryUtils';
@@ -494,17 +494,11 @@ export const LocationPhotosGrid = ({ locationId }: LocationPhotosGridProps) => {
                       { locationId, photoId: selectedPhoto.id },
                       {
                         onSuccess: () => {
-                          notify({
-                            messageCode: t('deleteSuccess'),
-                            severity: SystemMessageSeverity.SUCCESS,
-                          });
+                          notify(SystemMessageCode.GBP_PHOTOS_DELETE_SUCCESS);
                           setSelectedPhoto(null);
                         },
-                        onError: (deleteError) => {
-                          notify({
-                            messageCode: extractApiErrorMessage(deleteError) || t('deleteError'),
-                            severity: SystemMessageSeverity.ERROR,
-                          });
+                        onError: () => {
+                          notify(SystemMessageCode.GBP_PHOTOS_DELETE_FAILED);
                         },
                       }
                     );

@@ -195,6 +195,9 @@ jobs:
             echo "# API Keys (injected from GitHub Secrets)" >> .env.production
             echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.production
             echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env.production
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env.production
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env.production
+            echo "GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}" >> .env.production
             
             # Run deployment script
             chmod +x ./scripts/deploy-staging.sh

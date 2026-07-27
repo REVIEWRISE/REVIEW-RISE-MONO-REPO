@@ -130,6 +130,11 @@ services:
       - PORT=3006
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - TOKEN_ENCRYPTION_KEY=${TOKEN_ENCRYPTION_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
     depends_on:
       postgres:
         condition: service_healthy
@@ -228,6 +233,10 @@ services:
       - PORT=3004
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - TOKEN_ENCRYPTION_KEY=${TOKEN_ENCRYPTION_KEY}
+      - GBP_PUBLIC_BASE_URL=${GBP_PUBLIC_BASE_URL}
     depends_on:
       postgres:
         condition: service_healthy
@@ -459,8 +468,13 @@ services:
       - AUTH_SERVICE_URL=http://express-auth:3010/api
       - EXPRESS_REVIEWS_URL=http://express-reviews:3006/api/v1
       - EXPRESS_AI_URL=http://express-ai:3002
+      - EXPRESS_GBP_ROCKET_URL=${EXPRESS_GBP_ROCKET_URL:-http://express-gbp-rocket:3004/api/v1}
       - NEXT_PUBLIC_SEO_HEALTH_API_URL=${NEXT_PUBLIC_SEO_HEALTH_API_URL:-https://app.vyntrise.com/api/seo}
       - NEXT_PUBLIC_REVIEWS_API_URL=${NEXT_PUBLIC_REVIEWS_API_URL:-https://app.vyntrise.com/api/reviews}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
     depends_on:
       postgres:
         condition: service_healthy

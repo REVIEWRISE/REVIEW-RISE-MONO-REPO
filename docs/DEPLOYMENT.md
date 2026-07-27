@@ -174,6 +174,11 @@ Push to `develop` branch - GitHub Actions will automatically:
 - `VPS_USER`: SSH username (e.g., `deploy`)
 - `DEPLOY_PATH`: Repository path on VPS (e.g., `/opt/review-rise-monorepo`)
 - `STAGING_URL`: Full URL for health checks (e.g., `https://staging.reviewrise.com`)
+- `GOOGLE_CLIENT_ID`: Google OAuth client ID (NextAuth + GBP)
+- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
+- `GOOGLE_REDIRECT_URI`: GBP OAuth callback URL (must match Google Console)
+- `OPENAI_API_KEY` / `GEMINI_API_KEY`: AI provider keys (optional depending on provider)
+- `ENV_PRODUCTION`: Full production env file contents (include `TOKEN_ENCRYPTION_KEY`, `FRONTEND_URL`, etc.)
 
 ---
 

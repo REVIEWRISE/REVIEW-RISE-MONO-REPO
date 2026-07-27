@@ -9,7 +9,7 @@ import PhotoOutlinedIcon from '@mui/icons-material/PhotoOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import { GbpPhotoCategory, SystemMessageSeverity } from '@platform/contracts';
+import { GbpPhotoCategory, SystemMessageCode } from '@platform/contracts';
 import { useGbpPhotos, useSyncGbpPhotos, useUploadGbpPhoto, extractApiErrorMessage } from '@/hooks/gbp/useGbpPhotos';
 import { useSystemMessages } from '@/shared/components/SystemMessageProvider';
 import { LocationPhotosGrid } from './LocationPhotosGrid';
@@ -82,18 +82,18 @@ export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps
         fileInputRef.current?.click();
     };
 
-    const getUploadErrorMessage = (uploadError: unknown) => {
+    const getUploadErrorCode = (uploadError: unknown): SystemMessageCode => {
         const apiMessage = extractApiErrorMessage(uploadError);
 
         if (apiMessage?.includes('Cannot reach Google Business Profile API')) {
-            return t('uploadNetworkError');
+            return SystemMessageCode.NETWORK_ERROR;
         }
 
         if (apiMessage?.includes('GBP_PUBLIC_BASE_URL')) {
-            return t('uploadNeedsPublicUrl');
+            return SystemMessageCode.GBP_PHOTOS_UPLOAD_NEEDS_PUBLIC_URL;
         }
 
-        return apiMessage || t('uploadError');
+        return SystemMessageCode.GBP_PHOTOS_UPLOAD_FAILED;
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,14 +103,8 @@ export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps
             uploadPhoto(
                 { locationId, file, category: uploadCategory },
                 {
-                    onSuccess: () => notify({
-                        messageCode: t('uploadSuccess'),
-                        severity: SystemMessageSeverity.SUCCESS,
-                    }),
-                    onError: (uploadError) => notify({
-                        messageCode: getUploadErrorMessage(uploadError),
-                        severity: SystemMessageSeverity.ERROR,
-                    }),
+                    onSuccess: () => notify(SystemMessageCode.GBP_PHOTOS_UPLOAD_SUCCESS),
+                    onError: (uploadError) => notify(getUploadErrorCode(uploadError)),
                 }
             );
         }
@@ -170,14 +164,8 @@ export const LocationPhotosSection = ({ locationId }: LocationPhotosSectionProps
                         color="warning"
                         startIcon={isSyncing ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
                         onClick={() => syncPhotos(locationId, {
-                            onSuccess: () => notify({
-                                messageCode: t('syncSuccess'),
-                                severity: SystemMessageSeverity.SUCCESS,
-                            }),
-                            onError: (syncError) => notify({
-                                messageCode: extractApiErrorMessage(syncError) || t('syncError'),
-                                severity: SystemMessageSeverity.ERROR,
-                            }),
+                            onSuccess: () => notify(SystemMessageCode.GBP_PHOTOS_SYNC_SUCCESS),
+                            onError: () => notify(SystemMessageCode.GBP_PHOTOS_SYNC_FAILED),
                         })}
                         disabled={isSyncing}
                         sx={{ fontWeight: 600, px: 3, textTransform: 'none', borderRadius: 1.5 }}
