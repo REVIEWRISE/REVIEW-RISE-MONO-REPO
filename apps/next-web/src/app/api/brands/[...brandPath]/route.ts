@@ -61,9 +61,17 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ brandPath
 
     if (contentType) headers.set('content-type', contentType);
 
-    const auth = req.headers.get('authorization');
+    // Prefer cookie-based token (HttpOnly, set server-side) over header
+    const accessToken = req.cookies.get('accessToken')?.value;
 
-    if (auth) headers.set('authorization', auth);
+    if (accessToken) {
+      headers.set('authorization', `Bearer ${accessToken}`);
+    } else {
+      // Fallback to forwarded Authorization header (e.g. from non-browser clients)
+      const auth = req.headers.get('authorization');
+
+      if (auth) headers.set('authorization', auth);
+    }
 
     const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined;
 

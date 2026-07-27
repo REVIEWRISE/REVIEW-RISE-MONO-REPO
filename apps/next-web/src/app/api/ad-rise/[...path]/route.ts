@@ -114,10 +114,16 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path?: st
 
     if (contentType) headers.set('content-type', contentType);
 
-    // Authorization passthrough
-    const auth = req.headers.get('authorization');
+    // Authorization: prefer HttpOnly cookie, fall back to forwarded header
+    const accessToken = req.cookies.get('accessToken')?.value;
 
-    if (auth) headers.set('authorization', auth);
+    if (accessToken) {
+      headers.set('authorization', `Bearer ${accessToken}`);
+    } else {
+      const auth = req.headers.get('authorization');
+
+      if (auth) headers.set('authorization', auth);
+    }
 
     const response = await fetch(url, {
       method: req.method,

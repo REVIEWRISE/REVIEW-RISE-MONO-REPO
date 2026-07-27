@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography';
 
 import apiClient from '@/lib/apiClient';
 
+import { SERVICES } from '@/configs/services';
+
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface ReviewSource {
@@ -26,7 +28,7 @@ const ReviewSourcesList = ({ locationId }: { locationId: string }) => {
     const fetchSources = useCallback(async () => {
         try {
             // Use apiClient (auto-unwraps data field)
-            const res = await apiClient.get<ReviewSource[]>(`/reviews/api/v1/locations/${locationId}/sources`);
+            const res = await apiClient.get<ReviewSource[]>(`${SERVICES.review.url}/locations/${locationId}/sources`);
 
             if (res.data) {
                 setSources(res.data);
@@ -43,7 +45,7 @@ const ReviewSourcesList = ({ locationId }: { locationId: string }) => {
     const handleConnectGoogle = async () => {
         try {
             // Get auth URL
-            const res = await apiClient.get<{ url: string }>('/reviews/api/v1/auth/google/connect', {
+            const res = await apiClient.get<{ url: string }>(`${SERVICES.review.url}/auth/google/connect`, {
                 params: { locationId }
             });
 
@@ -57,7 +59,7 @@ const ReviewSourcesList = ({ locationId }: { locationId: string }) => {
 
     const handleDisconnect = async (id: string) => {
         try {
-            await apiClient.delete(`/reviews/api/v1/sources/${id}`);
+            await apiClient.delete(`${SERVICES.review.url}/sources/${id}`);
             fetchSources();
         } catch (error) {
             console.error('Failed to disconnect', error);

@@ -17,6 +17,7 @@ import GoogleIcon from '@mui/icons-material/Google'
 
 import { useTranslations } from 'next-intl'
 import apiClient from '@/lib/apiClient'
+import { SERVICES } from '@/configs/services'
 import ConnectGoogleModal from './ConnectGoogleModal'
 import LocationSelectorModal from './LocationSelectorModal'
 
@@ -52,7 +53,7 @@ export default function IntegrationsDashboard() {
 
         try {
             setLoading(true)
-            const res = await apiClient.get(`/reviews/api/v1/auth/google/status/${locationId}`)
+            const res = await apiClient.get(`${SERVICES.review.url}/auth/google/status/${locationId}`)
 
             setStatus(res.data)
         } catch (error) {
@@ -97,7 +98,7 @@ export default function IntegrationsDashboard() {
 
     const handleConnectGoogle = async () => {
         try {
-            const res = await apiClient.get<{ url: string }>(`/reviews/api/v1/auth/google/connect?locationId=${locationId}`)
+            const res = await apiClient.get<{ url: string }>(`${SERVICES.review.url}/auth/google/connect?locationId=${locationId}`)
 
             if (res.data?.url) {
                 window.location.href = res.data.url
@@ -114,7 +115,7 @@ export default function IntegrationsDashboard() {
 
         try {
             setLoading(true)
-            await apiClient.post(`/reviews/api/v1/auth/google/disconnect/${locationId}`)
+            await apiClient.post(`${SERVICES.review.url}/auth/google/disconnect/${locationId}`)
             await fetchStatus()
             setSnackbarMsg('Google Business Profile disconnected.')
         } catch {

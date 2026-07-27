@@ -65,12 +65,12 @@ export const SERVICES_CONFIG = {
                 return process.env.EXPRESS_REVIEWS_URL || 'http://localhost:3006/api/v1';
             }
 
-            // Client-side
+            // Client-side: use proxy through Next.js API routes
             if (isProduction()) {
                 return `${getClientBaseUrl()}/api/reviews`;
             }
 
-            return 'http://localhost:3006/api/v1';
+            return '/api/reviews';
         },
     },
     gbp: {

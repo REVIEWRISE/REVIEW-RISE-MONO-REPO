@@ -13,6 +13,7 @@ import Select from '@mui/material/Select'
 import { useTranslations } from 'next-intl'
 
 import apiClient from '@/lib/apiClient'
+import { SERVICES } from '@/configs/services'
 import KeywordCloud from '../dashboard/KeywordCloud'; // Reusing existing component
 
 interface ReviewKeywordCloudProps {
@@ -31,7 +32,7 @@ const ReviewKeywordCloud = ({ locationId }: ReviewKeywordCloudProps) => {
 
       try {
         // Use apiClient (auto-unwraps data field)
-        const res = await apiClient.get<any>(`/reviews/api/v1/locations/${locationId}/keywords`, {
+        const res = await apiClient.get<any>(`${SERVICES.review.url}/locations/${locationId}/keywords`, {
             params: { timeRange }
         })
         

@@ -19,6 +19,7 @@ import GoogleIcon from '@mui/icons-material/Google';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import { useTranslations } from 'next-intl';
 import apiClient from '@/lib/apiClient';
+import { SERVICES } from '@/configs/services';
 
 interface LocationSelectorModalProps {
     open: boolean;
@@ -51,7 +52,7 @@ export default function LocationSelectorModal({ open, pendingId, onClose, onSucc
         setLoading(true);
         setError(null);
 
-        apiClient.get(`/reviews/api/v1/auth/google/pending/${pendingId}`)
+        apiClient.get(`${SERVICES.review.url}/auth/google/pending/${pendingId}`)
             .then(res => {
                 if (!isMounted) return;
                 setData(res.data);
@@ -82,7 +83,7 @@ export default function LocationSelectorModal({ open, pendingId, onClose, onSucc
         const gbpLocation = data.locations.find((l: any) => l.name === selectedGbpName);
         
         try {
-            await apiClient.post('/reviews/api/v1/auth/google/finalize', {
+            await apiClient.post(`${SERVICES.review.url}/auth/google/finalize`, {
                 pendingId,
                 gbpLocationName: gbpLocation.name,
                 gbpAccountId: gbpLocation.accountId,
