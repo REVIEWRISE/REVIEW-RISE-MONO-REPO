@@ -106,9 +106,12 @@ export async function middleware(request: NextRequest) {
   // Public paths that don't require authentication (without locale prefix)
   const publicPaths = ['/login', '/register', '/forgot-password', '/verify-email']
 
-  // Check if the current path is an API route
-  if (pathname.startsWith('/api')) {
-
+  // Check if the current path is an API route or proxied path
+  if (
+    pathname.startsWith('/api') || 
+    pathname.startsWith('/reviews/api') || 
+    pathname.startsWith('/uploads')
+  ) {
     return NextResponse.next()
   }
 

@@ -148,6 +148,11 @@ export default function PlannerPage() {
   const handleCreateDrafts = async () => {
     if (!plan || !businessId) return;
 
+    if (!locationId) {
+      setError('Please select a specific location from the top navigation to sync your plan.');
+      return;
+    }
+
     setConverting(true);
     setError(null);
     setSuccess(null);
@@ -158,7 +163,7 @@ export default function PlannerPage() {
       loadPlan(); // Refresh plan status
     } catch (err: any) {
       console.error(err);
-      setError(ts('actions.syncError'));
+      setError(err?.response?.data?.error?.message || ts('actions.syncError'));
     } finally {
       setConverting(false);
     }
