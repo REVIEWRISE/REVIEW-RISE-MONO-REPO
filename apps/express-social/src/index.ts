@@ -23,7 +23,7 @@ app.get('/health', (req, res) => {
 import socialRoutes from './routes/v1/social.routes';
 import postsRoutes from './routes/v1/posts.routes';
 
-app.use('/', socialRoutes);
+app.use('/api/v1', socialRoutes);
 app.use('/api/v1/posts', postsRoutes);
 
 app.get('/', (req, res) => {

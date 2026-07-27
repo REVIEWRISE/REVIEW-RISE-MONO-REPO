@@ -27,12 +27,12 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ route: st
         const accessToken = req.cookies.get('accessToken')?.value;
 
         if (accessToken) {
-            headers.set('Authorization', `Bearer ${accessToken}`);
+            headers.set('authorization', `Bearer ${accessToken}`);
         } else {
             // Fallback to existing header if present
-            const authHeader = req.headers.get('authorization');
+            const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
 
-            if (authHeader) headers.set('Authorization', authHeader);
+            if (authHeader) headers.set('authorization', authHeader);
         }
 
         const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined;
