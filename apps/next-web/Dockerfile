@@ -53,7 +53,6 @@ RUN pnpm --filter @apps/next-web run build
 FROM node:20-alpine AS runner
 
 RUN apk add --no-cache dumb-init libc6-compat
-RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
@@ -64,13 +63,11 @@ RUN addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs
 
 # Copy public assets to the correct location for standalone
-COPY --from=builder /app/apps/next-web/public ./apps/next-web/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/next-web/public ./apps/next-web/public
 
 # Copy standalone output (this includes minimal node_modules)
-COPY --from=builder /app/apps/next-web/.next/standalone ./
-COPY --from=builder /app/apps/next-web/.next/static ./apps/next-web/.next/static
-
-RUN chown -R nextjs:nodejs .
+COPY --from=builder --chown=nextjs:nodejs /app/apps/next-web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/next-web/.next/static ./apps/next-web/.next/static
 
 USER nextjs
 
