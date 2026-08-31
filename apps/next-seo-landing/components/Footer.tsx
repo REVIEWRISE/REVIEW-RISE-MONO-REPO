@@ -9,122 +9,39 @@ export default function Footer() {
   const t = useTranslations('landing');
 
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="top">
-          <div className="brand">
-            <Image src="/logo.png" alt={t('common.brandName')} width={28} height={28} style={{ borderRadius: '6px', objectFit: 'contain' }} />
-            <span className="brand-name">{t('common.brandName')}</span>
+    <footer className="relative border-t border-border bg-background px-8 pb-10 pt-[72px] max-[768px]:px-5">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-10 flex items-center justify-between gap-6 max-[768px]:flex-col max-[768px]:items-start">
+          <div className="flex items-center gap-2.5">
+            <Image src="/logo.png" alt={t('common.brandName')} width={28} height={28} className="rounded-md object-contain" />
+            <span className="font-display text-[15px] font-bold tracking-tight text-foreground">{t('common.brandName')}</span>
           </div>
-          <div className="links">
-            <Link href="https://app.vyntrise.com/">{t('footer.login')}</Link>
+          <div className="flex gap-8 max-[768px]:flex-col max-[768px]:gap-4">
+            <Link href="https://app.vyntrise.com/" className="text-sm font-medium text-muted-foreground transition hover:text-foreground">
+              {t('footer.login')}
+            </Link>
           </div>
         </div>
-        <div className="divider" />
-        <div className="bottom">
-          <p className="copyright">
+
+        <div className="mb-8 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+        <div className="flex items-center justify-between max-[768px]:flex-col-reverse max-[768px]:gap-6">
+          <p className="text-[13px] text-muted-foreground">
             {'©'} {new Date().getFullYear()} {t('common.brandName')}{'.'} {t('footer.rights')}
           </p>
-          <div className="socials">
-            <Link href="https://www.linkedin.com/company/vyntrise-technologies" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+          <div className="flex items-center gap-5">
+            <Link href="https://www.linkedin.com/company/vyntrise-technologies" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground">
               <Linkedin size={20} />
             </Link>
-            <Link href="https://www.instagram.com/vyntrisellc" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <Link href="https://www.instagram.com/vyntrisellc" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground">
               <Instagram size={20} />
             </Link>
-            <Link href="https://www.facebook.com/share/1cBw5oDbhj/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <Link href="https://www.facebook.com/share/1cBw5oDbhj/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex text-muted-foreground transition hover:-translate-y-0.5 hover:text-foreground">
               <Facebook size={20} />
             </Link>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .footer {
-          padding: 72px 0 40px;
-          border-top: 1px solid var(--border-color);
-          background: var(--bg-primary);
-          position: relative;
-        }
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 32px;
-        }
-        .top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 40px;
-        }
-        .brand {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .brand-name {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 15px;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          color: var(--text-primary);
-        }
-        .links {
-          display: flex;
-          gap: 32px;
-        }
-        .links :global(a) {
-          color: var(--text-secondary);
-          font-size: 14px;
-          font-weight: 500;
-          transition: color 0.2s ease;
-        }
-        .links :global(a:hover) {
-          color: var(--text-primary);
-        }
-        .divider {
-          height: 1px;
-          background: linear-gradient(to right, transparent, var(--border-color), transparent);
-          margin-bottom: 32px;
-        }
-        .bottom {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .copyright {
-          font-size: 13px;
-          color: var(--text-muted);
-        }
-        .socials {
-          display: flex;
-          gap: 20px;
-          align-items: center;
-        }
-        .socials :global(a) {
-          color: var(--text-muted);
-          transition: color 0.2s ease, transform 0.2s ease;
-          display: flex;
-        }
-        .socials :global(a:hover) {
-          color: var(--text-primary);
-          transform: translateY(-2px);
-        }
-        @media (max-width: 768px) {
-          .container { padding: 0 20px; }
-          .top {
-            flex-direction: column;
-            gap: 28px;
-            align-items: flex-start;
-          }
-          .links { flex-direction: column; gap: 16px; }
-          .bottom {
-            flex-direction: column-reverse;
-            gap: 24px;
-            align-items: center;
-          }
-        }
-      `}</style>
     </footer>
   );
 }

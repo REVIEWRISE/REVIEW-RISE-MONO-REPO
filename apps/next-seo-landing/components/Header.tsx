@@ -16,21 +16,36 @@ export default function Header() {
   }, []);
 
   return (
-    <header className={`header ${scrolled ? 'scrolled' : ''}`}>
-      <div className="container">
+    <header
+      className={`sticky top-0 z-[100] py-4 transition-all duration-300 ${
+        scrolled
+          ? 'border-b border-border bg-background/85 shadow-[0_4px_32px_rgba(0,0,0,0.25)] backdrop-blur-xl'
+          : ''
+      }`}
+    >
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-8 max-[768px]:px-5">
         {/* Logo */}
-        <div className="logo">
-          <Image src="/logo.png" alt={t('common.brandName')} width={32} height={32} className="logo-img" />
-          <span className="logo-text">{t('common.brandName')}</span>
+        <div className="flex items-center gap-2.5">
+          <Image src="/logo.png" alt={t('common.brandName')} width={32} height={32} className="size-8 rounded-lg object-contain" />
+          <span className="font-display text-base font-bold tracking-tight text-foreground">{t('common.brandName')}</span>
         </div>
 
         {/* Nav */}
-        <nav className="nav">
-          <a href="#features" className="nav-link">{t('header.features')}</a>
-          <a href="#how-it-works" className="nav-link">{t('howItWorks.title')}</a>
-          <a href="#faq" className="nav-link">{t('header.faq')}</a>
+        <nav className="flex items-center gap-2">
+          <a href="#features" className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground max-[768px]:hidden">
+            {t('header.features')}
+          </a>
+          <a href="#how-it-works" className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground max-[768px]:hidden">
+            {t('howItWorks.title')}
+          </a>
+          <a href="#faq" className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground max-[768px]:hidden">
+            {t('header.faq')}
+          </a>
           <ThemeToggle />
-          <a href="https://app.vyntrise.com/" className="nav-cta">
+          <a
+            href="https://app.vyntrise.com/"
+            className="ml-2 inline-flex items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-brand-blue to-brand-violet px-5 py-2.5 font-display text-sm font-semibold tracking-tight text-white shadow-[0_4px_16px_rgba(99, 102, 241,0.3)] transition hover:-translate-y-px hover:shadow-[0_6px_24px_rgba(99, 102, 241,0.45)]"
+          >
             {t('footer.login')}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M5 12h14M12 5l7 7-7 7" />
@@ -38,100 +53,6 @@ export default function Header() {
           </a>
         </nav>
       </div>
-
-      <style jsx>{`
-        .header {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          padding: 16px 0;
-          transition: all 0.3s ease;
-        }
-        .header.scrolled {
-          background: rgba(5, 7, 13, 0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
-        }
-        :global([data-theme='light']) .header.scrolled {
-          background: rgba(248, 250, 255, 0.85);
-          border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          box-shadow: 0 4px 32px rgba(15, 23, 42, 0.08);
-        }
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 32px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          text-decoration: none;
-        }
-        .logo-img {
-          width: 32px;
-          height: 32px;
-          object-fit: contain;
-          border-radius: 8px;
-        }
-        .logo-text {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 16px;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          color: var(--text-primary);
-        }
-        .nav {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .nav-link {
-          color: var(--text-secondary);
-          font-size: 14px;
-          font-weight: 500;
-          padding: 8px 14px;
-          border-radius: 8px;
-          transition: color 0.2s ease, background 0.2s ease;
-        }
-        .nav-link:hover {
-          color: var(--text-primary);
-          background: rgba(255, 255, 255, 0.05);
-        }
-        :global([data-theme='light']) .nav-link:hover {
-          background: rgba(15, 23, 42, 0.05);
-        }
-        .nav-cta {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: var(--gradient-primary);
-          color: #fff;
-          padding: 9px 18px;
-          border-radius: 10px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          letter-spacing: -0.01em;
-          margin-left: 8px;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-        }
-        .nav-cta:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 24px rgba(59, 130, 246, 0.45);
-          color: #fff;
-        }
-        @media (max-width: 768px) {
-          .nav-link { display: none; }
-          .container { padding: 0 20px; }
-        }
-      `}</style>
     </header>
   );
 }

@@ -50,143 +50,58 @@ export default function ResultsPage() {
   return (
     <>
       <Header />
-      <main className="results-page">
+      <main className="min-h-[80vh] pb-20 pt-8">
         {/* Back link */}
-        <div className="container">
-          <Link href="/" className="back-link">
+        <div className="mx-auto max-w-6xl px-8 max-[768px]:px-5">
+          <Link
+            href="/"
+            className="mb-10 inline-flex items-center gap-2 rounded-[10px] border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-border-strong hover:bg-primary/4 hover:text-foreground"
+          >
             <ArrowLeft size={16} />
             <span>{tResults('backToChecker')}</span>
           </Link>
         </div>
 
-        <div className="results-content-wrapper">
-          {/* Loading state */}
-          {loading && (
-            <div key="loader" className="loader-section">
-              <AnalysisLoader />
-            </div>
-          )}
+        {/* Loading state */}
+        {loading && (
+          <div className="flex min-h-[60vh] items-center justify-center px-6">
+            <AnalysisLoader />
+          </div>
+        )}
 
-          {/* Error state */}
-          {!loading && error && (
-            <div key="error" className="container">
-              <motion.div
-                className="error-card"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+        {/* Error state */}
+        {!loading && error && (
+          <div className="mx-auto max-w-6xl px-8 max-[768px]:px-5">
+            <motion.div
+              className="glass-panel mx-auto my-20 max-w-[480px] rounded-3xl p-14 text-center max-[768px]:my-12 max-[768px]:p-9"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="mb-4 font-display text-2xl font-bold tracking-[-0.025em] text-red-500">{tResults('analysisFailedTitle')}</h2>
+              <p className="mb-8 text-[15px] leading-[1.7] text-muted-foreground">{error}</p>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-brand-blue to-brand-violet px-7 py-3.5 font-display text-[15px] font-semibold text-white shadow-[0_4px_20px_rgba(99, 102, 241,0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(99, 102, 241,0.45)]"
               >
-                <h2 className="error-title">{tResults('analysisFailedTitle')}</h2>
-                <p className="error-msg">{error}</p>
-                <Link href="/" className="retry-btn">
-                  {tResults('tryAnotherUrl')}
-                </Link>
-              </motion.div>
-            </div>
-          )}
+                {tResults('tryAnotherUrl')}
+              </Link>
+            </motion.div>
+          </div>
+        )}
 
-          {/* Results */}
-          {!loading && result && (
-            <div key="results">
-              <motion.div
-                initial={{ opacity: 0, y: 32 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <ResultsDisplay result={result} />
-              </motion.div>
-            </div>
-          )}
-        </div>
+        {/* Results */}
+        {!loading && result && (
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <ResultsDisplay result={result} />
+          </motion.div>
+        )}
       </main>
       <Footer />
-
-      <style jsx>{`
-        .results-page {
-          min-height: 80vh;
-          padding-top: 32px;
-          padding-bottom: 80px;
-        }
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 32px;
-        }
-        .back-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: var(--text-secondary);
-          font-size: 14px;
-          font-weight: 500;
-          padding: 8px 16px;
-          border-radius: 10px;
-          border: 1px solid var(--border-color);
-          margin-bottom: 40px;
-          transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-        }
-        .back-link:hover {
-          color: var(--text-primary);
-          border-color: var(--border-hover);
-          background: rgba(59, 130, 246, 0.04);
-        }
-        .loader-section {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 60vh;
-          padding: 0 24px;
-        }
-        .error-card {
-          max-width: 480px;
-          margin: 80px auto;
-          text-align: center;
-          background: var(--bg-card);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid var(--border-color);
-          border-radius: 24px;
-          padding: 56px 40px;
-          box-shadow: var(--shadow);
-        }
-        .error-title {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 24px;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          color: #ef4444;
-          margin-bottom: 16px;
-        }
-        .error-msg {
-          font-size: 15px;
-          color: var(--text-secondary);
-          line-height: 1.7;
-          margin-bottom: 32px;
-        }
-        .retry-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: var(--gradient-primary);
-          color: #fff;
-          padding: 14px 28px;
-          border-radius: 12px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-weight: 600;
-          font-size: 15px;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-        }
-        .retry-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.45);
-          color: #fff;
-        }
-        @media (max-width: 768px) {
-          .container { padding: 0 20px; }
-          .error-card { padding: 40px 24px; margin: 48px auto; }
-        }
-      `}</style>
     </>
   );
 }

@@ -138,10 +138,15 @@ function AccordionContent({
     <div
       data-slot="accordion-content"
       data-state={isOpen ? "open" : "closed"}
-      className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+      className={cn(
+        "grid text-sm transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+      )}
       {...props}
     >
-      {isOpen ? <div className={cn("pt-0 pb-4", className)}>{children}</div> : null}
+      <div className="overflow-hidden">
+        <div className={cn("pt-0 pb-4", className)}>{children}</div>
+      </div>
     </div>
   )
 }

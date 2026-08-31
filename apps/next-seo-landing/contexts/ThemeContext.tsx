@@ -10,7 +10,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'light',
+  theme: 'dark',
   toggleTheme: () => { },
 });
 
@@ -22,7 +22,7 @@ export function ThemeProvider({ children }: { children: ReactNode }): any {
       const attr = document.documentElement.getAttribute('data-theme');
       if (attr === 'light' || attr === 'dark') return attr;
     }
-    return 'light';
+    return 'dark';
   });
 
   // Keep <html data-theme> and localStorage in sync whenever theme changes.

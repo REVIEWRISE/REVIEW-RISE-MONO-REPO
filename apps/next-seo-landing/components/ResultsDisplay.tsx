@@ -6,7 +6,6 @@ import {
   Download,
   Share2,
   Zap,
-  TrendingUp,
   Clock,
   AlertTriangle,
   CheckCircle2,
@@ -16,142 +15,125 @@ import {
   ChevronDown,
   Layout,
   FileText,
-  Link as LinkIcon,
   RefreshCw,
   Lock
 } from 'lucide-react';
-import ScoreGauge from './ScoreGauge';
 import { type SEOAnalysisResult } from '@/lib/api';
 
 interface ResultsDisplayProps {
   result: SEOAnalysisResult;
 }
 
+const VERDICT_STYLE: Record<string, { text: string; bg: string }> = {
+  excellent: { text: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  good: { text: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  fair: { text: 'text-amber-500', bg: 'bg-amber-500/10' },
+  poor: { text: 'text-red-500', bg: 'bg-red-500/10' },
+};
+
 export default function ResultsDisplay({ result }: ResultsDisplayProps) {
   const t = useTranslations('landing.results');
   const [expandedIssue, setExpandedIssue] = useState<number | null>(null);
-  const [showStickyBar, setShowStickyBar] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [isHtmlDetailsExpanded, setIsHtmlDetailsExpanded] = useState(true);
 
   const toggleCategory = (key: string) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setExpandedCategories(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Determine score verdict
   const getScoreVerdict = (score: number) => {
-    if (score >= 85) return { label: t('verdicts.excellent'), color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' };
-    if (score >= 70) return { label: t('verdicts.good'), color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' };
-    if (score >= 50) return { label: t('verdicts.fair'), color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' };
-    return { label: t('verdicts.poor'), color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' };
+    if (score >= 85) return { label: t('verdicts.excellent'), key: 'excellent' };
+    if (score >= 70) return { label: t('verdicts.good'), key: 'good' };
+    if (score >= 50) return { label: t('verdicts.fair'), key: 'fair' };
+    return { label: t('verdicts.poor'), key: 'poor' };
   };
 
   const verdict = getScoreVerdict(result.healthScore);
+  const verdictStyle = VERDICT_STYLE[verdict.key];
   const issuesFound = result.recommendations.length;
   const criticalIssues = result.recommendations.filter(r => r.priority === 'high').length;
 
-  // Sort categories by score (worst first)
   const sortedCategories = [
-    {
-      key: 'technical',
-      label: t('categories.technical.label'),
-      data: result.categoryScores.technical,
-      icon: Zap,
-      description: t('categories.technical.description')
-    },
-    {
-      key: 'content',
-      label: t('categories.content.label'),
-      data: result.categoryScores.content,
-      icon: FileText,
-      description: t('categories.content.description')
-    },
-    {
-      key: 'onPage',
-      label: t('categories.onPage.label'),
-      data: result.categoryScores.onPage,
-      icon: Layout,
-      description: t('categories.onPage.description')
-    },
+    { key: 'technical', label: t('categories.technical.label'), data: result.categoryScores.technical, icon: Zap, description: t('categories.technical.description') },
+    { key: 'content', label: t('categories.content.label'), data: result.categoryScores.content, icon: FileText, description: t('categories.content.description') },
+    { key: 'onPage', label: t('categories.onPage.label'), data: result.categoryScores.onPage, icon: Layout, description: t('categories.onPage.description') },
   ].sort((a, b) => (a.data?.percentage || 0) - (b.data?.percentage || 0));
 
   return (
     <>
-      <div className="results-container">
-
+      <div className="mx-auto max-w-6xl px-6 pb-[120px] font-sans max-[768px]:px-5">
         {/* Result Context Bar */}
-        <div className="context-bar">
-          <div className="context-info">
-            <div className="context-label">{t('analysisFor')}</div>
-            <div className="context-url">{result.url.replace('https://', '').replace('http://', '')}</div>
-            <div className="context-meta">
+        <div className="glass-panel mb-8 flex items-center justify-between rounded-2xl px-7 py-5 max-[768px]:flex-col max-[768px]:items-start max-[768px]:gap-4">
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[11px] font-semibold uppercase tracking-[1px] text-muted-foreground">{t('analysisFor')}</div>
+            <div className="font-display text-lg font-bold tracking-[-0.025em] text-foreground">{result.url.replace('https://', '').replace('http://', '')}</div>
+            <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
               <Clock size={14} />
               <span>{t('scannedAt', { date: new Date(result.timestamp).toLocaleString() })}</span>
             </div>
           </div>
-          <button className="btn-rescan">
+          <button className="flex items-center gap-2 rounded-[10px] border border-border px-5 py-2.5 font-display text-sm font-semibold text-muted-foreground transition hover:border-primary/30 hover:bg-primary/6 hover:text-foreground">
             <RefreshCw size={16} />
             {t('rescan')}
           </button>
         </div>
 
         {/* Score Hero Section */}
-        <div className="score-hero">
-          <div className="score-left">
-            <div className="score-label">{t('healthScore')}</div>
-            <div className="score-display">
-              <div className="score-number">{result.healthScore}</div>
-              <div className="score-total">{'/ 100'}</div>
+        <div className="glass-panel relative mb-12 flex justify-between gap-12 overflow-hidden rounded-3xl border-primary/15 p-12 max-[1024px]:flex-col max-[768px]:p-6">
+          <div className="pointer-events-none absolute -left-[60px] -top-[60px] size-[300px] rounded-full bg-[radial-gradient(circle,rgba(99, 102, 241,0.08)_0%,transparent_70%)]" />
+
+          <div className="relative flex-1">
+            <div className="mb-4 font-display text-[11px] font-bold uppercase tracking-[1.5px] text-muted-foreground">{t('healthScore')}</div>
+            <div className="mb-5 flex items-baseline gap-2">
+              <div className="gradient-text font-display text-[80px] font-bold leading-none tracking-[-0.025em] max-[768px]:text-[64px]">{result.healthScore}</div>
+              <div className="font-display text-3xl font-semibold text-muted-foreground">{'/ 100'}</div>
             </div>
-            <div className="score-verdict" style={{ background: verdict.bg }}>
-              <span style={{ color: verdict.color }}>{verdict.label}</span>
+            <div className={`mb-8 inline-flex rounded-lg px-5 py-2 text-[15px] font-bold ${verdictStyle.bg} ${verdictStyle.text}`}>
+              {verdict.label}
             </div>
 
-            <div className="score-legend">
-              <div className="legend-item">
-                <div className="legend-bar poor"></div>
-                <span>{t('legend.poor')}</span>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 w-10 rounded-full bg-red-500" />
+                <span className="text-[13px] text-muted-foreground">{t('legend.poor')}</span>
               </div>
-              <div className="legend-item">
-                <div className="legend-bar fair"></div>
-                <span>{t('legend.fair')}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 w-10 rounded-full bg-amber-500" />
+                <span className="text-[13px] text-muted-foreground">{t('legend.fair')}</span>
               </div>
-              <div className="legend-item">
-                <div className="legend-bar good"></div>
-                <span>{t('legend.good')}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 w-10 rounded-full bg-emerald-500" />
+                <span className="text-[13px] text-muted-foreground">{t('legend.good')}</span>
               </div>
-              <div className="legend-item">
-                <div className="legend-bar excellent"></div>
-                <span>{t('legend.excellent')}</span>
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 w-10 rounded-full bg-emerald-500" />
+                <span className="text-[13px] text-muted-foreground">{t('legend.excellent')}</span>
               </div>
             </div>
           </div>
 
-          <div className="score-right">
-            <div className="score-stats">
-              <div className="stat-box">
-                <div className="stat-number">{issuesFound}</div>
-                <div className="stat-label">{t('totalIssues')}</div>
+          <div className="relative flex flex-col gap-6">
+            <div className="grid grid-cols-3 gap-4 max-[768px]:grid-cols-1">
+              <div className="rounded-[14px] border border-border bg-card/60 p-5 text-center backdrop-blur-md">
+                <div className="mb-2 font-display text-3xl font-bold tracking-[-0.025em] text-foreground">{issuesFound}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{t('totalIssues')}</div>
               </div>
-              <div className="stat-box critical">
-                <div className="stat-number">{criticalIssues}</div>
-                <div className="stat-label">{t('critical')}</div>
+              <div className="rounded-[14px] border border-red-500/25 bg-red-500/4 p-5 text-center backdrop-blur-md">
+                <div className="mb-2 font-display text-3xl font-bold tracking-[-0.025em] text-red-500">{criticalIssues}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{t('critical')}</div>
               </div>
-              <div className="stat-box">
-                <div className="stat-number">{result.technicalAnalysis.pageSpeed.loadTime}{'ms'}</div>
-                <div className="stat-label">{t('loadTime')}</div>
+              <div className="rounded-[14px] border border-border bg-card/60 p-5 text-center backdrop-blur-md">
+                <div className="mb-2 font-display text-3xl font-bold tracking-[-0.025em] text-foreground">{result.technicalAnalysis.pageSpeed.loadTime}{'ms'}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{t('loadTime')}</div>
               </div>
             </div>
 
-            <div className="cta-group">
-              <button className="btn-primary-cta">
+            <div className="flex gap-3 max-[768px]:flex-col">
+              <button className="relative flex flex-1 items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue to-brand-violet px-8 py-4 font-display text-[15px] font-semibold tracking-[-0.01em] text-white shadow-[0_4px_24px_rgba(99, 102, 241,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_40px_rgba(99, 102, 241,0.5)]">
                 <Download size={18} />
                 {t('getFullReport')}
               </button>
-              <button className="btn-secondary-cta">
+              <button className="flex items-center gap-2 rounded-2xl border border-border px-6 py-4 font-display text-sm font-semibold text-muted-foreground transition hover:border-primary/30 hover:bg-primary/6 hover:text-foreground">
                 <Share2 size={16} />
                 {t('share')}
               </button>
@@ -160,179 +142,114 @@ export default function ResultsDisplay({ result }: ResultsDisplayProps) {
         </div>
 
         {/* Main Content Grid */}
-        <div className="content-grid">
-
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr_1fr]">
           {/* Left Column */}
-          <div className="left-column">
-
+          <div>
             {/* SEO Breakdown */}
-            <section className="section">
-              <h2 className="section-title">{t('healthBreakdown')}</h2>
+            <section className="mb-12">
+              <h2 className="mb-6 font-display text-[22px] font-bold tracking-[-0.025em] text-foreground">{t('healthBreakdown')}</h2>
 
               {/* HTML Page Details Card */}
-              <div className="html-page-details">
+              <div className="glass-panel mb-6 rounded-[18px] p-7 transition hover:border-border-strong">
                 <div
-                  className="breakdown-header"
+                  className={`flex cursor-pointer items-center justify-between ${isHtmlDetailsExpanded ? 'mb-5' : ''}`}
                   onClick={() => setIsHtmlDetailsExpanded(!isHtmlDetailsExpanded)}
-                  style={{ cursor: 'pointer', marginBottom: isHtmlDetailsExpanded ? '20px' : '0' }}
                 >
-                  <h3 className="details-title" style={{ marginBottom: 0 }}>{t('htmlPage')}</h3>
-                  <button className="expand-toggle">
+                  <h3 className="font-display text-lg font-bold text-foreground">{t('htmlPage')}</h3>
+                  <button className="flex text-muted-foreground transition hover:text-foreground">
                     {isHtmlDetailsExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                   </button>
                 </div>
 
                 {isHtmlDetailsExpanded && (
-                  <div className="details-grid">
-                    <div className="detail-item">
-                      <div className="detail-header-group">
-                        <span className="detail-label">{t('htmlDetails.metaTitle')}</span>
-                        <div className="ai-badge">{t('aiAnalysis')}</div>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                    {[
+                      { label: t('htmlDetails.metaTitle'), value: typeof result.seoElements?.title === 'object' && result.seoElements.title !== null ? (result.seoElements.title as any).value || '-' : result.seoElements?.title || '-', desc: t('htmlDetails.titleDesc') },
+                      { label: t('htmlDetails.metaDescription'), value: typeof result.seoElements?.description === 'object' && result.seoElements.description !== null ? (result.seoElements.description as any).value || 'Not set' : result.seoElements?.description || 'Not set', desc: t('htmlDetails.descDesc') },
+                      { label: t('htmlDetails.url'), value: result.url, desc: t('htmlDetails.urlDesc'), mono: true },
+                      { label: t('htmlDetails.statusCode'), value: result.technicalAnalysis?.pageSpeed?.status || '200', desc: t('htmlDetails.statusDesc') },
+                      { label: t('htmlDetails.responseTime'), value: `${(result.technicalAnalysis?.pageSpeed?.loadTime / 1000).toFixed(2)} sec`, desc: t('htmlDetails.timeDesc') },
+                      { label: t('htmlDetails.wordCount'), value: typeof result.seoElements?.wordCount === 'number' ? result.seoElements.wordCount : '-', desc: t('htmlDetails.countDesc') },
+                    ].map((item, i) => (
+                      <div key={i} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold uppercase tracking-[0.5px] text-muted-foreground">{item.label}</span>
+                          <span className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.5px] text-white">{t('aiAnalysis')}</span>
+                        </div>
+                        <span className={`text-sm font-medium text-foreground ${item.mono ? 'break-all font-mono text-xs' : ''}`}>{item.value}</span>
+                        <p className="mt-1 text-xs leading-[1.5] text-muted-foreground/80">{item.desc}</p>
                       </div>
-                      <span className="detail-value">
-                        {typeof result.seoElements?.title === 'object' && result.seoElements.title !== null
-                          ? (result.seoElements.title as any).value || '-'
-                          : result.seoElements?.title || '-'}
-                      </span>
-                      <p className="detail-description">
-                        {t('htmlDetails.titleDesc')}
-                      </p>
-                    </div>
-                    <div className="detail-item">
-                      <div className="detail-header-group">
-                        <span className="detail-label">{t('htmlDetails.metaDescription')}</span>
-                        <div className="ai-badge">{t('aiAnalysis')}</div>
-                      </div>
-                      <span className="detail-value">
-                        {typeof result.seoElements?.description === 'object' && result.seoElements.description !== null
-                          ? (result.seoElements.description as any).value || 'Not set'
-                          : result.seoElements?.description || 'Not set'}
-                      </span>
-                      <p className="detail-description">
-                        {t('htmlDetails.descDesc')}
-                      </p>
-                    </div>
-                    <div className="detail-item">
-                      <div className="detail-header-group">
-                        <span className="detail-label">{t('htmlDetails.url')}</span>
-                        <div className="ai-badge">{t('aiAnalysis')}</div>
-                      </div>
-                      <span className="detail-value url-value">{result.url}</span>
-                      <p className="detail-description">
-                        {t('htmlDetails.urlDesc')}
-                      </p>
-                    </div>
-                    <div className="detail-item">
-                      <div className="detail-header-group">
-                        <span className="detail-label">{t('htmlDetails.statusCode')}</span>
-                        <div className="ai-badge">{t('aiAnalysis')}</div>
-                      </div>
-                      <span className="detail-value">{result.technicalAnalysis?.pageSpeed?.status || '200'}</span>
-                      <p className="detail-description">
-                        {t('htmlDetails.statusDesc')}
-                      </p>
-                    </div>
-                    <div className="detail-item">
-                      <div className="detail-header-group">
-                        <span className="detail-label">{t('htmlDetails.responseTime')}</span>
-                        <div className="ai-badge">{t('aiAnalysis')}</div>
-                      </div>
-                      <span className="detail-value">{(result.technicalAnalysis?.pageSpeed?.loadTime / 1000).toFixed(2)} {'sec'}</span>
-                      <p className="detail-description">
-                        {t('htmlDetails.timeDesc')}
-                      </p>
-                    </div>
-                    <div className="detail-item">
-                      <div className="detail-header-group">
-                        <span className="detail-label">{t('htmlDetails.wordCount')}</span>
-                        <div className="ai-badge">{t('aiAnalysis')}</div>
-                      </div>
-                      <span className="detail-value">
-                        {typeof result.seoElements?.wordCount === 'number'
-                          ? result.seoElements.wordCount
-                          : '-'}
-                      </span>
-                      <p className="detail-description">
-                        {t('htmlDetails.countDesc')}
-                      </p>
-                    </div>
+                    ))}
                   </div>
                 )}
               </div>
 
-              <div className="breakdown-list">
-                {sortedCategories.map((cat, idx) => {
+              <div className="flex flex-col gap-4">
+                {sortedCategories.map((cat) => {
                   const Icon = cat.icon;
                   const percentage = cat.data?.percentage || 0;
                   const scoreColor = percentage >= 70 ? '#10b981' : percentage >= 50 ? '#f59e0b' : '#ef4444';
-
-                  // Get category-specific recommendations
                   const categoryRecs = result.recommendations.filter(r => r.category === cat.key);
                   const criticalCount = categoryRecs.filter(r => r.priority === 'high').length;
                   const expanded = expandedCategories[cat.key] || false;
 
                   return (
-                    <div key={cat.key} className="breakdown-row">
-                      <div className="breakdown-icon" style={{ background: `${scoreColor}15`, color: scoreColor }}>
+                    <div key={cat.key} className="glass-panel flex items-start gap-4 rounded-[18px] p-6 transition hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_8px_32px_rgba(99, 102, 241,0.08)]">
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl" style={{ background: `${scoreColor}15`, color: scoreColor }}>
                         <Icon size={20} />
                       </div>
-                      <div className="breakdown-content">
-                        <div className="breakdown-header" onClick={() => toggleCategory(cat.key)} style={{ cursor: 'pointer' }}>
-                          <div className="breakdown-title-group">
-                            <h3>{cat.label}</h3>
-                            <span className="breakdown-percentage" style={{ color: scoreColor }}>
-                              {Math.round(percentage)}{'%'}
-                            </span>
+                      <div className="flex-1">
+                        <div className="mb-3 flex cursor-pointer items-center justify-between" onClick={() => toggleCategory(cat.key)}>
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-bold text-foreground">{cat.label}</h3>
+                            <span className="font-display text-xl font-bold" style={{ color: scoreColor }}>{Math.round(percentage)}{'%'}</span>
                           </div>
-                          <div className="breakdown-meta-group">
+                          <div className="flex items-center gap-3">
                             {categoryRecs.length > 0 && (
-                              <span className="issues-badge">
-                                {categoryRecs.length} {'issue'}{categoryRecs.length !== 1 ? 's' : ''}
-                                {criticalCount > 0 && ` • ${criticalCount} critical`}
+                              <span className="rounded-md bg-foreground/5 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                                {categoryRecs.length} {'issue'}{categoryRecs.length !== 1 ? 's' : ''}{criticalCount > 0 && ` • ${criticalCount} critical`}
                               </span>
                             )}
-                            <button className="expand-toggle">
+                            <button className="flex text-muted-foreground transition hover:text-foreground">
                               {expanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                             </button>
                           </div>
                         </div>
 
-                        <div className="detail-header-group" style={{ marginBottom: '6px' }}>
-                          <div className="ai-badge">{t('aiAnalysis')}</div>
+                        <div className="mb-1.5 flex justify-end">
+                          <span className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.5px] text-white">{t('aiAnalysis')}</span>
                         </div>
-                        <p className="breakdown-desc">{cat.description}</p>
+                        <p className="mb-4 text-sm leading-[1.5] text-muted-foreground">{cat.description}</p>
 
-                        <div className="progress-track">
-                          <div className="progress-fill" style={{ width: `${percentage}%`, background: scoreColor }}></div>
+                        <div className="h-1.5 overflow-hidden rounded-full bg-foreground/5">
+                          <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${percentage}%`, background: scoreColor }} />
                         </div>
 
-                        {/* Expanded Details */}
                         {expanded && categoryRecs.length > 0 && (
-                          <div className="breakdown-details">
-                            <h4 className="details-subtitle">{t('checks')}</h4>
-                            <div className="checks-list">
+                          <div className="mt-5 border-t border-border pt-5">
+                            <h4 className="mb-4 text-base font-bold text-foreground">{t('checks')}</h4>
+                            <div className="flex flex-col gap-3">
                               {categoryRecs.map((rec, i) => {
                                 const checkStatus = rec.priority === 'high' ? 'error' : rec.priority === 'medium' ? 'warning' : 'tip';
-                                const statusIcon = checkStatus === 'error' ? <AlertTriangle size={16} /> :
-                                  checkStatus === 'warning' ? <AlertCircle size={16} /> :
-                                    <CheckCircle2 size={16} />;
+                                const statusIcon = checkStatus === 'error' ? <AlertTriangle size={16} /> : checkStatus === 'warning' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />;
+                                const borderColor = checkStatus === 'error' ? 'border-l-red-500' : checkStatus === 'warning' ? 'border-l-amber-500' : 'border-l-indigo-500';
+                                const iconColor = checkStatus === 'error' ? 'text-red-500' : checkStatus === 'warning' ? 'text-amber-500' : 'text-indigo-500';
+                                const badgeClass = checkStatus === 'error' ? 'bg-red-500/15 text-red-500' : checkStatus === 'warning' ? 'bg-amber-500/15 text-amber-500' : 'bg-indigo-500/15 text-indigo-500';
 
                                 return (
-                                  <div key={i} className={`check-item check-${checkStatus}`}>
-                                    <div className="check-header">
-                                      <div className="check-left">
-                                        <span className="check-icon">{statusIcon}</span>
-                                        <span className="check-title">{rec.issue}</span>
+                                  <div key={i} className={`rounded-xl border-l-[3px] bg-foreground/[0.02] p-4 ${borderColor}`}>
+                                    <div className="mb-3 flex items-start justify-between">
+                                      <div className="flex flex-1 items-start gap-2.5">
+                                        <span className={`mt-0.5 flex shrink-0 ${iconColor}`}>{statusIcon}</span>
+                                        <span className="text-[15px] font-semibold leading-[1.4] text-foreground">{rec.issue}</span>
                                       </div>
-                                      <span className={`check-badge ${checkStatus}`}>
-                                        {t(checkStatus)}
-                                      </span>
+                                      <span className={`shrink-0 rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.5px] ${badgeClass}`}>{t(checkStatus)}</span>
                                     </div>
-                                    <div className="check-body">
-                                      <p className="check-recommendation">{rec.recommendation}</p>
+                                    <div className="pl-[26px]">
+                                      <p className="mb-2 text-sm leading-[1.6] text-muted-foreground">{rec.recommendation}</p>
                                       {rec.impact && (
-                                        <p className="check-impact">
-                                          <strong>{t('impact')}{':'}</strong> {rec.impact}
+                                        <p className="text-[13px] text-muted-foreground">
+                                          <strong className="text-foreground">{t('impact')}{':'}</strong> {rec.impact}
                                         </p>
                                       )}
                                     </div>
@@ -350,1218 +267,131 @@ export default function ResultsDisplay({ result }: ResultsDisplayProps) {
             </section>
 
             {/* Critical Issues */}
-            <section className="section">
-              <div className="section-header">
-                <h2 className="section-title">{t('criticalIssues')}</h2>
-                <span className="issues-count">{t('issuesFound', { count: criticalIssues })}</span>
+            <section className="mb-12">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="font-display text-[22px] font-bold tracking-[-0.025em] text-foreground">{t('criticalIssues')}</h2>
+                <span className="rounded-md bg-red-500/10 px-3 py-1 text-[13px] font-semibold text-red-500">{t('issuesFound', { count: criticalIssues })}</span>
               </div>
 
-              <div className="issues-list">
-                {result.recommendations
-                  .filter(r => r.priority === 'high')
-                  .slice(0, 3)
-                  .map((issue, idx) => (
-                    <div key={idx} className="issue-card" onClick={() => setExpandedIssue(expandedIssue === idx ? null : idx)}>
-                      <div className="issue-header">
-                        <div className="issue-left">
-                          <div className="issue-icon-critical">
-                            <AlertTriangle size={18} />
-                          </div>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <h3 className="issue-title" style={{ marginBottom: 0 }}>{issue.issue}</h3>
-                              <div className="ai-badge" style={{ fontSize: '9px', padding: '1px 6px' }}>{'AI'}</div>
-                            </div>
-                            <p className="issue-desc">{issue.recommendation}</p>
-                          </div>
+              <div className="flex flex-col gap-3.5">
+                {result.recommendations.filter(r => r.priority === 'high').slice(0, 3).map((issue, idx) => (
+                  <div
+                    key={idx}
+                    className="glass-panel cursor-pointer rounded-[18px] p-6 transition hover:-translate-y-0.5 hover:border-red-500/30 hover:shadow-[0_8px_32px_rgba(239,68,68,0.08)]"
+                    onClick={() => setExpandedIssue(expandedIssue === idx ? null : idx)}
+                  >
+                    <div className="mb-4 flex items-start justify-between">
+                      <div className="flex flex-1 gap-4">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-red-500/10 text-red-500">
+                          <AlertTriangle size={18} />
                         </div>
-                        <button className="expand-btn">
-                          {expandedIssue === idx ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-                        </button>
-                      </div>
-
-                      <div className="issue-meta">
-                        <span className="meta-tag critical">{t('critical')}</span>
-                        <span className="meta-tag impact">{'+15-20% CTR'}</span>
-                        <span className="meta-tag difficulty">{'Easy Fix'}</span>
-                      </div>
-
-                      {expandedIssue === idx && (
-                        <div className="issue-actions">
-                          <button className="action-btn primary">
-                            <ExternalLink size={14} />
-                            {t('fixGuide')}
-                          </button>
-                          <button className="action-btn">{t('learnMore')}</button>
+                        <div>
+                          <div className="mb-1 flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-foreground">{issue.issue}</h3>
+                            <span className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">{'AI'}</span>
+                          </div>
+                          <p className="text-sm leading-[1.6] text-muted-foreground">{issue.recommendation}</p>
                         </div>
-                      )}
+                      </div>
+                      <button className="flex shrink-0 text-muted-foreground">
+                        {expandedIssue === idx ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                      </button>
                     </div>
-                  ))}
+
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      <span className="rounded-md bg-red-500/15 px-3 py-1.5 text-xs font-bold text-red-500">{t('critical')}</span>
+                      <span className="rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-500">{'+15-20% CTR'}</span>
+                      <span className="rounded-md bg-primary/12 px-3 py-1.5 text-xs font-bold text-blue-400">{'Easy Fix'}</span>
+                    </div>
+
+                    {expandedIssue === idx && (
+                      <div className="flex gap-3 border-t border-border pt-4">
+                        <button className="flex items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-brand-blue to-brand-violet px-4 py-2.5 font-display text-[13px] font-semibold text-white shadow-[0_4px_16px_rgba(99, 102, 241,0.3)] transition hover:-translate-y-px hover:shadow-[0_6px_24px_rgba(99, 102, 241,0.45)]">
+                          <ExternalLink size={14} />
+                          {t('fixGuide')}
+                        </button>
+                        <button className="rounded-[10px] border border-border px-4 py-2.5 font-display text-[13px] font-semibold text-muted-foreground transition hover:border-primary/30 hover:bg-primary/6 hover:text-foreground">{t('learnMore')}</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
 
               {issuesFound > 3 && (
-                <div className="locked-content">
+                <div className="mt-4 flex items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/20 bg-primary/4 p-6 text-sm text-muted-foreground">
                   <Lock size={16} />
                   <span>{t('moreIssuesHidden', { count: issuesFound - 3 })}</span>
-                  <button className="unlock-btn">{t('unlockFullReport')}</button>
+                  <button className="ml-auto rounded-lg bg-gradient-to-br from-brand-blue to-brand-violet px-[18px] py-2 font-display text-[13px] font-semibold text-white shadow-[0_4px_16px_rgba(99, 102, 241,0.3)] transition hover:-translate-y-px hover:shadow-[0_6px_24px_rgba(99, 102, 241,0.45)]">{t('unlockFullReport')}</button>
                 </div>
               )}
             </section>
-
           </div>
 
           {/* Right Column */}
-          <div className="right-column">
-
+          <div>
             {/* AI Strategic Insights */}
-            <section className="section">
-              <h2 className="section-title">{t('strategicInsights')}</h2>
+            <section className="mb-12">
+              <h2 className="mb-6 font-display text-[22px] font-bold tracking-[-0.025em] text-foreground">{t('strategicInsights')}</h2>
 
               {result.strategicRecommendations && result.strategicRecommendations.length > 0 ? (
-                <div className="recommendations-list">
+                <div className="flex flex-col gap-3.5">
                   {result.strategicRecommendations.map((rec, idx) => (
-                    <div key={rec.id} className="rec-card">
-                      <div className="rec-number">{'#'}{idx + 1}</div>
-                      <div className="rec-content">
-                        <h3 className="rec-title">{rec.title}</h3>
-                        <p className="rec-description">{rec.description}</p>
-                        <div className="rec-meta">
-                          <span className={`rec-badge ${rec.impact.toLowerCase()}`}>{t('impactValue', { value: rec.impact })}</span>
-                          <span className="rec-badge type">{rec.type}</span>
+                    <div key={rec.id} className="glass-panel flex gap-4 rounded-[18px] p-5 transition hover:-translate-y-0.5 hover:border-brand-violet/25 hover:shadow-[0_8px_32px_rgba(99, 102, 241,0.1)]">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-blue to-brand-violet font-display text-sm font-bold text-white">{'#'}{idx + 1}</div>
+                      <div className="flex-1">
+                        <h3 className="mb-2.5 text-base font-bold text-foreground">{rec.title}</h3>
+                        <p className="mb-3 text-sm leading-[1.6] text-muted-foreground">{rec.description}</p>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="rounded-md bg-emerald-500/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.5px] text-emerald-500">{t('impactValue', { value: rec.impact })}</span>
+                          <span className="rounded-md bg-brand-violet/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.5px] text-violet-400">{rec.type}</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="no-insights">
+                <div className="p-8 text-center italic text-muted-foreground">
                   <p>{t('noInsights')}</p>
                 </div>
               )}
             </section>
 
             {/* Upgrade Card */}
-            <div className="upgrade-card">
-              <div className="upgrade-header">
-                <Zap size={24} fill="currentColor" />
-                <h3>{t('unlockPower')}</h3>
+            <div className="relative overflow-hidden rounded-[22px] border border-brand-violet/25 bg-gradient-to-br from-brand-blue/15 to-brand-violet/15 p-9 backdrop-blur-xl">
+              <div className="pointer-events-none absolute -right-10 -top-10 size-[200px] rounded-full bg-[radial-gradient(circle,rgba(99, 102, 241,0.2)_0%,transparent_70%)]" />
+              <div className="relative mb-3 flex items-center gap-3 text-violet-400">
+                <Zap size={24} className="fill-current" />
+                <h3 className="font-display text-xl font-bold tracking-[-0.025em] text-foreground">{t('unlockPower')}</h3>
               </div>
-              <p>{t('upgradeDesc')}</p>
-              <ul className="upgrade-features">
-                <li><CheckCircle2 size={16} /> {t('upgradeFeatures.recs')}</li>
-                <li><CheckCircle2 size={16} /> {t('upgradeFeatures.competitor')}</li>
-                <li><CheckCircle2 size={16} /> {t('upgradeFeatures.keywords')}</li>
-                <li><CheckCircle2 size={16} /> {t('upgradeFeatures.support')}</li>
+              <p className="relative mb-6 text-sm leading-[1.6] text-muted-foreground">{t('upgradeDesc')}</p>
+              <ul className="relative mb-7 flex flex-col gap-3">
+                <li className="flex items-center gap-2.5 text-sm text-muted-foreground"><CheckCircle2 size={16} className="shrink-0 text-emerald-500" /> {t('upgradeFeatures.recs')}</li>
+                <li className="flex items-center gap-2.5 text-sm text-muted-foreground"><CheckCircle2 size={16} className="shrink-0 text-emerald-500" /> {t('upgradeFeatures.competitor')}</li>
+                <li className="flex items-center gap-2.5 text-sm text-muted-foreground"><CheckCircle2 size={16} className="shrink-0 text-emerald-500" /> {t('upgradeFeatures.keywords')}</li>
+                <li className="flex items-center gap-2.5 text-sm text-muted-foreground"><CheckCircle2 size={16} className="shrink-0 text-emerald-500" /> {t('upgradeFeatures.support')}</li>
               </ul>
-              <button className="btn-upgrade">{t('upgradeToPro')}</button>
+              <button className="relative w-full rounded-xl bg-gradient-to-br from-brand-blue to-brand-violet py-3.5 font-display text-[15px] font-semibold tracking-[-0.01em] text-white shadow-[0_4px_20px_rgba(99, 102, 241,0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(99, 102, 241,0.45)]">{t('upgradeToPro')}</button>
             </div>
-
           </div>
-
         </div>
-
       </div>
 
       {/* Sticky Bottom CTA */}
-      <div className="sticky-cta">
-        <div className="sticky-content">
-          <div className="sticky-left">
-            <div className="sticky-score">{result.healthScore}{'/100'}</div>
-            <div className="sticky-info">
-              <span className="sticky-label">{t('healthScore')}</span>
-              <span className="sticky-issues">{t('criticalIssuesFound', { count: criticalIssues })}</span>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/92 px-6 py-4 shadow-[0_-4px_32px_rgba(0,0,0,0.2)] backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="gradient-text font-display text-3xl font-bold tracking-[-0.025em]">{result.healthScore}{'/100'}</div>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-display text-[13px] font-semibold text-foreground">{t('healthScore')}</span>
+              <span className="text-xs font-semibold text-red-500">{t('criticalIssuesFound', { count: criticalIssues })}</span>
             </div>
           </div>
-          <button className="sticky-btn">
+          <button className="flex items-center gap-2.5 rounded-xl bg-gradient-to-br from-brand-blue to-brand-violet px-7 py-3 font-display text-sm font-semibold text-white shadow-[0_4px_20px_rgba(99, 102, 241,0.35)] transition hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(99, 102, 241,0.5)]">
             <Download size={16} />
             {t('getFullReport')}
           </button>
         </div>
       </div>
-
-      <style jsx>{`
-        .results-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 24px 120px;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        /* Context Bar */
-        .context-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: rgba(11, 16, 32, 0.7);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid var(--border-color);
-          border-radius: 16px;
-          padding: 20px 28px;
-          margin-bottom: 32px;
-        }
-        :global([data-theme='light']) .context-bar {
-          background: rgba(255, 255, 255, 0.8);
-        }
-        .context-info {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .context-label {
-          font-size: 11px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          color: var(--text-muted);
-        }
-        .context-url {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          color: var(--text-primary);
-        }
-        .context-meta {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          color: var(--text-secondary);
-        }
-        .btn-rescan {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: transparent;
-          border: 1px solid var(--border-color);
-          color: var(--text-secondary);
-          padding: 10px 20px;
-          border-radius: 10px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          transition: all 0.2s ease;
-        }
-        .btn-rescan:hover {
-          border-color: rgba(59, 130, 246, 0.3);
-          background: rgba(59, 130, 246, 0.06);
-          color: var(--text-primary);
-        }
-
-        /* Score Hero */
-        .score-hero {
-          background: rgba(11, 16, 32, 0.6);
-          border: 1px solid rgba(59, 130, 246, 0.15);
-          border-radius: 24px;
-          padding: 48px;
-          margin-bottom: 48px;
-          display: flex;
-          justify-content: space-between;
-          gap: 48px;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          position: relative;
-          overflow: hidden;
-        }
-        .score-hero::before {
-          content: '';
-          position: absolute;
-          top: -60px;
-          left: -60px;
-          width: 300px;
-          height: 300px;
-          background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        :global([data-theme='light']) .score-hero {
-          background: rgba(255, 255, 255, 0.8);
-          border-color: rgba(59, 130, 246, 0.12);
-        }
-        .score-left {
-          flex: 1;
-        }
-        .score-label {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 1.5px;
-          color: var(--text-muted);
-          margin-bottom: 16px;
-        }
-        .score-display {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
-          margin-bottom: 20px;
-        }
-        .score-number {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 80px;
-          font-weight: 700;
-          line-height: 1;
-          background: var(--gradient-hero);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          letter-spacing: -0.04em;
-        }
-        .score-total {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 28px;
-          font-weight: 600;
-          color: var(--text-secondary);
-          letter-spacing: -0.02em;
-        }
-        .score-verdict {
-          display: inline-flex;
-          padding: 8px 20px;
-          border-radius: 8px;
-          margin-bottom: 32px;
-          font-size: 15px;
-          font-weight: 700;
-        }
-        .score-legend {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .legend-bar {
-          width: 40px;
-          height: 6px;
-          border-radius: 3px;
-        }
-        .legend-bar.poor { background: #ef4444; }
-        .legend-bar.fair { background: #f59e0b; }
-        .legend-bar.good { background: #10b981; }
-        .legend-bar.excellent { background: #10b981; }
-        .legend-item span {
-          font-size: 13px;
-          color: var(--text-secondary);
-        }
-
-        .score-right {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
-        .score-stats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-        }
-        .stat-box {
-          background: rgba(11, 16, 32, 0.6);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid var(--border-color);
-          border-radius: 14px;
-          padding: 20px;
-          text-align: center;
-        }
-        :global([data-theme='light']) .stat-box {
-          background: rgba(255, 255, 255, 0.7);
-        }
-        .stat-box.critical {
-          border-color: rgba(239, 68, 68, 0.25);
-          background: rgba(239, 68, 68, 0.04);
-        }
-        .stat-number {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 32px;
-          font-weight: 700;
-          letter-spacing: -0.03em;
-          line-height: 1;
-          margin-bottom: 8px;
-          color: var(--text-primary);
-        }
-        .stat-box.critical .stat-number {
-          color: #ef4444;
-        }
-        .stat-label {
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-        }
-
-        .cta-group {
-          display: flex;
-          gap: 12px;
-        }
-        .btn-primary-cta {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          background: var(--gradient-primary);
-          color: white;
-          border: none;
-          padding: 16px 32px;
-          border-radius: 14px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 15px;
-          font-weight: 600;
-          letter-spacing: -0.01em;
-          box-shadow: 0 4px 24px rgba(59, 130, 246, 0.35);
-          transition: all 0.2s ease;
-          position: relative;
-          overflow: hidden;
-        }
-        .btn-primary-cta::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-          opacity: 0;
-          transition: opacity 0.2s ease;
-        }
-        .btn-primary-cta:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 40px rgba(59, 130, 246, 0.5);
-        }
-        .btn-primary-cta:hover::before { opacity: 1; }
-        .btn-secondary-cta {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: transparent;
-          border: 1px solid var(--border-color);
-          color: var(--text-secondary);
-          padding: 16px 24px;
-          border-radius: 14px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          transition: all 0.2s ease;
-        }
-        .btn-secondary-cta:hover {
-          border-color: rgba(59, 130, 246, 0.3);
-          background: rgba(59, 130, 246, 0.06);
-          color: var(--text-primary);
-        }
-
-        /* Content Grid */
-        .content-grid {
-          display: grid;
-          grid-template-columns: 1.5fr 1fr;
-          gap: 32px;
-        }
-
-        .section {
-          margin-bottom: 48px;
-        }
-        .section-title {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 22px;
-          font-weight: 700;
-          margin-bottom: 24px;
-          letter-spacing: -0.03em;
-          color: var(--text-primary);
-        }
-        .section-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-        }
-        .issues-count {
-          font-size: 13px;
-          font-weight: 600;
-          color: #ef4444;
-          background: rgba(239, 68, 68, 0.1);
-          padding: 4px 12px;
-          border-radius: 6px;
-        }
-
-        /* HTML Page Details */
-        .html-page-details {
-          background: rgba(11, 16, 32, 0.6);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid var(--border-color);
-          border-radius: 18px;
-          padding: 28px;
-          margin-bottom: 24px;
-          transition: border-color 0.3s ease;
-        }
-        .html-page-details:hover {
-          border-color: var(--border-hover);
-        }
-        :global([data-theme='light']) .html-page-details {
-          background: rgba(255, 255, 255, 0.8);
-        }
-        .details-title {
-          font-size: 18px;
-          font-weight: 700;
-          margin-bottom: 16px;
-        }
-        .details-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 16px;
-        }
-        .detail-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .detail-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-secondary);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .detail-value {
-          font-size: 14px;
-          color: var(--text-primary);
-          font-weight: 500;
-        }
-        .url-value {
-          word-break: break-all;
-          font-family: 'Inter', monospace;
-          font-size: 12px;
-        }
-
-        /* Breakdown */
-        .breakdown-list {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        .breakdown-row {
-          display: flex;
-          align-items: flex-start;
-          gap: 16px;
-          background: rgba(11, 16, 32, 0.6);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid var(--border-color);
-          border-radius: 18px;
-          padding: 24px;
-          transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .breakdown-row:hover {
-          border-color: rgba(59, 130, 246, 0.25);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
-        }
-        :global([data-theme='light']) .breakdown-row {
-          background: rgba(255, 255, 255, 0.8);
-        }
-        .breakdown-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .breakdown-content {
-          flex: 1;
-        }
-        .breakdown-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-        .breakdown-title-group {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .breakdown-title-group h3 {
-          font-size: 18px;
-          font-weight: 700;
-          margin: 0;
-        }
-        .breakdown-percentage {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 20px;
-          font-weight: 700;
-          letter-spacing: -0.03em;
-        }
-        .breakdown-meta-group {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .issues-badge {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-secondary);
-          background: rgba(255, 255, 255, 0.05);
-          padding: 4px 12px;
-          border-radius: 6px;
-        }
-        .expand-toggle {
-          background: transparent;
-          border: none;
-          color: var(--text-secondary);
-          padding: 4px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          transition: color 0.2s;
-        }
-        .expand-toggle:hover {
-          color: var(--text-primary);
-        }
-        .breakdown-desc {
-          font-size: 14px;
-          color: var(--text-secondary);
-          margin-bottom: 16px;
-          line-height: 1.5;
-        }
-        
-        /* Breakdown Details (Expanded) */
-        .breakdown-details {
-          margin-top: 20px;
-          padding-top: 20px;
-          border-top: 1px solid var(--border-color);
-        }
-        .details-subtitle {
-          font-size: 16px;
-          font-weight: 700;
-          margin-bottom: 16px;
-        }
-        .checks-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .check-item {
-          background: rgba(255, 255, 255, 0.02);
-          border-radius: 12px;
-          padding: 16px;
-          border-left: 3px solid transparent;
-        }
-        .check-item.check-error {
-          border-left-color: #ef4444;
-        }
-        .check-item.check-warning {
-          border-left-color: #f59e0b;
-        }
-        .check-item.check-tip {
-          border-left-color: #6366f1;
-        }
-        .check-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 12px;
-        }
-        .check-left {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          flex: 1;
-        }
-        .check-icon {
-          flex-shrink: 0;
-          display: flex;
-          margin-top: 2px;
-        }
-        .check-item.check-error .check-icon {
-          color: #ef4444;
-        }
-        .check-item.check-warning .check-icon {
-          color: #f59e0b;
-        }
-        .check-item.check-tip .check-icon {
-          color: #6366f1;
-        }
-        .check-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--text-primary);
-          line-height: 1.4;
-        }
-        .check-badge {
-          font-size: 11px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 6px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          flex-shrink: 0;
-        }
-        .check-badge.error {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-        }
-        .check-badge.warning {
-          background: rgba(245, 158, 11, 0.15);
-          color: #f59e0b;
-        }
-        .check-badge.tip {
-          background: rgba(99, 102, 241, 0.15);
-          color: #6366f1;
-        }
-        .check-body {
-          padding-left: 26px;
-        }
-        .check-recommendation {
-          font-size: 14px;
-          color: var(--text-secondary);
-          line-height: 1.6;
-          margin-bottom: 8px;
-        }
-        .check-impact {
-          font-size: 13px;
-          color: var(--text-secondary);
-          margin: 0;
-        }
-        .check-impact strong {
-          color: var(--text-primary);
-        }
-        .breakdown-findings {
-          margin-bottom: 16px;
-          padding: 12px;
-          background: rgba(255, 255, 255, 0.02);
-          border-radius: 8px;
-          border: 1px solid var(--border-color);
-        }
-        .findings-header {
-          margin-bottom: 8px;
-        }
-        .findings-count {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-secondary);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .findings-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .finding-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          font-size: 13px;
-          line-height: 1.5;
-        }
-        .finding-priority {
-          flex-shrink: 0;
-          font-size: 14px;
-        }
-        .finding-text {
-          color: var(--text-primary);
-          flex: 1;
-        }
-        .finding-more {
-          font-size: 12px;
-          color: var(--text-secondary);
-          font-style: italic;
-          padding-left: 22px;
-        }
-        .progress-track {
-          height: 6px;
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 3px;
-          overflow: hidden;
-        }
-        .progress-fill {
-          height: 100%;
-          border-radius: 3px;
-          transition: width 0.6s ease;
-        }
-
-        /* Issues */
-        .issues-list {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-        .issue-card {
-          background: rgba(11, 16, 32, 0.6);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid var(--border-color);
-          border-radius: 18px;
-          padding: 24px;
-          cursor: pointer;
-          transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .issue-card:hover {
-          border-color: rgba(239, 68, 68, 0.3);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(239, 68, 68, 0.08);
-        }
-        :global([data-theme='light']) .issue-card {
-          background: rgba(255, 255, 255, 0.8);
-        }
-        .issue-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 16px;
-        }
-        .issue-left {
-          display: flex;
-          gap: 16px;
-          flex: 1;
-        }
-        .issue-icon-critical {
-          width: 40px;
-          height: 40px;
-          background: rgba(239, 68, 68, 0.1);
-          color: #ef4444;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .issue-title {
-          font-size: 18px;
-          font-weight: 700;
-          margin-bottom: 6px;
-        }
-        .issue-desc {
-          font-size: 14px;
-          color: var(--text-secondary);
-          line-height: 1.6;
-        }
-        .expand-btn {
-          background: transparent;
-          border: none;
-          color: var(--text-secondary);
-          padding: 4px;
-          cursor: pointer;
-        }
-        .issue-meta {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-        .meta-tag {
-          font-size: 12px;
-          font-weight: 700;
-          padding: 6px 12px;
-          border-radius: 6px;
-        }
-        .meta-tag.critical {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-        }
-        .meta-tag.impact {
-          background: rgba(16, 185, 129, 0.15);
-          color: #10b981;
-        }
-        .meta-tag.difficulty {
-          background: rgba(59, 130, 246, 0.12);
-          color: #60A5FA;
-        }
-        .issue-actions {
-          display: flex;
-          gap: 12px;
-          padding-top: 16px;
-          border-top: 1px solid var(--border-color);
-        }
-        .action-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: transparent;
-          border: 1px solid var(--border-color);
-          color: var(--text-secondary);
-          padding: 10px 16px;
-          border-radius: 10px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .action-btn.primary {
-          background: var(--gradient-primary);
-          border-color: transparent;
-          color: white;
-          box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-        }
-        .action-btn:hover {
-          border-color: rgba(59, 130, 246, 0.3);
-          background: rgba(59, 130, 246, 0.06);
-          color: var(--text-primary);
-        }
-        .action-btn.primary:hover {
-          background: var(--gradient-primary);
-          transform: translateY(-1px);
-          box-shadow: 0 6px 24px rgba(59, 130, 246, 0.45);
-        }
-
-        .locked-content {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          background: rgba(59, 130, 246, 0.04);
-          border: 1px dashed rgba(59, 130, 246, 0.2);
-          border-radius: 14px;
-          padding: 24px;
-          margin-top: 16px;
-          font-size: 14px;
-          color: var(--text-secondary);
-        }
-        .unlock-btn {
-          background: var(--gradient-primary);
-          color: white;
-          border: none;
-          padding: 8px 18px;
-          border-radius: 8px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 13px;
-          font-weight: 600;
-          margin-left: auto;
-          cursor: pointer;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-        }
-        .unlock-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 24px rgba(59, 130, 246, 0.45);
-        }
-
-        /* Recommendations */
-        .recommendations-list {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-        .rec-card {
-          display: flex;
-          gap: 16px;
-          background: rgba(11, 16, 32, 0.6);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid var(--border-color);
-          border-radius: 18px;
-          padding: 20px;
-          transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .rec-card:hover {
-          border-color: rgba(139, 92, 246, 0.25);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
-        }
-        :global([data-theme='light']) .rec-card {
-          background: rgba(255, 255, 255, 0.8);
-        }
-        .rec-number {
-          width: 32px;
-          height: 32px;
-          background: var(--gradient-primary);
-          color: white;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 14px;
-          font-weight: 700;
-          flex-shrink: 0;
-        }
-        .rec-content {
-          flex: 1;
-        }
-        .rec-title {
-          font-size: 16px;
-          font-weight: 700;
-          margin-bottom: 10px;
-        }
-        .rec-description {
-          font-size: 14px;
-          color: var(--text-secondary);
-          line-height: 1.6;
-          margin-bottom: 12px;
-        }
-        .rec-meta {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .rec-badge {
-          font-size: 11px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 6px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .rec-badge.high {
-          background: rgba(239, 68, 68, 0.15);
-          color: #ef4444;
-        }
-        .rec-badge.medium {
-          background: rgba(245, 158, 11, 0.12);
-          color: #FBBF24;
-        }
-        .rec-badge.low {
-          background: rgba(99, 102, 241, 0.15);
-          color: #6366f1;
-        }
-        .rec-badge.type {
-          background: rgba(139, 92, 246, 0.15);
-          color: #8b5cf6;
-        }
-        .rec-badge.priority {
-          background: rgba(139, 92, 246, 0.15);
-          color: #8b5cf6;
-        }
-        .rec-badge.impact {
-          background: rgba(16, 185, 129, 0.15);
-          color: #10b981;
-        }
-        .rec-badge.effort {
-          background: rgba(99, 102, 241, 0.15);
-          color: #6366f1;
-        }
-        .no-insights {
-          text-align: center;
-          padding: 32px;
-          color: var(--text-secondary);
-          font-style: italic;
-        }
-
-        /* Upgrade Card */
-        .upgrade-card {
-          background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-          border: 1px solid rgba(139, 92, 246, 0.25);
-          border-radius: 22px;
-          padding: 36px;
-          position: relative;
-          overflow: hidden;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-        }
-        .upgrade-card::before {
-          content: '';
-          position: absolute;
-          top: -40px;
-          right: -40px;
-          width: 200px;
-          height: 200px;
-          background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .upgrade-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 12px;
-          color: #A78BFA;
-        }
-        .upgrade-header h3 {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 20px;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          color: var(--text-primary);
-        }
-        .upgrade-card p {
-          font-size: 14px;
-          margin-bottom: 24px;
-          color: var(--text-secondary);
-          line-height: 1.6;
-        }
-        .upgrade-features {
-          list-style: none;
-          padding: 0;
-          margin: 0 0 28px 0;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .upgrade-features li {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 14px;
-          color: var(--text-secondary);
-        }
-        .btn-upgrade {
-          width: 100%;
-          background: var(--gradient-primary);
-          color: white;
-          border: none;
-          padding: 14px;
-          border-radius: 12px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 15px;
-          font-weight: 600;
-          letter-spacing: -0.01em;
-          cursor: pointer;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-          position: relative;
-          overflow: hidden;
-        }
-        .btn-upgrade::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-          opacity: 0;
-          transition: opacity 0.2s ease;
-        }
-        .btn-upgrade:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.45);
-        }
-        .btn-upgrade:hover::before { opacity: 1; }
-
-        /* Sticky CTA */
-        .sticky-cta {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: rgba(5, 7, 13, 0.9);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          border-top: 1px solid var(--border-color);
-          padding: 16px 24px;
-          z-index: 50;
-          box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.4);
-        }
-        :global([data-theme='light']) .sticky-cta {
-          background: rgba(248, 250, 255, 0.92);
-          border-top-color: rgba(15, 23, 42, 0.08);
-        }
-        .sticky-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .sticky-left {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-        .sticky-score {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 32px;
-          font-weight: 700;
-          letter-spacing: -0.04em;
-          background: var(--gradient-hero);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .sticky-info {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-        .sticky-label {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text-primary);
-        }
-        .sticky-issues {
-          font-size: 12px;
-          color: #ef4444;
-          font-weight: 600;
-        }
-        .sticky-btn {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          background: var(--gradient-primary);
-          color: white;
-          border: none;
-          padding: 12px 28px;
-          border-radius: 12px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .sticky-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 28px rgba(59, 130, 246, 0.5);
-        }
-
-        /* HTML Page Details Styles */
-        .detail-header-group {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-        }
-        
-        .ai-badge {
-          font-size: 10px;
-          font-weight: 700;
-          background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-          color: white;
-          padding: 2px 8px;
-          border-radius: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .detail-description {
-          font-size: 12px;
-          color: var(--text-secondary);
-          margin-top: 8px;
-          line-height: 1.5;
-          opacity: 0.8;
-        }
-
-        @media (max-width: 1024px) {
-          .content-grid {
-            grid-template-columns: 1fr;
-          }
-          .score-hero {
-            flex-direction: column;
-          }
-          .score-stats {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .context-bar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
-          }
-          .score-number {
-            font-size: 64px;
-          }
-          .score-stats {
-            grid-template-columns: 1fr;
-          }
-          .cta-group {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </>
   );
 }

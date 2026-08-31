@@ -6,19 +6,12 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { defaultLocale } from '@platform/i18n';
-import { Space_Grotesk, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import Script from 'next/script';
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-space-grotesk',
-  display: 'swap',
-});
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   variable: '--font-inter',
   display: 'swap',
 });
@@ -131,10 +124,10 @@ export default async function RootLayout({
       lang={locale}
       dir={locale === 'ar' ? 'rtl' : 'ltr'}
       suppressHydrationWarning
-      className={`${spaceGrotesk.variable} ${inter.variable}`}
+      className={inter.variable}
     >
       <head>
-        <Script id="theme-init" strategy="beforeInteractive">{`(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){}})();`}</Script>
+        <Script id="theme-init" strategy="beforeInteractive">{`(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){}})();`}</Script>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-XYZ1234567" strategy="afterInteractive" />
         <Script id="gtag-init" strategy="afterInteractive">{`window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-XYZ1234567');`}</Script>
       </head>
@@ -150,7 +143,7 @@ export default async function RootLayout({
             position: 'fixed',
             inset: 0,
             zIndex: 99999,
-            background: 'var(--bg-primary, #f8faff)',
+            background: 'var(--background, #05070d)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -169,12 +162,12 @@ export default async function RootLayout({
               height: '48px',
               borderRadius: '14px',
               objectFit: 'contain',
-              boxShadow: '0 16px 40px rgba(59,130,246,0.18)',
+              boxShadow: '0 16px 40px rgba(99, 102, 241,0.18)',
               animation: 'pl-pulse 1.4s ease-in-out infinite',
             }}
           />
           <div style={{ width: '120px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div id="pl-fill" suppressHydrationWarning style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#3B82F6,#8B5CF6)', borderRadius: '2px' }} />
+            <div id="pl-fill" suppressHydrationWarning style={{ height: '100%', width: '0', background: 'linear-gradient(90deg,#41A5FF,#6366F1)', borderRadius: '2px' }} />
           </div>
         </div>
 

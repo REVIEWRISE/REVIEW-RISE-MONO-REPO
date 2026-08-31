@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Loader2, Zap, Smartphone, Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AnalysisStep {
   id: string;
@@ -46,44 +46,63 @@ export default function AnalysisLoader() {
 
   return (
     <motion.div
-      className="loader-container"
+      className="mx-auto flex max-w-[560px] flex-col gap-5"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="progress-card">
-        <div className="card-glow" />
-        <div className="app-icon-wrapper">
-          <div className="app-icon">
-            <Zap size={28} color="white" fill="white" />
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-card/80 px-10 py-12 text-center backdrop-blur-xl max-[640px]:px-6 max-[640px]:py-9">
+        <div className="pointer-events-none absolute -top-[60px] left-1/2 h-[200px] w-[300px] -translate-x-1/2 bg-[radial-gradient(ellipse,rgba(99, 102, 241,0.12)_0%,transparent_70%)]" />
+
+        {/* Agent avatar: pulsing orb signaling "the agent is working" */}
+        <div className="relative z-[1] mx-auto mb-7 flex size-20 items-center justify-center">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/20" />
+          <span className="absolute inline-flex size-[68px] animate-pulse rounded-full bg-primary/15" />
+          <div className="relative z-[1] flex size-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-brand-blue to-brand-violet shadow-[0_8px_32px_rgba(99, 102, 241,0.4)]">
+            <Zap size={28} className="fill-white text-white" />
           </div>
-          <div className="ripple" />
         </div>
-        <h3 className="progress-text">
-          {steps[currentStep].label}
-          <span className="percentage"> {progress}{'%'}</span>
+
+        <p className="relative z-[1] mb-2 text-xs font-bold uppercase tracking-[0.1em] text-violet-400">{t('agentLabel')}</p>
+
+        <h3 className="relative z-[1] mb-5 font-display text-[17px] font-semibold tracking-[-0.01em] text-muted-foreground">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={steps[currentStep].id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+              className="inline-block"
+            >
+              {steps[currentStep].label}
+            </motion.span>
+          </AnimatePresence>
+          <span className="text-primary"> {progress}{'%'}</span>
         </h3>
-        <div className="progress-bar-bg">
-          <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
+
+        <div className="relative z-[1] mx-auto mb-9 h-1 max-w-[240px] overflow-hidden rounded-full bg-foreground/6">
+          <div className="h-full rounded-full bg-gradient-to-r from-brand-blue to-brand-violet transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
-        <div className="steps-list">
+
+        <div className="relative z-[1] mx-auto flex max-w-[320px] flex-col gap-3.5 text-left">
           {steps.map((step, index) => {
             const isCompleted = index < currentStep;
             const isCurrent = index === currentStep;
             return (
-              <div key={step.id} className={`step-item ${isCurrent ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
-                <div className="step-icon">
+              <div key={step.id} className={`flex items-center gap-3 transition-opacity duration-300 ${isCurrent || isCompleted ? 'opacity-100' : 'opacity-35'}`}>
+                <div className="flex shrink-0 items-center">
                   {isCompleted ? (
-                    <CheckCircle2 size={18} color="#10b981" />
+                    <CheckCircle2 size={18} className="text-emerald-500" />
                   ) : isCurrent ? (
-                    <Loader2 size={18} color="#3B82F6" style={{ animation: 'spin 1s linear infinite' }} />
+                    <Loader2 size={18} className="animate-spin text-primary" />
                   ) : (
-                    <div className="circle-placeholder" />
+                    <div className="size-[18px] rounded-full border-[1.5px] border-foreground/12" />
                   )}
                 </div>
-                <div className="step-content">
-                  <span className="step-label">{step.subtext}</span>
-                  {isCompleted && <span className="step-time">{'✓'} {t('completed')}</span>}
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[13px] font-medium text-muted-foreground">{step.subtext}</span>
+                  {isCompleted && <span className="text-[11px] font-semibold text-emerald-500">{'✓'} {t('completed')}</span>}
                 </div>
               </div>
             );
@@ -92,206 +111,24 @@ export default function AnalysisLoader() {
       </div>
 
       <motion.div
-        className="insights-card"
+        className="rounded-[18px] border border-brand-violet/18 bg-brand-violet/6 px-7 py-6 backdrop-blur-md"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="insights-header">
-          <Zap size={16} color="#A78BFA" />
+        <div className="mb-[18px] flex items-center gap-2 font-display text-xs font-bold uppercase tracking-[0.06em] text-violet-300">
+          <Zap size={16} className="text-violet-300" />
           <span>{t('earlyInsights')}</span>
         </div>
         {insights.map(({ Icon, text }, i) => (
-          <div key={i} className="insight-item">
-            <div className="insight-icon">
-              <Icon size={14} color="#A78BFA" />
+          <div key={i} className="mb-3 flex items-center gap-3 text-[13px] leading-[1.5] text-muted-foreground last:mb-0">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-brand-violet/20 bg-brand-violet/12">
+              <Icon size={14} className="text-violet-300" />
             </div>
             <span>{text}</span>
           </div>
         ))}
       </motion.div>
-
-      <style jsx>{`
-        .loader-container {
-          max-width: 560px;
-          margin: 0 auto;
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-        .progress-card {
-          background: rgba(11, 16, 32, 0.8);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 24px;
-          padding: 48px 40px;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-        }
-        :global([data-theme='light']) .progress-card {
-          background: rgba(255, 255, 255, 0.9);
-          border-color: rgba(15, 23, 42, 0.08);
-        }
-        .card-glow {
-          position: absolute;
-          top: -60px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 300px;
-          height: 200px;
-          background: radial-gradient(ellipse, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .app-icon-wrapper {
-          position: relative;
-          width: 80px;
-          height: 80px;
-          margin: 0 auto 28px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .app-icon {
-          width: 64px;
-          height: 64px;
-          background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-          border-radius: 18px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 2;
-          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
-        }
-        .ripple {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          border: 2px solid rgba(59, 130, 246, 0.25);
-          animation: ripple 2s infinite;
-        }
-        @keyframes ripple {
-          0% { transform: scale(0.8); opacity: 1; }
-          100% { transform: scale(1.6); opacity: 0; }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .progress-text {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 17px;
-          font-weight: 600;
-          color: var(--text-secondary);
-          margin-bottom: 20px;
-          letter-spacing: -0.01em;
-        }
-        .percentage {
-          color: #3B82F6;
-          font-weight: 700;
-        }
-        .progress-bar-bg {
-          height: 4px;
-          background: rgba(255, 255, 255, 0.06);
-          border-radius: 2px;
-          overflow: hidden;
-          margin-bottom: 36px;
-          max-width: 240px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-        .progress-bar-fill {
-          height: 100%;
-          background: linear-gradient(to right, #3B82F6, #8B5CF6);
-          border-radius: 2px;
-          transition: width 0.3s ease;
-        }
-        .steps-list {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          text-align: left;
-          max-width: 320px;
-          margin: 0 auto;
-        }
-        .step-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          opacity: 0.35;
-          transition: opacity 0.3s ease;
-        }
-        .step-item.active, .step-item.completed { opacity: 1; }
-        .step-icon {
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-        }
-        .step-content {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-        .step-label {
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text-secondary);
-        }
-        .step-time {
-          font-size: 11px;
-          color: #10b981;
-          font-weight: 600;
-        }
-        .circle-placeholder {
-          width: 18px;
-          height: 18px;
-          border: 1.5px solid rgba(255, 255, 255, 0.12);
-          border-radius: 50%;
-        }
-        .insights-card {
-          background: rgba(139, 92, 246, 0.06);
-          border: 1px solid rgba(139, 92, 246, 0.18);
-          border-radius: 18px;
-          padding: 24px 28px;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-        }
-        .insights-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 18px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 12px;
-          font-weight: 700;
-          color: #C4B5FD;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-        }
-        .insight-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 12px;
-          font-size: 13px;
-          color: var(--text-secondary);
-          line-height: 1.5;
-        }
-        .insight-item:last-child { margin-bottom: 0; }
-        .insight-icon {
-          width: 28px;
-          height: 28px;
-          background: rgba(139, 92, 246, 0.12);
-          border: 1px solid rgba(139, 92, 246, 0.2);
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-      `}</style>
     </motion.div>
   );
 }

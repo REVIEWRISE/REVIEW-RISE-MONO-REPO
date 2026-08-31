@@ -16,10 +16,10 @@
       "faq": "FAQ"
     },
     "hero": {
-      "badge": "AI-Powered SEO Analysis",
-      "titleLine1": "Free Site Analyze",
-      "titleLine2": "Page in Seconds",
-      "description": "Free Site Analyze Page in Seconds. Analyze your site with our free instant SEO checker. Improve page performance, titles, meta descriptions, headings, images, and more in just seconds.",
+      "badge": "AI-Powered SEO Agent",
+      "titleLine1": "Free SEO Analysis,",
+      "titleLine2": "Done in Seconds",
+      "description": "Point our AI agent at any URL and get a full technical, content, and on-page SEO audit with prioritized fixes — free, instant, no login required.",
       "inputPlaceholder": "https://example.com",
       "analyzeButton": "Check SEO",
       "featuresText": "No login required",
@@ -49,7 +49,11 @@
       }
     },
     "trustBar": {
-      "label": "Trusted by teams at"
+      "label": "Why teams run their sites through Vyntrise",
+      "fact1": "80+ automated SEO checks",
+      "fact2": "Full report in under 10 seconds",
+      "fact3": "No data stored after your scan",
+      "fact4": "Free, no login required"
     },
     "features": {
       "badge": "Features",
@@ -187,6 +191,7 @@
       "hint": "Takes about 10 seconds"
     },
     "loader": {
+      "agentLabel": "Agent at work",
       "fetching": "Fetching website data...",
       "technical": "Analyzing technical SEO...",
       "content": "Evaluating content quality...",

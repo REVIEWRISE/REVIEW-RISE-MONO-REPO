@@ -1,9 +1,11 @@
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
+import TrustBar from '@/components/TrustBar';
 import Features from '@/components/Features';
 import DeepInsights from '@/components/DeepInsights';
 import WorkflowSection from '@/components/WorkflowSection';
 import HowItWorks from '@/components/HowItWorks';
+import FAQ from '@/components/FAQ';
 import BottomCTA from '@/components/BottomCTA';
 import Footer from '@/components/Footer';
 
@@ -37,10 +39,12 @@ export default function Home() {
       />
       <Header />
       <Hero />
+      <TrustBar />
       <Features />
       <DeepInsights />
       <WorkflowSection />
       <HowItWorks />
+      <FAQ />
       <BottomCTA />
       <Footer />
     </main>

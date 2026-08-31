@@ -2,116 +2,43 @@
 
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
+import { Zap, ShieldCheck, Clock, Gift } from 'lucide-react';
 
-// SVG wordmarks as inline components — no external images needed
-const BRANDS = [
-    { name: 'Shopify', width: 72 },
-    { name: 'Stripe', width: 52 },
-    { name: 'Notion', width: 64 },
-    { name: 'Linear', width: 60 },
-    { name: 'Vercel', width: 64 },
-    { name: 'Figma', width: 48 },
-    { name: 'Webflow', width: 76 },
-    { name: 'Framer', width: 68 },
+const FACTS = [
+  { Icon: Zap, key: 'fact1' },
+  { Icon: Clock, key: 'fact2' },
+  { Icon: ShieldCheck, key: 'fact3' },
+  { Icon: Gift, key: 'fact4' },
 ];
 
-// Duplicate for seamless loop
-const TICKER = [...BRANDS, ...BRANDS];
+const TICKER = [...FACTS, ...FACTS];
 
 export default function TrustBar() {
-    const t = useTranslations('landing.trustBar');
+  const t = useTranslations('landing.trustBar');
 
-    return (
-        <div className="trust-bar">
-            <div className="label">{t('label')}</div>
+  return (
+    <div className="overflow-hidden border-b border-border py-10 text-center max-[640px]:py-8">
+      <div className="mb-6 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{t('label')}</div>
 
-            <div className="ticker-wrap">
-                <div className="ticker-fade ticker-fade-left" />
-                <div className="ticker-fade ticker-fade-right" />
-                <motion.div
-                    className="ticker"
-                    animate={{ x: ['0%', '-50%'] }}
-                    transition={{ duration: 28, ease: 'linear', repeat: Infinity }}
-                >
-                    {TICKER.map((brand, i) => (
-                        <div key={i} className="brand-pill">
-                            <span className="brand-dot" />
-                            <span className="brand-name">{brand.name}</span>
-                        </div>
-                    ))}
-                </motion.div>
+      <div className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-[120px] bg-gradient-to-r from-background to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-[120px] bg-gradient-to-l from-background to-transparent" />
+        <motion.div
+          className="flex w-max gap-3"
+          animate={{ x: ['0%', '-50%'] }}
+          transition={{ duration: 24, ease: 'linear', repeat: Infinity }}
+        >
+          {TICKER.map(({ Icon, key }, i) => (
+            <div
+              key={i}
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-foreground/6 bg-foreground/[0.03] px-5 py-2"
+            >
+              <Icon size={14} className="text-primary" />
+              <span className="font-display text-sm font-semibold tracking-[-0.01em] text-muted-foreground">{t(key)}</span>
             </div>
-
-            <style jsx>{`
-        .trust-bar {
-          padding: 48px 0 56px;
-          text-align: center;
-          border-bottom: 1px solid var(--border-color);
-          overflow: hidden;
-        }
-        .label {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-muted);
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          margin-bottom: 28px;
-        }
-        .ticker-wrap {
-          position: relative;
-          overflow: hidden;
-        }
-        .ticker-fade {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          width: 120px;
-          z-index: 2;
-          pointer-events: none;
-        }
-        .ticker-fade-left {
-          left: 0;
-          background: linear-gradient(to right, var(--bg-primary), transparent);
-        }
-        .ticker-fade-right {
-          right: 0;
-          background: linear-gradient(to left, var(--bg-primary), transparent);
-        }
-        .ticker {
-          display: flex;
-          gap: 12px;
-          width: max-content;
-        }
-        .brand-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 100px;
-          padding: 8px 20px;
-          white-space: nowrap;
-          transition: border-color 0.2s ease;
-        }
-        :global([data-theme='light']) .brand-pill {
-          background: rgba(15, 23, 42, 0.03);
-          border-color: rgba(15, 23, 42, 0.08);
-        }
-        .brand-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-          flex-shrink: 0;
-        }
-        .brand-name {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--text-muted);
-          letter-spacing: -0.01em;
-        }
-      `}</style>
-        </div>
-    );
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
 }
