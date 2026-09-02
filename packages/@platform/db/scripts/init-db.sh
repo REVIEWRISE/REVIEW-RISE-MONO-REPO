@@ -2,13 +2,18 @@
 # ./packages/@platform/db/scripts/init-db.sh
 set -e
 
+if [ -z "${POSTGRES_ADMIN_PASSWORD:-}" ] || [ -z "${POSTGRES_APP_PASSWORD:-}" ]; then
+    echo "ERROR: POSTGRES_ADMIN_PASSWORD and POSTGRES_APP_PASSWORD must be set (no hardcoded fallback)." >&2
+    exit 1
+fi
+
 echo "Creating ReviewRise database users..."
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE USER reviewrise_admin WITH PASSWORD 'admin_password';
+    CREATE USER reviewrise_admin WITH PASSWORD '$POSTGRES_ADMIN_PASSWORD';
     ALTER USER reviewrise_admin WITH CREATEDB;
 
-    CREATE USER reviewrise_app WITH PASSWORD 'app_password';
+    CREATE USER reviewrise_app WITH PASSWORD '$POSTGRES_APP_PASSWORD';
 
     GRANT ALL PRIVILEGES ON DATABASE reviewrise_db TO reviewrise_admin;
     GRANT ALL PRIVILEGES ON SCHEMA public TO reviewrise_admin;

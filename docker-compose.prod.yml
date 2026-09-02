@@ -36,6 +36,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-reviewrise_db}
+      POSTGRES_ADMIN_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?POSTGRES_ADMIN_PASSWORD must be set in .env.production}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:?POSTGRES_APP_PASSWORD must be set in .env.production}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./packages/@platform/db/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
@@ -516,14 +518,10 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - AUTH_SERVICE_URL=http://express-auth:3010/api
       - EXPRESS_BRAND_URL=http://express-brand:3007/api/v1
-      - EXPRESS_REVIEWS_URL=${EXPRESS_REVIEWS_URL:-http://express-reviews:3006}
-      - NEXT_PUBLIC_REVIEWS_API_URL=${NEXT_PUBLIC_REVIEWS_API_URL:-https://app.vyntrise.com/api/reviews/v1}
-      - NEXT_PUBLIC_SEO_HEALTH_API_URL=${NEXT_PUBLIC_SEO_HEALTH_API_URL:-https://app.vyntrise.com/api/seo/v1}
+      - EXPRESS_REVIEWS_URL=${EXPRESS_REVIEWS_URL:-http://express-reviews:3006/api/v1}
+      - EXPRESS_AI_URL=http://express-ai:3002
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://app.vyntrise.com}
       - NEXT_PUBLIC_LLM_COST_WARNING=${NEXT_PUBLIC_LLM_COST_WARNING:-true}
-      - AUTH_SERVICE_URL=http://express-auth:3010/api
-      - EXPRESS_REVIEWS_URL=http://express-reviews:3006/api/v1
-      - EXPRESS_AI_URL=http://express-ai:3002
       - NEXT_PUBLIC_SEO_HEALTH_API_URL=${NEXT_PUBLIC_SEO_HEALTH_API_URL:-https://app.vyntrise.com/api/seo}
       - NEXT_PUBLIC_REVIEWS_API_URL=${NEXT_PUBLIC_REVIEWS_API_URL:-https://app.vyntrise.com/api/reviews}
     depends_on:
@@ -597,7 +595,7 @@ services:
     working_dir: /app/packages/@platform/db
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:-admin_password}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable
+      - DATABASE_URL=postgresql://reviewrise_admin:${POSTGRES_ADMIN_PASSWORD:?POSTGRES_ADMIN_PASSWORD must be set in .env.production}@postgres:5432/${POSTGRES_DB:-reviewrise_db}?sslmode=disable
     volumes:
       - .:/app
     command: ["sh", "/app/scripts/db-migrate.sh"]
